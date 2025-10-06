@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
-
+import Image from 'next/image';
 export function Footer() {
   const [email, setEmail] = useState('');
 
@@ -14,16 +14,18 @@ export function Footer() {
   };
 
   return (
-    <footer className="bg-gradient-to-br from-purple-900 via-purple-800 to-pink-900 text-white">
+    <footer className="bg-gradient-to-br from-purple-900 via-[#391C71] to-[#391C72] text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* Brand Section */}
           <div className="col-span-1">
             <div className="flex items-center space-x-2 mb-4">
-              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                <span className="text-purple-600 font-bold text-xl">A</span>
-              </div>
-              <span className="text-2xl font-bold">Artistic</span>
+              <Image
+                src="/logo-welcome.webp"
+                alt='logo'
+                height={60}
+                width={120}
+                          />
             </div>
             <p className="text-purple-200 text-sm mb-4">
               Connecting art lovers with extraordinary experiences.
