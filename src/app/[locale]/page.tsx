@@ -7,35 +7,70 @@ import { ChevronLeft, ChevronRight, MapPin, Star } from 'lucide-react';
 import { Navbar } from '@/components/main/Navbar';
 import { Footer } from '@/components/main/Footer';
 
+import HeroCarousel from '@/components/ui/HeroCarousel';
+
 export default function HomePage() {
   const t = useTranslations();
+  const [scrollY, setScrollY] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoSliding, setIsAutoSliding] = useState(true);
+
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const carouselSlides = [
     {
       image: '/assets/images/1.jpg',
       title: t('home.heroTitle'),
       titleHighlight: t('home.heroHighlight'),
-      subtitle: t('home.heroSubtitle')
+      subtitle: t('home.heroSubtitle'),
+      bgGradient: 'linear-gradient(135deg, #391C71 0%, #5B2C87 25%, #7C3A9D 50%, #9D47B3 75%, #BE54C9 100%)',
+      ctaText: t('nav.joinUs'),
+      ctaLink: '/join-us',
+      category: 'Featured'
     },
     {
       image: '/assets/images/3.jpg',
       title: 'Experience Live',
       titleHighlight: 'Music Concerts!',
-      subtitle: 'Feel the rhythm and energy of live performances from world-class artists and emerging talents.'
+      subtitle: 'Feel the rhythm and energy of live performances from world-class artists and emerging talents.',
+      bgGradient: 'linear-gradient(135deg, #FF6B6B 0%, #FF8E53 25%, #FF6B9D 50%, #C44569 75%, #F8B500 100%)',
+      ctaText: 'Book Concert',
+      ctaLink: '/events',
+      category: 'Music'
     },
     {
       image: '/assets/images/5.jpg',
       title: 'Immerse in',
       titleHighlight: 'Art Exhibitions!',
-      subtitle: 'Discover contemporary and classical artworks from renowned galleries and independent artists.'
+      subtitle: 'Discover contemporary and classical artworks from renowned galleries and independent artists.',
+      bgGradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%)',
+      ctaText: 'Explore Art',
+      ctaLink: '/events',
+      category: 'Art'
     },
     {
       image: '/assets/images/7.jpg',
       title: 'Join Creative',
       titleHighlight: 'Workshops!',
-      subtitle: 'Learn new skills and techniques from expert instructors in hands-on creative sessions.'
+      subtitle: 'Learn new skills and techniques from expert instructors in hands-on creative sessions.',
+      bgGradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 25%, #fa709a 50%, #fee140 75%, #fa709a 100%)',
+      ctaText: 'Join Workshop',
+      ctaLink: '/events',
+      category: 'Workshop'
+    },
+    {
+      image: '/assets/images/8.jpg',
+      title: 'Stream Movies',
+      titleHighlight: 'At Home!',
+      subtitle: 'Watch the latest blockbusters and indie films from the comfort of your home.',
+      bgGradient: 'linear-gradient(135deg, #11998e 0%, #38ef7d 25%, #667eea 50%, #764ba2 75%, #f093fb 100%)',
+      ctaText: 'Stream Now',
+      ctaLink: '/stream',
+      category: 'Movies'
     }
   ];
 
@@ -187,116 +222,87 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white relative">
+      {/* Floating Elements Background */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div 
+          className="absolute w-96 h-96 rounded-full opacity-5 animate-float-slow"
+          style={{ 
+            background: `radial-gradient(circle, #391C71 0%, transparent 70%)`,
+            top: '10%',
+            left: '5%',
+            transform: `translateY(${scrollY * 0.1}px)`
+          }}
+        />
+        <div 
+          className="absolute w-64 h-64 rounded-full opacity-3 animate-float-delayed"
+          style={{ 
+            background: `radial-gradient(circle, #391C71 0%, transparent 70%)`,
+            top: '60%',
+            right: '10%',
+            transform: `translateY(${-scrollY * 0.15}px)`
+          }}
+        />
+        <div 
+          className="absolute w-48 h-48 rounded-full opacity-4 animate-float"
+          style={{ 
+            background: `radial-gradient(circle, #391C71 0%, transparent 70%)`,
+            top: '30%',
+            right: '30%',
+            transform: `translateY(${scrollY * 0.08}px)`
+          }}
+        />
+      </div>
+
       <Navbar />
 
-      {/* Hero Carousel */}
-      <section className="relative h-[600px] flex items-center justify-center pt-16 overflow-hidden">
-        {/* Carousel Images */}
-        <div className="absolute inset-0 w-full h-full">
-          {carouselSlides.map((slide, index) => (
-            <div
-              key={index}
-              className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ${
-                index === currentSlide ? 'opacity-100' : 'opacity-0'
-              }`}
-            >
-              <div className="w-full h-full bg-gradient-to-r from-purple-600 to-pink-500" />
-              <div className="absolute inset-0 bg-black/40" />
-            </div>
-          ))}
-        </div>
-
-        {/* Navigation Buttons */}
-        <button 
-          onClick={prevSlide}
-          className="absolute start-8 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white/50 rounded-full p-3 transition-all duration-300 hover:scale-110 z-10"
-        >
-          <ChevronLeft className="w-6 h-6 text-white" />
-        </button>
-        <button 
-          onClick={nextSlide}
-          className="absolute end-8 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white/50 rounded-full p-3 transition-all duration-300 hover:scale-110 z-10"
-        >
-          <ChevronRight className="w-6 h-6 text-white" />
-        </button>
-
-        {/* Slide Indicators */}
-        <div className="absolute bottom-8 start-1/2 -translate-x-1/2 flex gap-2 z-10">
-          {carouselSlides.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => {
-                setCurrentSlide(index);
-                setIsAutoSliding(false);
-                setTimeout(() => setIsAutoSliding(true), 10000);
-              }}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                index === currentSlide ? 'bg-white scale-125' : 'bg-white/50 hover:bg-white/75'
-              }`}
-            />
-          ))}
-        </div>
-
-        {/* Content */}
-        <div className="relative text-center text-white max-w-4xl px-4 z-10">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6">
-            {carouselSlides[currentSlide].title}{' '}
-            <br />
-            <span className="text-yellow-300">
-              {carouselSlides[currentSlide].titleHighlight}
-            </span>
-          </h1>
-          <p className="text-lg mb-8 text-gray-200 max-w-2xl mx-auto">
-            {carouselSlides[currentSlide].subtitle}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/join-us"
-              className="px-8 py-3 border-2 border-white text-white rounded-full hover:bg-white hover:text-purple-600 transition-all duration-300"
-            >
-              {t('nav.joinUs')}
-            </Link>
-            <Link
-              href="/events"
-              className="px-8 py-3 bg-white text-purple-600 rounded-full hover:bg-yellow-300 transition-all duration-300"
-            >
-              {t('home.exploreEvents')}
-            </Link>
-          </div>
+      {/* BookMyShow Style Hero Carousel */}
+      <section className="py-8 pt-24">
+        <div className="max-w-7xl mx-auto px-6">
+          <HeroCarousel slides={carouselSlides} autoSlideInterval={5000} />
         </div>
       </section>
 
       {/* Featured Events */}
-      <section className="py-16 max-w-7xl mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">{t('home.featuredEvents')}</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
+      <section className="py-20 max-w-7xl mx-auto px-6">
+        <div className="text-center mb-16">
+          <h2 className="text-5xl font-bold text-gray-900 mb-6 relative">
+            {t('home.featuredEvents')}
+            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 h-1 bg-[#391C71] rounded-full" />
+          </h2>
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
             {t('home.featuredEventsDesc')}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {featuredEvents.map((event) => (
-            <Link key={event.id} href={`/events/${event.id}`} className="block">
-              <div className="bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-105 cursor-pointer">
-                <div className="relative h-48 bg-gradient-to-br from-purple-400 to-pink-400">
-                  <div className="absolute top-3 end-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center">
-                    <Star className="w-4 h-4 text-yellow-400 fill-current me-1" />
-                    <span className="text-sm font-medium">{event.rating}</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+          {featuredEvents.map((event, index) => (
+            <Link key={event.id} href={`/events/${event.id}`} className="block group">
+              <div 
+                className="bg-white rounded-3xl border border-gray-100 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-[#391C71]/10 cursor-pointer transform hover:-translate-y-2 hover:scale-105"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <div className="relative h-56 bg-gradient-to-br from-[#391C71] to-[#5B2C87] overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full flex items-center shadow-lg border border-white/20">
+                    <Star className="w-4 h-4 text-yellow-500 fill-current mr-1" />
+                    <span className="text-sm font-semibold text-gray-700">{event.rating}</span>
+                  </div>
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
                   </div>
                 </div>
-                <div className="p-4">
-                  <div className="text-xs text-purple-600 font-medium mb-2">{event.category}</div>
-                  <h3 className="font-semibold text-gray-900 mb-2 text-lg">{event.title}</h3>
-                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">{event.description}</p>
-                  <div className="flex items-center text-sm text-gray-500 mb-3">
-                    <MapPin className="w-4 h-4 me-1" />
+                <div className="p-6">
+                  <div className="text-xs text-[#391C71] font-bold mb-3 uppercase tracking-wider">{event.category}</div>
+                  <h3 className="font-bold text-gray-900 mb-3 text-xl leading-tight group-hover:text-[#391C71] transition-colors duration-300">{event.title}</h3>
+                  <p className="text-sm text-gray-600 mb-4 line-clamp-2 leading-relaxed">{event.description}</p>
+                  <div className="flex items-center text-sm text-gray-500 mb-5">
+                    <MapPin className="w-4 h-4 mr-2 text-[#391C71]" />
                     {event.place}
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="font-semibold text-gray-900">KD {event.price}</span>
-                    <span className="bg-purple-600 text-white px-4 py-2 rounded-full text-sm font-medium">
+                    <span className="font-bold text-gray-900 text-xl">KD {event.price}</span>
+                    <span className="bg-[#391C71] text-white px-5 py-2 rounded-full text-sm font-medium group-hover:bg-[#5B2C87] transition-all duration-300 shadow-lg">
                       {t('home.bookNow')}
                     </span>
                   </div>
@@ -309,7 +315,7 @@ export default function HomePage() {
         <div className="text-center">
           <Link
             href="/events"
-            className="inline-block border-2 border-purple-600 text-purple-600 px-8 py-3 rounded-full hover:bg-purple-600 hover:text-white transition-all duration-300 font-medium"
+            className="inline-block bg-white border-2 border-[#391C71] text-[#391C71] px-10 py-4 rounded-full hover:bg-[#391C71] hover:text-white transition-all duration-500 font-medium shadow-xl hover:shadow-2xl hover:shadow-[#391C71]/20 hover:scale-105"
           >
             {t('home.viewAllEvents')}
           </Link>
@@ -317,36 +323,47 @@ export default function HomePage() {
       </section>
 
       {/* Book Your Artist */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">{t('home.bookYourArtist')}</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+      <section className="py-20 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-gray-50 to-purple-50" />
+        <div className="max-w-7xl mx-auto px-6 relative">
+          <div className="text-center mb-16">
+            <h2 className="text-5xl font-bold text-gray-900 mb-6 relative">
+              {t('home.bookYourArtist')}
+              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 h-1 bg-[#391C71] rounded-full" />
+            </h2>
+            <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
               {t('home.bookYourArtistDesc')}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            {artists.map((artist) => (
-              <Link key={artist.id} href={`/artists/${artist.id}`} className="block">
-                <div className="bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-105 cursor-pointer border border-gray-100">
-                  <div className="relative h-48 bg-gradient-to-br from-blue-400 to-purple-400">
-                    <div className="absolute top-3 end-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center">
-                      <Star className="w-4 h-4 text-yellow-400 fill-current me-1" />
-                      <span className="text-sm font-medium">{artist.rating}</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+            {artists.map((artist, index) => (
+              <Link key={artist.id} href={`/artists/${artist.id}`} className="block group">
+                <div 
+                  className="bg-white rounded-3xl border border-gray-100 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-[#391C71]/10 cursor-pointer transform hover:-translate-y-2 hover:scale-105"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <div className="relative h-56 bg-gradient-to-br from-blue-500 to-[#391C71] overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full flex items-center shadow-lg border border-white/20">
+                      <Star className="w-4 h-4 text-yellow-500 fill-current mr-1" />
+                      <span className="text-sm font-semibold text-gray-700">{artist.rating}</span>
+                    </div>
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
                     </div>
                   </div>
-                  <div className="p-4">
-                    <div className="text-xs text-purple-600 font-medium mb-2">{artist.category}</div>
-                    <h3 className="font-semibold text-gray-900 mb-2">{artist.name}</h3>
-                    <div className="flex items-center text-sm text-gray-500 mb-3">
-                      <MapPin className="w-4 h-4 me-1" />
+                  <div className="p-6">
+                    <div className="text-xs text-[#391C71] font-bold mb-3 uppercase tracking-wider">{artist.category}</div>
+                    <h3 className="font-bold text-gray-900 mb-3 text-xl group-hover:text-[#391C71] transition-colors duration-300">{artist.name}</h3>
+                    <div className="flex items-center text-sm text-gray-500 mb-5">
+                      <MapPin className="w-4 h-4 mr-2 text-[#391C71]" />
                       {artist.location}
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="font-semibold text-gray-900">KD {artist.price}/{t('home.perHour')}</span>
-                      <span className="text-sm text-purple-600 hover:text-purple-700">
-                        {t('home.viewDetails')}
+                      <span className="font-bold text-gray-900 text-lg">KD {artist.price}/{t('home.perHour')}</span>
+                      <span className="text-sm text-[#391C71] hover:text-[#5B2C87] font-semibold transition-colors duration-300">
+                        {t('home.viewDetails')} →
                       </span>
                     </div>
                   </div>
@@ -358,7 +375,7 @@ export default function HomePage() {
           <div className="text-center">
             <Link
               href="/artists"
-              className="inline-block border-2 border-purple-600 text-purple-600 px-8 py-3 rounded-full hover:bg-purple-600 hover:text-white transition-all duration-300 font-medium"
+              className="inline-block bg-white border-2 border-[#391C71] text-[#391C71] px-10 py-4 rounded-full hover:bg-[#391C71] hover:text-white transition-all duration-500 font-medium shadow-xl hover:shadow-2xl hover:shadow-[#391C71]/20 hover:scale-105"
             >
               {t('home.viewAllArtists')}
             </Link>
@@ -367,88 +384,107 @@ export default function HomePage() {
       </section>
 
       {/* Book Equipment */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">{t('home.bookEquipment')}</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              {t('home.bookEquipmentDesc')}
-            </p>
-          </div>
+      <section className="py-20 max-w-7xl mx-auto px-6">
+        <div className="text-center mb-16">
+          <h2 className="text-5xl font-bold text-gray-900 mb-6 relative">
+            {t('home.bookEquipment')}
+            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 h-1 bg-[#391C71] rounded-full" />
+          </h2>
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
+            {t('home.bookEquipmentDesc')}
+          </p>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            {equipment.map((item) => (
-              <Link key={item.id} href={`/equipments/${item.id}`} className="block">
-                <div className="bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-105 cursor-pointer">
-                  <div className="relative h-48 bg-gradient-to-br from-yellow-400 to-orange-400">
-                    <div className="absolute top-3 end-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center">
-                      <Star className="w-4 h-4 text-yellow-400 fill-current me-1" />
-                      <span className="text-sm font-medium">{item.rating}</span>
-                    </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+          {equipment.map((item, index) => (
+            <Link key={item.id} href={`/equipments/${item.id}`} className="block group">
+              <div 
+                className="bg-white rounded-3xl border border-gray-100 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-[#391C71]/10 cursor-pointer transform hover:-translate-y-2 hover:scale-105"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <div className="relative h-56 bg-gradient-to-br from-orange-400 to-yellow-500 overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full flex items-center shadow-lg border border-white/20">
+                    <Star className="w-4 h-4 text-yellow-500 fill-current mr-1" />
+                    <span className="text-sm font-semibold text-gray-700">{item.rating}</span>
                   </div>
-                  <div className="p-4">
-                    <div className="text-xs text-purple-600 font-medium mb-2">{item.category}</div>
-                    <h3 className="font-semibold text-gray-900 mb-2">{item.name}</h3>
-                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">{item.description}</p>
-                    <div className="flex items-center text-sm text-gray-500 mb-3">
-                      <MapPin className="w-4 h-4 me-1" />
-                      {item.location}
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="font-semibold text-gray-900">KD {item.price}/{t('home.perDay')}</span>
-                      <span className="text-sm text-purple-600 hover:text-purple-700">
-                        {t('home.details')}
-                      </span>
-                    </div>
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
                   </div>
                 </div>
-              </Link>
-            ))}
-          </div>
-
-          <div className="text-center">
-            <Link
-              href="/equipments"
-              className="inline-block border-2 border-purple-600 text-purple-600 px-8 py-3 rounded-full hover:bg-purple-600 hover:text-white transition-all duration-300 font-medium"
-            >
-              {t('home.viewAllEquipment')}
+                <div className="p-6">
+                  <div className="text-xs text-[#391C71] font-bold mb-3 uppercase tracking-wider">{item.category}</div>
+                  <h3 className="font-bold text-gray-900 mb-3 text-xl group-hover:text-[#391C71] transition-colors duration-300">{item.name}</h3>
+                  <p className="text-sm text-gray-600 mb-4 line-clamp-2 leading-relaxed">{item.description}</p>
+                  <div className="flex items-center text-sm text-gray-500 mb-5">
+                    <MapPin className="w-4 h-4 mr-2 text-[#391C71]" />
+                    {item.location}
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-gray-900 text-lg">KD {item.price}/{t('home.perDay')}</span>
+                    <span className="text-sm text-[#391C71] hover:text-[#5B2C87] font-semibold transition-colors duration-300">
+                      {t('home.details')} →
+                    </span>
+                  </div>
+                </div>
+              </div>
             </Link>
-          </div>
+          ))}
+        </div>
+
+        <div className="text-center">
+          <Link
+            href="/equipments"
+            className="inline-block bg-white border-2 border-[#391C71] text-[#391C71] px-10 py-4 rounded-full hover:bg-[#391C71] hover:text-white transition-all duration-500 font-medium shadow-xl hover:shadow-2xl hover:shadow-[#391C71]/20 hover:scale-105"
+          >
+            {t('home.viewAllEquipment')}
+          </Link>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-purple-600 to-pink-500">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold text-white mb-4">
+      <section className="py-20 relative overflow-hidden">
+        <div 
+          className="absolute inset-0"
+          style={{ 
+            background: `linear-gradient(135deg, #391C71 0%, #5B2C87 25%, #7C3A9D 50%, #9D47B3 75%, #BE54C9 100%)`
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/20" />
+        <div className="max-w-7xl mx-auto px-6 text-center relative z-10">
+          <h2 className="text-5xl font-bold text-white mb-6 leading-tight">
             {t('home.ctaTitle')}
           </h2>
-          <p className="text-white/90 text-lg mb-8 max-w-2xl mx-auto">
+          <p className="text-white/90 text-xl mb-12 max-w-3xl mx-auto leading-relaxed">
             {t('home.ctaSubtitle')}
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <Link
               href="/create-event"
-              className="px-8 py-3 bg-white text-purple-600 rounded-full font-medium hover:bg-yellow-300 transition-all duration-300"
+              className="group px-10 py-4 bg-white text-[#391C71] rounded-full font-medium hover:bg-yellow-300 transition-all duration-500 shadow-2xl hover:scale-105"
             >
-              {t('nav.createEvent')}
+              <span className="group-hover:tracking-wider transition-all duration-300">{t('nav.createEvent')}</span>
             </Link>
             <Link
               href="/contact"
-              className="px-8 py-3 border-2 border-white text-white rounded-full hover:bg-white hover:text-purple-600 transition-all duration-300 font-medium"
+              className="group px-10 py-4 bg-white/15 backdrop-blur-xl border border-white/30 text-white rounded-full hover:bg-white/25 transition-all duration-500 font-medium shadow-2xl hover:scale-105"
             >
-              {t('home.contactUs')}
+              <span className="group-hover:tracking-wider transition-all duration-300">{t('home.contactUs')}</span>
             </Link>
           </div>
         </div>
       </section>
 
       {/* Testimonials */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">{t('home.testimonials')}</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+      <section className="py-20 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-gray-50 to-purple-50" />
+        <div className="max-w-7xl mx-auto px-6 relative">
+          <div className="text-center mb-16">
+            <h2 className="text-5xl font-bold text-gray-900 mb-6 relative">
+              {t('home.testimonials')}
+              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 h-1 bg-[#391C71] rounded-full" />
+            </h2>
+            <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
               {t('home.testimonialsDesc')}
             </p>
           </div>
@@ -474,24 +510,28 @@ export default function HomePage() {
                 avatar: '/assets/images/testimonial3.jpg',
               },
             ].map((testimonial, idx) => (
-              <div key={idx} className="bg-purple-50 p-6 rounded-xl">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-500 rounded-full flex items-center justify-center me-4">
-                    <span className="text-white font-bold text-lg">
+              <div 
+                key={idx} 
+                className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl hover:shadow-2xl hover:shadow-[#391C71]/10 transition-all duration-500 transform hover:-translate-y-1 group"
+                style={{ animationDelay: `${idx * 200}ms` }}
+              >
+                <div className="flex items-center mb-6">
+                  <div className="w-16 h-16 bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full flex items-center justify-center mr-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <span className="text-white font-bold text-xl">
                       {testimonial.name.charAt(0)}
                     </span>
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900">{testimonial.name}</div>
-                    <div className="text-gray-600 text-sm">{testimonial.role}</div>
+                    <div className="font-bold text-gray-900 text-lg">{testimonial.name}</div>
+                    <div className="text-[#391C71] text-sm font-medium">{testimonial.role}</div>
                   </div>
                 </div>
-                <p className="text-gray-700 italic text-sm mb-4">
+                <p className="text-gray-700 italic text-base mb-6 leading-relaxed">
                   "{testimonial.content}"
                 </p>
                 <div className="flex">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
+                    <Star key={i} className="w-5 h-5 text-yellow-500 fill-current" />
                   ))}
                 </div>
               </div>
@@ -501,6 +541,108 @@ export default function HomePage() {
       </section>
 
       <Footer />
+
+      <style jsx>{`
+        @keyframes float-slow {
+          0%, 100% {
+            transform: translateY(0px) rotate(0deg);
+          }
+          50% {
+            transform: translateY(-20px) rotate(180deg);
+          }
+        }
+
+        @keyframes float {
+          0%, 100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-15px);
+          }
+        }
+
+        @keyframes float-delayed {
+          0%, 100% {
+            transform: translateY(0px) rotate(0deg);
+          }
+          50% {
+            transform: translateY(-25px) rotate(-180deg);
+          }
+        }
+
+        @keyframes spin-slow {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        @keyframes pulse-slow {
+          0%, 100% {
+            opacity: 0.20;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.30;
+            transform: scale(1.05);
+          }
+        }
+
+        @keyframes progress-fill {
+          0% {
+            width: 0%;
+          }
+          100% {
+            width: 100%;
+          }
+        }
+
+        .animate-float-slow {
+          animation: float-slow 20s ease-in-out infinite;
+        }
+
+        .animate-float {
+          animation: float 15s ease-in-out infinite;
+        }
+
+        .animate-float-delayed {
+          animation: float-delayed 25s ease-in-out infinite;
+        }
+
+        .animate-spin-slow {
+          animation: spin-slow 20s linear infinite;
+        }
+
+        .animate-pulse-slow {
+          animation: pulse-slow 4s ease-in-out infinite;
+        }
+
+        .animate-progress-fill {
+          animation: progress-fill 5s linear;
+        }
+
+        .line-clamp-2 {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+          .flex-shrink-0 {
+            width: 85% !important;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .flex-shrink-0 {
+            width: 95% !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
