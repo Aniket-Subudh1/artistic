@@ -1,15 +1,19 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Link from "next/link"
+import { useTranslations, useLocale } from 'next-intl'
+import { Link, useRouter, usePathname } from '@/i18n/routing'
 import Image from "next/image"
 import { Users, Music, Calendar, Languages, Mic, Piano } from "lucide-react"
 
 export function Navbar() {
+  const t = useTranslations('nav')
+  const locale = useLocale()
+  const router = useRouter()
+  const pathname = usePathname()
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState<number | null>(null)
-  const [language, setLanguage] = useState<'en' | 'ar'>('en')
   
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50)
@@ -18,49 +22,50 @@ export function Navbar() {
   }, [])
 
   const toggleLanguage = () => {
-    setLanguage(prev => prev === 'en' ? 'ar' : 'en')
+    const newLocale = locale === 'en' ? 'ar' : 'en'
+    router.replace(pathname, { locale: newLocale })
   }
   
   const navItems = [
-    { href: "/", label: "Home" },
+    { href: "/", label: t('home') },
     {
-      label: "Explore",
+      label: t('explore'),
       dropdown: [
         {
           href: "/artists",
-          label: "Explore Artists",
+          label: t('exploreArtists'),
           icon: Users,
-          description: "Discover talented artists"
+          description: t('exploreArtistsDesc')
         },
         {
           href: "/equipments",
-          label: "Explore Equipments",
+          label: t('exploreEquipments'),
           icon: Music,
-          description: "Browse available equipment"
+          description: t('exploreEquipmentsDesc')
         }
       ]
     },
-    { href: "/book-ticket", label: "Book Your Ticket" },
+    { href: "/book-ticket", label: t('bookTicket') },
     {
-      label: "Create Event",
+      label: t('createEvent'),
       dropdown: [
         {
           href: "/create-event",
-          label: "Create an Event",
+          label: t('createEvent'),
           icon: Calendar,
-          description: "Organize and manage events"
+          description: t('createEventDesc')
         },
         {
           href: "/book-artist",
-          label: "Book Artist",
+          label: t('bookArtist'),
           icon: Mic,
-          description: "Find and book artists"
+          description: t('bookArtistDesc')
         },
         {
           href: "/book-equipment",
-          label: "Book Equipment",
+          label: t('bookEquipment'),
           icon: Piano,
-          description: "Rent professional equipment"
+          description: t('bookEquipmentDesc')
         }
       ]
     }
@@ -77,7 +82,7 @@ export function Navbar() {
   return (
     <>
       <header
-        className="fixed top-0 left-0 right-0 z-50 transition-all duration-500 bg-gradient-to-r from-white via-white to-white backdrop-blur-sm"
+        className="fixed top-0 start-0 end-0 z-50 transition-all duration-500 bg-gradient-to-r from-white via-white to-white backdrop-blur-sm"
       >
         <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-40">
           <div className="musical-note note-1">♪</div>
@@ -138,7 +143,7 @@ export function Navbar() {
                   {/* Dropdown Menu */}
                   {item.dropdown && activeDropdown === idx && (
                     <div 
-                      className="absolute top-full left-0 pt-2 w-72 animate-dropdown"
+                      className="absolute top-full start-0 pt-2 w-72 animate-dropdown"
                     >
                       <div className="bg-white/95 rounded-3xl shadow-2xl overflow-hidden border border-purple-100/50 backdrop-blur-xl">
                         <div className="p-2">
@@ -188,23 +193,23 @@ export function Navbar() {
                 className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 font-semibold rounded-full border-2 border-purple-200 hover:border-purple-400 hover:bg-purple-50 transition-all duration-300 hover:shadow-lg"
               >
                 <Languages className="w-4 h-4" />
-                <span>{language === 'en' ? 'العربية' : 'English'}</span>
+                <span>{locale === 'en' ? 'العربية' : 'English'}</span>
               </button>
               
               <Link
                 href="/signin"
                 className="px-5 py-2 text-sm text-gray-700 font-semibold rounded-full border-2 border-purple-200 hover:border-purple-400 hover:bg-purple-50 transition-all duration-300 hover:shadow-lg"
               >
-                Sign In
+                {t('signIn')}
               </Link>
               <Link
                 href="/join-us"
                 className="relative px-6 py-2 text-sm bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 text-white font-bold rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group"
               >
-                <span className="relative z-10">Join Us</span>
+                <span className="relative z-10">{t('joinUs')}</span>
                 <div className="absolute inset-0 bg-gradient-to-r from-orange-500 via-pink-600 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="absolute inset-0 animate-pulse-slow opacity-30">
-                  <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white to-transparent transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                  <div className="absolute top-0 start-0 w-full h-full bg-gradient-to-r from-transparent via-white to-transparent transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
                 </div>
               </Link>
             </div>
@@ -265,7 +270,7 @@ export function Navbar() {
                             </svg>
                           </button>
                           {activeDropdown === idx && item.dropdown && (
-                            <div className="mt-2 ml-4 space-y-1">
+                            <div className="mt-2 ms-4 space-y-1">
                               {item.dropdown.map((subItem, subIdx) => {
                                 const IconComponent = subItem.icon
                                 return (
@@ -296,21 +301,21 @@ export function Navbar() {
                     className="flex items-center justify-center space-x-2 w-full px-4 py-2.5 text-sm text-gray-700 font-semibold rounded-2xl border-2 border-purple-200 hover:bg-purple-50 transition-all duration-300"
                   >
                     <Languages className="w-4 h-4" />
-                    <span>{language === 'en' ? 'العربية' : 'English'}</span>
+                    <span>{locale === 'en' ? 'العربية' : 'English'}</span>
                   </button>
                   <Link
                     href="/signin"
                     className="block w-full px-4 py-2.5 text-sm text-center text-gray-700 font-semibold rounded-2xl border-2 border-purple-200 hover:bg-purple-50 transition-all duration-300"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    Sign In
+                    {t('signIn')}
                   </Link>
                   <Link
                     href="/join-us"
                     className="block w-full px-4 py-2.5 text-sm text-center bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    Join Us
+                    {t('joinUs')}
                   </Link>
                 </div>
               </div>
@@ -330,42 +335,42 @@ export function Navbar() {
 
         .note-1 {
           top: 20%;
-          left: 8%;
+          inset-inline-start: 8%;
           animation-delay: 0s;
           color: #a855f7;
         }
 
         .note-2 {
           top: 60%;
-          left: 18%;
+          inset-inline-start: 18%;
           animation-delay: 1.5s;
           color: #ec4899;
         }
 
         .note-3 {
           top: 35%;
-          right: 12%;
+          inset-inline-end: 12%;
           animation-delay: 3s;
           color: #f97316;
         }
 
         .note-4 {
           top: 70%;
-          right: 28%;
+          inset-inline-end: 28%;
           animation-delay: 4.5s;
           color: #3b82f6;
         }
 
         .note-5 {
           top: 15%;
-          left: 45%;
+          inset-inline-start: 45%;
           animation-delay: 6s;
           color: #10b981;
         }
 
         .note-6 {
           top: 55%;
-          right: 8%;
+          inset-inline-end: 8%;
           animation-delay: 7.5s;
           color: #ec4899;
         }

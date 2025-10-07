@@ -1,21 +1,23 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/routing';
 import { ChevronLeft, ChevronRight, MapPin, Star } from 'lucide-react';
 import { Navbar } from '@/components/main/Navbar';
 import { Footer } from '@/components/main/Footer';
 
 export default function HomePage() {
+  const t = useTranslations();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoSliding, setIsAutoSliding] = useState(true);
 
   const carouselSlides = [
     {
       image: '/assets/images/1.jpg',
-      title: 'Discover Events in a',
-      titleHighlight: 'Whole New Way!',
-      subtitle: 'Join amazing events around you with just a few clicks. Explore diverse categories ranging from concerts to art showcases.'
+      title: t('home.heroTitle'),
+      titleHighlight: t('home.heroHighlight'),
+      subtitle: t('home.heroSubtitle')
     },
     {
       image: '/assets/images/3.jpg',
@@ -41,7 +43,7 @@ export default function HomePage() {
     {
       id: 1,
       image: '/assets/images/event1.jpg',
-      category: 'Music',
+      category: t('categories.music'),
       title: 'Jazz Fusion Night',
       description: 'Experience an evening of innovative jazz fusion from international artists',
       place: 'Blue Note Hall',
@@ -51,7 +53,7 @@ export default function HomePage() {
     {
       id: 2,
       image: '/assets/images/event2.jpg',
-      category: 'Art Exhibition',
+      category: t('categories.artExhibition'),
       title: 'Contemporary Visions',
       description: 'A groundbreaking exhibition featuring works from emerging artists',
       place: 'Modern Art Gallery',
@@ -61,7 +63,7 @@ export default function HomePage() {
     {
       id: 3,
       image: '/assets/images/event3.jpg',
-      category: 'Theater',
+      category: t('categories.theater'),
       title: 'The Silent Echo',
       description: 'A powerful performance exploring themes of identity and connection',
       place: 'Aurora Theatre',
@@ -71,7 +73,7 @@ export default function HomePage() {
     {
       id: 4,
       image: '/assets/images/event4.jpg',
-      category: 'Workshop',
+      category: t('categories.workshop'),
       title: 'Pottery Masterclass',
       description: 'Learn pottery techniques from expert ceramic artists',
       place: 'Creative Studio',
@@ -84,7 +86,7 @@ export default function HomePage() {
     {
       id: 1,
       image: '/assets/images/artist1.jpg',
-      category: 'Photography',
+      category: t('categories.photography'),
       name: 'Sarah Mitchell',
       location: 'New York, USA',
       price: 150,
@@ -93,7 +95,7 @@ export default function HomePage() {
     {
       id: 2,
       image: '/assets/images/artist2.jpg',
-      category: 'Music',
+      category: t('categories.music'),
       name: 'Jazz Ensemble',
       location: 'London, UK',
       price: 200,
@@ -102,7 +104,7 @@ export default function HomePage() {
     {
       id: 3,
       image: '/assets/images/artist3.jpg',
-      category: 'Dance',
+      category: t('categories.dance'),
       name: 'Modern Dance Troupe',
       location: 'Paris, France',
       price: 180,
@@ -111,7 +113,7 @@ export default function HomePage() {
     {
       id: 4,
       image: '/assets/images/artist4.jpg',
-      category: 'Art',
+      category: t('categories.art'),
       name: 'Contemporary Painter',
       location: 'Berlin, Germany',
       price: 120,
@@ -123,7 +125,7 @@ export default function HomePage() {
     {
       id: 1,
       image: '/assets/images/equipment1.jpg',
-      category: 'Music',
+      category: t('categories.music'),
       name: 'Grand Piano',
       description: 'Professional Steinway concert grand piano',
       location: 'Music Hall',
@@ -133,7 +135,7 @@ export default function HomePage() {
     {
       id: 2,
       image: '/assets/images/equipment2.jpg',
-      category: 'Audio',
+      category: t('categories.audio'),
       name: 'Sound System',
       description: 'Professional PA system with mixing console',
       location: 'Audio Studio',
@@ -143,7 +145,7 @@ export default function HomePage() {
     {
       id: 3,
       image: '/assets/images/equipment3.jpg',
-      category: 'Lighting',
+      category: t('categories.lighting'),
       name: 'Stage Lighting',
       description: 'Complete LED stage lighting setup',
       location: 'Event Center',
@@ -153,7 +155,7 @@ export default function HomePage() {
     {
       id: 4,
       image: '/assets/images/equipment4.jpg',
-      category: 'Camera',
+      category: t('categories.camera'),
       name: 'Professional Camera',
       description: 'High-end video recording equipment',
       location: 'Media Studio',
@@ -208,19 +210,19 @@ export default function HomePage() {
         {/* Navigation Buttons */}
         <button 
           onClick={prevSlide}
-          className="absolute left-8 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white/50 rounded-full p-3 transition-all duration-300 hover:scale-110 z-10"
+          className="absolute start-8 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white/50 rounded-full p-3 transition-all duration-300 hover:scale-110 z-10"
         >
           <ChevronLeft className="w-6 h-6 text-white" />
         </button>
         <button 
           onClick={nextSlide}
-          className="absolute right-8 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white/50 rounded-full p-3 transition-all duration-300 hover:scale-110 z-10"
+          className="absolute end-8 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white/50 rounded-full p-3 transition-all duration-300 hover:scale-110 z-10"
         >
           <ChevronRight className="w-6 h-6 text-white" />
         </button>
 
         {/* Slide Indicators */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+        <div className="absolute bottom-8 start-1/2 -translate-x-1/2 flex gap-2 z-10">
           {carouselSlides.map((_, index) => (
             <button
               key={index}
@@ -253,13 +255,13 @@ export default function HomePage() {
               href="/join-us"
               className="px-8 py-3 border-2 border-white text-white rounded-full hover:bg-white hover:text-purple-600 transition-all duration-300"
             >
-              Join Artistic
+              {t('nav.joinUs')}
             </Link>
             <Link
               href="/events"
               className="px-8 py-3 bg-white text-purple-600 rounded-full hover:bg-yellow-300 transition-all duration-300"
             >
-              Explore Events
+              {t('home.exploreEvents')}
             </Link>
           </div>
         </div>
@@ -268,9 +270,9 @@ export default function HomePage() {
       {/* Featured Events */}
       <section className="py-16 max-w-7xl mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">Featured Events</h2>
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">{t('home.featuredEvents')}</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Discover amazing events happening around you
+            {t('home.featuredEventsDesc')}
           </p>
         </div>
 
@@ -279,8 +281,8 @@ export default function HomePage() {
             <Link key={event.id} href={`/events/${event.id}`} className="block">
               <div className="bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-105 cursor-pointer">
                 <div className="relative h-48 bg-gradient-to-br from-purple-400 to-pink-400">
-                  <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center">
-                    <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
+                  <div className="absolute top-3 end-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center">
+                    <Star className="w-4 h-4 text-yellow-400 fill-current me-1" />
                     <span className="text-sm font-medium">{event.rating}</span>
                   </div>
                 </div>
@@ -289,13 +291,13 @@ export default function HomePage() {
                   <h3 className="font-semibold text-gray-900 mb-2 text-lg">{event.title}</h3>
                   <p className="text-sm text-gray-600 mb-3 line-clamp-2">{event.description}</p>
                   <div className="flex items-center text-sm text-gray-500 mb-3">
-                    <MapPin className="w-4 h-4 mr-1" />
+                    <MapPin className="w-4 h-4 me-1" />
                     {event.place}
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-gray-900">KD {event.price}</span>
                     <span className="bg-purple-600 text-white px-4 py-2 rounded-full text-sm font-medium">
-                      Book Now
+                      {t('home.bookNow')}
                     </span>
                   </div>
                 </div>
@@ -309,7 +311,7 @@ export default function HomePage() {
             href="/events"
             className="inline-block border-2 border-purple-600 text-purple-600 px-8 py-3 rounded-full hover:bg-purple-600 hover:text-white transition-all duration-300 font-medium"
           >
-            View All Events
+            {t('home.viewAllEvents')}
           </Link>
         </div>
       </section>
@@ -318,9 +320,9 @@ export default function HomePage() {
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Book Your Artist</h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">{t('home.bookYourArtist')}</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Find and book talented artists for your next event
+              {t('home.bookYourArtistDesc')}
             </p>
           </div>
 
@@ -329,8 +331,8 @@ export default function HomePage() {
               <Link key={artist.id} href={`/artists/${artist.id}`} className="block">
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-105 cursor-pointer border border-gray-100">
                   <div className="relative h-48 bg-gradient-to-br from-blue-400 to-purple-400">
-                    <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center">
-                      <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
+                    <div className="absolute top-3 end-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center">
+                      <Star className="w-4 h-4 text-yellow-400 fill-current me-1" />
                       <span className="text-sm font-medium">{artist.rating}</span>
                     </div>
                   </div>
@@ -338,13 +340,13 @@ export default function HomePage() {
                     <div className="text-xs text-purple-600 font-medium mb-2">{artist.category}</div>
                     <h3 className="font-semibold text-gray-900 mb-2">{artist.name}</h3>
                     <div className="flex items-center text-sm text-gray-500 mb-3">
-                      <MapPin className="w-4 h-4 mr-1" />
+                      <MapPin className="w-4 h-4 me-1" />
                       {artist.location}
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="font-semibold text-gray-900">KD {artist.price}/hr</span>
+                      <span className="font-semibold text-gray-900">KD {artist.price}/{t('home.perHour')}</span>
                       <span className="text-sm text-purple-600 hover:text-purple-700">
-                        View Details
+                        {t('home.viewDetails')}
                       </span>
                     </div>
                   </div>
@@ -358,7 +360,7 @@ export default function HomePage() {
               href="/artists"
               className="inline-block border-2 border-purple-600 text-purple-600 px-8 py-3 rounded-full hover:bg-purple-600 hover:text-white transition-all duration-300 font-medium"
             >
-              View All Artists
+              {t('home.viewAllArtists')}
             </Link>
           </div>
         </div>
@@ -368,9 +370,9 @@ export default function HomePage() {
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Book Equipment</h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">{t('home.bookEquipment')}</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Find the perfect equipment for your next performance
+              {t('home.bookEquipmentDesc')}
             </p>
           </div>
 
@@ -379,8 +381,8 @@ export default function HomePage() {
               <Link key={item.id} href={`/equipments/${item.id}`} className="block">
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-105 cursor-pointer">
                   <div className="relative h-48 bg-gradient-to-br from-yellow-400 to-orange-400">
-                    <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center">
-                      <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
+                    <div className="absolute top-3 end-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center">
+                      <Star className="w-4 h-4 text-yellow-400 fill-current me-1" />
                       <span className="text-sm font-medium">{item.rating}</span>
                     </div>
                   </div>
@@ -389,13 +391,13 @@ export default function HomePage() {
                     <h3 className="font-semibold text-gray-900 mb-2">{item.name}</h3>
                     <p className="text-sm text-gray-600 mb-3 line-clamp-2">{item.description}</p>
                     <div className="flex items-center text-sm text-gray-500 mb-3">
-                      <MapPin className="w-4 h-4 mr-1" />
+                      <MapPin className="w-4 h-4 me-1" />
                       {item.location}
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="font-semibold text-gray-900">KD {item.price}/day</span>
+                      <span className="font-semibold text-gray-900">KD {item.price}/{t('home.perDay')}</span>
                       <span className="text-sm text-purple-600 hover:text-purple-700">
-                        Details
+                        {t('home.details')}
                       </span>
                     </div>
                   </div>
@@ -409,7 +411,7 @@ export default function HomePage() {
               href="/equipments"
               className="inline-block border-2 border-purple-600 text-purple-600 px-8 py-3 rounded-full hover:bg-purple-600 hover:text-white transition-all duration-300 font-medium"
             >
-              View All Equipment
+              {t('home.viewAllEquipment')}
             </Link>
           </div>
         </div>
@@ -419,23 +421,23 @@ export default function HomePage() {
       <section className="py-16 bg-gradient-to-r from-purple-600 to-pink-500">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <h2 className="text-4xl font-bold text-white mb-4">
-            Ready to Create Something Extraordinary?
+            {t('home.ctaTitle')}
           </h2>
           <p className="text-white/90 text-lg mb-8 max-w-2xl mx-auto">
-            Let our team of experts bring your vision to life. Book a consultation today.
+            {t('home.ctaSubtitle')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/create-event"
               className="px-8 py-3 bg-white text-purple-600 rounded-full font-medium hover:bg-yellow-300 transition-all duration-300"
             >
-              Create Event
+              {t('nav.createEvent')}
             </Link>
             <Link
               href="/contact"
               className="px-8 py-3 border-2 border-white text-white rounded-full hover:bg-white hover:text-purple-600 transition-all duration-300 font-medium"
             >
-              Contact Us
+              {t('home.contactUs')}
             </Link>
           </div>
         </div>
@@ -445,9 +447,9 @@ export default function HomePage() {
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">What Our Clients Say</h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">{t('home.testimonials')}</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Hear from those who have experienced the Artistic difference
+              {t('home.testimonialsDesc')}
             </p>
           </div>
 
@@ -474,7 +476,7 @@ export default function HomePage() {
             ].map((testimonial, idx) => (
               <div key={idx} className="bg-purple-50 p-6 rounded-xl">
                 <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-500 rounded-full flex items-center justify-center mr-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-500 rounded-full flex items-center justify-center me-4">
                     <span className="text-white font-bold text-lg">
                       {testimonial.name.charAt(0)}
                     </span>
