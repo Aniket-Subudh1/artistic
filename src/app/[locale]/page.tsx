@@ -1,19 +1,16 @@
-'use client'
+'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
-import { ChevronLeft, ChevronRight, MapPin, Star } from 'lucide-react';
+import { MapPin, Star } from 'lucide-react';
 import { Navbar } from '@/components/main/Navbar';
 import { Footer } from '@/components/main/Footer';
-
 import HeroCarousel from '@/components/ui/HeroCarousel';
 
 export default function HomePage() {
   const t = useTranslations();
   const [scrollY, setScrollY] = useState(0);
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [isAutoSliding, setIsAutoSliding] = useState(true);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -27,51 +24,60 @@ export default function HomePage() {
       title: t('home.heroTitle'),
       titleHighlight: t('home.heroHighlight'),
       subtitle: t('home.heroSubtitle'),
-      bgGradient: 'linear-gradient(135deg, #391C71 0%, #5B2C87 25%, #7C3A9D 50%, #9D47B3 75%, #BE54C9 100%)',
+      bgGradient:
+        'linear-gradient(135deg, #391C71 0%, #5B2C87 25%, #7C3A9D 50%, #9D47B3 75%, #BE54C9 100%)',
       ctaText: t('nav.joinUs'),
       ctaLink: '/join-us',
-      category: 'Featured'
+      category: 'Featured',
     },
     {
       image: '/assets/images/3.jpg',
       title: 'Experience Live',
       titleHighlight: 'Music Concerts!',
-      subtitle: 'Feel the rhythm and energy of live performances from world-class artists and emerging talents.',
-      bgGradient: 'linear-gradient(135deg, #FF6B6B 0%, #FF8E53 25%, #FF6B9D 50%, #C44569 75%, #F8B500 100%)',
+      subtitle:
+        'Feel the rhythm and energy of live performances from world-class artists and emerging talents.',
+      bgGradient:
+        'linear-gradient(135deg, #FF6B6B 0%, #FF8E53 25%, #FF6B9D 50%, #C44569 75%, #F8B500 100%)',
       ctaText: 'Book Concert',
       ctaLink: '/events',
-      category: 'Music'
+      category: 'Music',
     },
     {
       image: '/assets/images/5.jpg',
       title: 'Immerse in',
       titleHighlight: 'Art Exhibitions!',
-      subtitle: 'Discover contemporary and classical artworks from renowned galleries and independent artists.',
-      bgGradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%)',
+      subtitle:
+        'Discover contemporary and classical artworks from renowned galleries and independent artists.',
+      bgGradient:
+        'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%)',
       ctaText: 'Explore Art',
       ctaLink: '/events',
-      category: 'Art'
+      category: 'Art',
     },
     {
       image: '/assets/images/7.jpg',
       title: 'Join Creative',
       titleHighlight: 'Workshops!',
-      subtitle: 'Learn new skills and techniques from expert instructors in hands-on creative sessions.',
-      bgGradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 25%, #fa709a 50%, #fee140 75%, #fa709a 100%)',
+      subtitle:
+        'Learn new skills and techniques from expert instructors in hands-on creative sessions.',
+      bgGradient:
+        'linear-gradient(135deg, #fa709a 0%, #fee140 25%, #fa709a 50%, #fee140 75%, #fa709a 100%)',
       ctaText: 'Join Workshop',
       ctaLink: '/events',
-      category: 'Workshop'
+      category: 'Workshop',
     },
     {
       image: '/assets/images/8.jpg',
       title: 'Stream Movies',
       titleHighlight: 'At Home!',
-      subtitle: 'Watch the latest blockbusters and indie films from the comfort of your home.',
-      bgGradient: 'linear-gradient(135deg, #11998e 0%, #38ef7d 25%, #667eea 50%, #764ba2 75%, #f093fb 100%)',
+      subtitle:
+        'Watch the latest blockbusters and indie films from the comfort of your home.',
+      bgGradient:
+        'linear-gradient(135deg, #11998e 0%, #38ef7d 25%, #667eea 50%, #764ba2 75%, #f093fb 100%)',
       ctaText: 'Stream Now',
       ctaLink: '/stream',
-      category: 'Movies'
-    }
+      category: 'Movies',
+    },
   ];
 
   const featuredEvents = [
@@ -80,30 +86,33 @@ export default function HomePage() {
       image: '/assets/images/event1.jpg',
       category: t('categories.music'),
       title: 'Jazz Fusion Night',
-      description: 'Experience an evening of innovative jazz fusion from international artists',
+      description:
+        'Experience an evening of innovative jazz fusion from international artists',
       place: 'Blue Note Hall',
       price: 25,
-      rating: 4.8
+      rating: 4.8,
     },
     {
       id: 2,
       image: '/assets/images/event2.jpg',
       category: t('categories.artExhibition'),
       title: 'Contemporary Visions',
-      description: 'A groundbreaking exhibition featuring works from emerging artists',
+      description:
+        'A groundbreaking exhibition featuring works from emerging artists',
       place: 'Modern Art Gallery',
       price: 15,
-      rating: 4.9
+      rating: 4.9,
     },
     {
       id: 3,
       image: '/assets/images/event3.jpg',
       category: t('categories.theater'),
       title: 'The Silent Echo',
-      description: 'A powerful performance exploring themes of identity and connection',
+      description:
+        'A powerful performance exploring themes of identity and connection',
       place: 'Aurora Theatre',
       price: 30,
-      rating: 4.7
+      rating: 4.7,
     },
     {
       id: 4,
@@ -113,8 +122,8 @@ export default function HomePage() {
       description: 'Learn pottery techniques from expert ceramic artists',
       place: 'Creative Studio',
       price: 40,
-      rating: 4.6
-    }
+      rating: 4.6,
+    },
   ];
 
   const artists = [
@@ -125,7 +134,7 @@ export default function HomePage() {
       name: 'Sarah Mitchell',
       location: 'New York, USA',
       price: 150,
-      rating: 4.9
+      rating: 4.9,
     },
     {
       id: 2,
@@ -134,7 +143,7 @@ export default function HomePage() {
       name: 'Jazz Ensemble',
       location: 'London, UK',
       price: 200,
-      rating: 4.8
+      rating: 4.8,
     },
     {
       id: 3,
@@ -143,7 +152,7 @@ export default function HomePage() {
       name: 'Modern Dance Troupe',
       location: 'Paris, France',
       price: 180,
-      rating: 4.7
+      rating: 4.7,
     },
     {
       id: 4,
@@ -152,8 +161,8 @@ export default function HomePage() {
       name: 'Contemporary Painter',
       location: 'Berlin, Germany',
       price: 120,
-      rating: 4.8
-    }
+      rating: 4.8,
+    },
   ];
 
   const equipment = [
@@ -165,7 +174,7 @@ export default function HomePage() {
       description: 'Professional Steinway concert grand piano',
       location: 'Music Hall',
       price: 50,
-      rating: 4.9
+      rating: 4.9,
     },
     {
       id: 2,
@@ -175,7 +184,7 @@ export default function HomePage() {
       description: 'Professional PA system with mixing console',
       location: 'Audio Studio',
       price: 35,
-      rating: 4.8
+      rating: 4.8,
     },
     {
       id: 3,
@@ -185,7 +194,7 @@ export default function HomePage() {
       description: 'Complete LED stage lighting setup',
       location: 'Event Center',
       price: 40,
-      rating: 4.7
+      rating: 4.7,
     },
     {
       id: 4,
@@ -195,73 +204,47 @@ export default function HomePage() {
       description: 'High-end video recording equipment',
       location: 'Media Studio',
       price: 45,
-      rating: 4.8
-    }
+      rating: 4.8,
+    },
   ];
-
-  useEffect(() => {
-    if (!isAutoSliding) return;
-    
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % carouselSlides.length);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [isAutoSliding, carouselSlides.length]);
-
-  const nextSlide = () => {
-    setIsAutoSliding(false);
-    setCurrentSlide((prev) => (prev + 1) % carouselSlides.length);
-    setTimeout(() => setIsAutoSliding(true), 10000);
-  };
-
-  const prevSlide = () => {
-    setIsAutoSliding(false);
-    setCurrentSlide((prev) => (prev - 1 + carouselSlides.length) % carouselSlides.length);
-    setTimeout(() => setIsAutoSliding(true), 10000);
-  };
 
   return (
     <div className="min-h-screen bg-white relative">
-      {/* Floating Elements Background */}
+      {/* Floating background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div 
+        <div
           className="absolute w-96 h-96 rounded-full opacity-5 animate-float-slow"
-          style={{ 
+          style={{
             background: `radial-gradient(circle, #391C71 0%, transparent 70%)`,
             top: '10%',
             left: '5%',
-            transform: `translateY(${scrollY * 0.1}px)`
+            transform: `translateY(${scrollY * 0.1}px)`,
           }}
         />
-        <div 
+        <div
           className="absolute w-64 h-64 rounded-full opacity-3 animate-float-delayed"
-          style={{ 
+          style={{
             background: `radial-gradient(circle, #391C71 0%, transparent 70%)`,
             top: '60%',
             right: '10%',
-            transform: `translateY(${-scrollY * 0.15}px)`
+            transform: `translateY(${-scrollY * 0.15}px)`,
           }}
         />
-        <div 
+        <div
           className="absolute w-48 h-48 rounded-full opacity-4 animate-float"
-          style={{ 
+          style={{
             background: `radial-gradient(circle, #391C71 0%, transparent 70%)`,
             top: '30%',
             right: '30%',
-            transform: `translateY(${scrollY * 0.08}px)`
+            transform: `translateY(${scrollY * 0.08}px)`,
           }}
         />
       </div>
 
       <Navbar />
 
-      {/* BookMyShow Style Hero Carousel */}
-      <section className="py-8 pt-24">
-        <div className="max-w-7xl mx-auto px-6">
-          <HeroCarousel slides={carouselSlides} autoSlideInterval={5000} />
-        </div>
-      </section>
+      {/* Extracted carousel */}
+      <HeroCarousel slides={carouselSlides} />
 
       {/* Featured Events */}
       <section className="py-20 max-w-7xl mx-auto px-6">
@@ -278,7 +261,7 @@ export default function HomePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
           {featuredEvents.map((event, index) => (
             <Link key={event.id} href={`/events/${event.id}`} className="block group">
-              <div 
+              <div
                 className="bg-white rounded-3xl border border-gray-100 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-[#391C71]/10 cursor-pointer transform hover:-translate-y-2 hover:scale-105"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
@@ -286,16 +269,24 @@ export default function HomePage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                   <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full flex items-center shadow-lg border border-white/20">
                     <Star className="w-4 h-4 text-yellow-500 fill-current mr-1" />
-                    <span className="text-sm font-semibold text-gray-700">{event.rating}</span>
+                    <span className="text-sm font-semibold text-gray-700">
+                      {event.rating}
+                    </span>
                   </div>
                   <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                   </div>
                 </div>
                 <div className="p-6">
-                  <div className="text-xs text-[#391C71] font-bold mb-3 uppercase tracking-wider">{event.category}</div>
-                  <h3 className="font-bold text-gray-900 mb-3 text-xl leading-tight group-hover:text-[#391C71] transition-colors duration-300">{event.title}</h3>
-                  <p className="text-sm text-gray-600 mb-4 line-clamp-2 leading-relaxed">{event.description}</p>
+                  <div className="text-xs text-[#391C71] font-bold mb-3 uppercase tracking-wider">
+                    {event.category}
+                  </div>
+                  <h3 className="font-bold text-gray-900 mb-3 text-xl leading-tight group-hover:text-[#391C71] transition-colors duration-300">
+                    {event.title}
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-4 line-clamp-2 leading-relaxed">
+                    {event.description}
+                  </p>
                   <div className="flex items-center text-sm text-gray-500 mb-5">
                     <MapPin className="w-4 h-4 mr-2 text-[#391C71]" />
                     {event.place}
@@ -339,7 +330,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
             {artists.map((artist, index) => (
               <Link key={artist.id} href={`/artists/${artist.id}`} className="block group">
-                <div 
+                <div
                   className="bg-white rounded-3xl border border-gray-100 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-[#391C71]/10 cursor-pointer transform hover:-translate-y-2 hover:scale-105"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
@@ -347,21 +338,29 @@ export default function HomePage() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                     <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full flex items-center shadow-lg border border-white/20">
                       <Star className="w-4 h-4 text-yellow-500 fill-current mr-1" />
-                      <span className="text-sm font-semibold text-gray-700">{artist.rating}</span>
+                      <span className="text-sm font-semibold text-gray-700">
+                        {artist.rating}
+                      </span>
                     </div>
                     <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                     </div>
                   </div>
                   <div className="p-6">
-                    <div className="text-xs text-[#391C71] font-bold mb-3 uppercase tracking-wider">{artist.category}</div>
-                    <h3 className="font-bold text-gray-900 mb-3 text-xl group-hover:text-[#391C71] transition-colors duration-300">{artist.name}</h3>
+                    <div className="text-xs text-[#391C71] font-bold mb-3 uppercase tracking-wider">
+                      {artist.category}
+                    </div>
+                    <h3 className="font-bold text-gray-900 mb-3 text-xl group-hover:text-[#391C71] transition-colors duration-300">
+                      {artist.name}
+                    </h3>
                     <div className="flex items-center text-sm text-gray-500 mb-5">
                       <MapPin className="w-4 h-4 mr-2 text-[#391C71]" />
                       {artist.location}
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="font-bold text-gray-900 text-lg">KD {artist.price}/{t('home.perHour')}</span>
+                      <span className="font-bold text-gray-900 text-lg">
+                        KD {artist.price}/{t('home.perHour')}
+                      </span>
                       <span className="text-sm text-[#391C71] hover:text-[#5B2C87] font-semibold transition-colors duration-300">
                         {t('home.viewDetails')} →
                       </span>
@@ -390,15 +389,12 @@ export default function HomePage() {
             {t('home.bookEquipment')}
             <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 h-1 bg-[#391C71] rounded-full" />
           </h2>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
-            {t('home.bookEquipmentDesc')}
-          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
           {equipment.map((item, index) => (
             <Link key={item.id} href={`/equipments/${item.id}`} className="block group">
-              <div 
+              <div
                 className="bg-white rounded-3xl border border-gray-100 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-[#391C71]/10 cursor-pointer transform hover:-translate-y-2 hover:scale-105"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
@@ -406,22 +402,32 @@ export default function HomePage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                   <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full flex items-center shadow-lg border border-white/20">
                     <Star className="w-4 h-4 text-yellow-500 fill-current mr-1" />
-                    <span className="text-sm font-semibold text-gray-700">{item.rating}</span>
+                    <span className="text-sm font-semibold text-gray-700">
+                      {item.rating}
+                    </span>
                   </div>
                   <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                   </div>
                 </div>
                 <div className="p-6">
-                  <div className="text-xs text-[#391C71] font-bold mb-3 uppercase tracking-wider">{item.category}</div>
-                  <h3 className="font-bold text-gray-900 mb-3 text-xl group-hover:text-[#391C71] transition-colors duration-300">{item.name}</h3>
-                  <p className="text-sm text-gray-600 mb-4 line-clamp-2 leading-relaxed">{item.description}</p>
+                  <div className="text-xs text-[#391C71] font-bold mb-3 uppercase tracking-wider">
+                    {item.category}
+                  </div>
+                  <h3 className="font-bold text-gray-900 mb-3 text-xl group-hover:text-[#391C71] transition-colors duration-300">
+                    {item.name}
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-4 line-clamp-2 leading-relaxed">
+                    {item.description}
+                  </p>
                   <div className="flex items-center text-sm text-gray-500 mb-5">
                     <MapPin className="w-4 h-4 mr-2 text-[#391C71]" />
                     {item.location}
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="font-bold text-gray-900 text-lg">KD {item.price}/{t('home.perDay')}</span>
+                    <span className="font-bold text-gray-900 text-lg">
+                      KD {item.price}/{t('home.perDay')}
+                    </span>
                     <span className="text-sm text-[#391C71] hover:text-[#5B2C87] font-semibold transition-colors duration-300">
                       {t('home.details')} →
                     </span>
@@ -442,12 +448,13 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* CTA */}
       <section className="py-20 relative overflow-hidden">
-        <div 
+        <div
           className="absolute inset-0"
-          style={{ 
-            background: `linear-gradient(135deg, #391C71 0%, #5B2C87 25%, #7C3A9D 50%, #9D47B3 75%, #BE54C9 100%)`
+          style={{
+            background:
+              'linear-gradient(135deg, #391C71 0%, #5B2C87 25%, #7C3A9D 50%, #9D47B3 75%, #BE54C9 100%)',
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/20" />
@@ -463,13 +470,17 @@ export default function HomePage() {
               href="/create-event"
               className="group px-10 py-4 bg-white text-[#391C71] rounded-full font-medium hover:bg-yellow-300 transition-all duration-500 shadow-2xl hover:scale-105"
             >
-              <span className="group-hover:tracking-wider transition-all duration-300">{t('nav.createEvent')}</span>
+              <span className="group-hover:tracking-wider transition-all duration-300">
+                {t('nav.createEvent')}
+              </span>
             </Link>
             <Link
               href="/contact"
               className="group px-10 py-4 bg-white/15 backdrop-blur-xl border border-white/30 text-white rounded-full hover:bg-white/25 transition-all duration-500 font-medium shadow-2xl hover:scale-105"
             >
-              <span className="group-hover:tracking-wider transition-all duration-300">{t('home.contactUs')}</span>
+              <span className="group-hover:tracking-wider transition-all duration-300">
+                {t('home.contactUs')}
+              </span>
             </Link>
           </div>
         </div>
@@ -494,24 +505,27 @@ export default function HomePage() {
               {
                 name: 'Sarah Johnson',
                 role: 'Corporate Event Planner',
-                content: 'Artistic transformed our annual corporate gala into something truly memorable. The attention to detail and flawless execution exceeded our expectations.',
+                content:
+                  'Artistic transformed our annual corporate gala into something truly memorable. The attention to detail and flawless execution exceeded our expectations.',
                 avatar: '/assets/images/testimonial1.jpg',
               },
               {
                 name: 'Michael Chen',
                 role: 'Wedding Organizer',
-                content: 'Our wedding day was absolute perfection thanks to the Artistic team. Every moment was captured beautifully.',
+                content:
+                  'Our wedding day was absolute perfection thanks to the Artistic team. Every moment was captured beautifully.',
                 avatar: '/assets/images/testimonial2.jpg',
               },
               {
                 name: 'Emma Rodriguez',
                 role: 'Art Gallery Director',
-                content: 'Artistic not only met but exceeded our standards. The space design complemented our artwork perfectly.',
+                content:
+                  'Artistic not only met but exceeded our standards. The space design complemented our artwork perfectly.',
                 avatar: '/assets/images/testimonial3.jpg',
               },
             ].map((testimonial, idx) => (
-              <div 
-                key={idx} 
+              <div
+                key={idx}
                 className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl hover:shadow-2xl hover:shadow-[#391C71]/10 transition-all duration-500 transform hover:-translate-y-1 group"
                 style={{ animationDelay: `${idx * 200}ms` }}
               >
@@ -522,8 +536,12 @@ export default function HomePage() {
                     </span>
                   </div>
                   <div>
-                    <div className="font-bold text-gray-900 text-lg">{testimonial.name}</div>
-                    <div className="text-[#391C71] text-sm font-medium">{testimonial.role}</div>
+                    <div className="font-bold text-gray-900 text-lg">
+                      {testimonial.name}
+                    </div>
+                    <div className="text-[#391C71] text-sm font-medium">
+                      {testimonial.role}
+                    </div>
                   </div>
                 </div>
                 <p className="text-gray-700 italic text-base mb-6 leading-relaxed">
@@ -542,105 +560,49 @@ export default function HomePage() {
 
       <Footer />
 
+      {/* page-scoped background float animations used outside the carousel */}
       <style jsx>{`
         @keyframes float-slow {
-          0%, 100% {
+          0%,
+          100% {
             transform: translateY(0px) rotate(0deg);
           }
           50% {
             transform: translateY(-20px) rotate(180deg);
           }
         }
-
         @keyframes float {
-          0%, 100% {
+          0%,
+          100% {
             transform: translateY(0px);
           }
           50% {
             transform: translateY(-15px);
           }
         }
-
         @keyframes float-delayed {
-          0%, 100% {
+          0%,
+          100% {
             transform: translateY(0px) rotate(0deg);
           }
           50% {
             transform: translateY(-25px) rotate(-180deg);
           }
         }
-
-        @keyframes spin-slow {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        @keyframes pulse-slow {
-          0%, 100% {
-            opacity: 0.20;
-            transform: scale(1);
-          }
-          50% {
-            opacity: 0.30;
-            transform: scale(1.05);
-          }
-        }
-
-        @keyframes progress-fill {
-          0% {
-            width: 0%;
-          }
-          100% {
-            width: 100%;
-          }
-        }
-
         .animate-float-slow {
           animation: float-slow 20s ease-in-out infinite;
         }
-
         .animate-float {
           animation: float 15s ease-in-out infinite;
         }
-
         .animate-float-delayed {
           animation: float-delayed 25s ease-in-out infinite;
         }
-
-        .animate-spin-slow {
-          animation: spin-slow 20s linear infinite;
-        }
-
-        .animate-pulse-slow {
-          animation: pulse-slow 4s ease-in-out infinite;
-        }
-
-        .animate-progress-fill {
-          animation: progress-fill 5s linear;
-        }
-
         .line-clamp-2 {
           display: -webkit-box;
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
           overflow: hidden;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-          .flex-shrink-0 {
-            width: 85% !important;
-          }
-        }
-
-        @media (max-width: 640px) {
-          .flex-shrink-0 {
-            width: 95% !important;
-          }
         }
       `}</style>
     </div>
