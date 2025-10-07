@@ -41,7 +41,6 @@ export default function HeroCarousel({
     setDir(attr === 'rtl' ? 'rtl' : 'ltr');
   }, []);
 
- 
   const loopSlides = useMemo(() => {
     if (!slides.length) return [];
     const first = slides[0];
@@ -52,18 +51,24 @@ export default function HeroCarousel({
   const [index, setIndex] = useState(1);
   const [isAuto, setIsAuto] = useState(true);
   const [anim, setAnim] = useState(true);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const railRef = useRef<HTMLDivElement | null>(null);
-
+  const autoTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!isAuto || loopSlides.length <= 1) return;
-    const id = setInterval(() => setIndex((p) => p + 1), autoSlideInterval);
+    const id = setInterval(() => {
+      if (!isTransitioning) {
+        setIndex((p) => p + 1);
+      }
+    }, autoSlideInterval);
     return () => clearInterval(id);
-  }, [isAuto, autoSlideInterval, loopSlides.length]);
-
+  }, [isAuto, autoSlideInterval, loopSlides.length, isTransitioning]);
 
   const onTransitionEnd = () => {
     if (!loopSlides.length) return;
+    
+    setIsTransitioning(false);
    
     if (index === loopSlides.length - 1) {
       setAnim(false);
@@ -81,18 +86,45 @@ export default function HeroCarousel({
     }
   };
 
+  const handleManualNavigation = (newIndex: number) => {
+    if (isTransitioning || !loopSlides.length) return;
+    
+    setIsTransitioning(true);
+    setIsAuto(false);
+    setIndex(newIndex);
+    
+    // Clear any existing timeout
+    if (autoTimeoutRef.current) {
+      clearTimeout(autoTimeoutRef.current);
+    }
+    
+    // Set new timeout to re-enable auto-play
+    autoTimeoutRef.current = setTimeout(() => {
+      setIsAuto(true);
+      setIsTransitioning(false);
+    }, manualPause);
+  };
+
   const next = () => {
-    if (!loopSlides.length) return;
-    setIsAuto(false);
-    setIndex((p) => p + 1);
-    setTimeout(() => setIsAuto(true), manualPause);
+    handleManualNavigation(index + 1);
   };
+
   const prev = () => {
-    if (!loopSlides.length) return;
-    setIsAuto(false);
-    setIndex((p) => p - 1);
-    setTimeout(() => setIsAuto(true), manualPause);
+    handleManualNavigation(index - 1);
   };
+
+  const goToSlide = (slideIndex: number) => {
+    handleManualNavigation(slideIndex + 1);
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (autoTimeoutRef.current) {
+        clearTimeout(autoTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const offset = index * SLIDE_W - EDGE_GUTTER;
   const translate =
@@ -110,14 +142,16 @@ export default function HeroCarousel({
         <div className="relative px-6">
           <button
             onClick={prev}
-            className={`absolute ${prevPosClass} top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 hover:bg-white backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-20 shadow-xl border border-gray-200 group`}
+            disabled={isTransitioning}
+            className={`absolute ${prevPosClass} top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 hover:bg-white backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-20 shadow-xl border border-gray-200 group disabled:opacity-50 disabled:hover:scale-100`}
             aria-label="Previous"
           >
             <ChevronLeft className="w-6 h-6 text-gray-700 group-hover:scale-110 transition-transform duration-300" />
           </button>
           <button
             onClick={next}
-            className={`absolute ${nextPosClass} top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 hover:bg-white backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-20 shadow-xl border border-gray-200 group`}
+            disabled={isTransitioning}
+            className={`absolute ${nextPosClass} top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 hover:bg-white backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-20 shadow-xl border border-gray-200 group disabled:opacity-50 disabled:hover:scale-100`}
             aria-label="Next"
           >
             <ChevronRight className="w-6 h-6 text-gray-700 group-hover:scale-110 transition-transform duration-300" />
@@ -214,7 +248,6 @@ export default function HeroCarousel({
                     </div>
                   </div>
 
-               
                   {i === index && (
                     <div className="absolute bottom-0 left-0 w-full h-1 bg-white/30">
                       <div className="h-full bg-white animate-progress-fill" />
@@ -230,12 +263,9 @@ export default function HeroCarousel({
               {slides.map((_, i) => (
                 <button
                   key={i}
-                  onClick={() => {
-                    setIsAuto(false);
-                    setIndex(i + 1); 
-                    setTimeout(() => setIsAuto(true), manualPause);
-                  }}
-                  className={`transition-all duration-300 rounded-full ${
+                  onClick={() => goToSlide(i)}
+                  disabled={isTransitioning}
+                  className={`transition-all duration-300 rounded-full disabled:opacity-50 ${
                     i === realActive
                       ? 'w-8 h-2 bg-[#391C71]'
                       : 'w-2 h-2 bg-gray-300 hover:bg-gray-400'
