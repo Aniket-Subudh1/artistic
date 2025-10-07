@@ -3,18 +3,24 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { Users, Music, Calendar, Languages, Mic, Piano } from "lucide-react"
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState<number | null>(null)
-
+  const [language, setLanguage] = useState<'en' | 'ar'>('en')
+  
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50)
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
+  const toggleLanguage = () => {
+    setLanguage(prev => prev === 'en' ? 'ar' : 'en')
+  }
+  
   const navItems = [
     { href: "/", label: "Home" },
     {
@@ -23,16 +29,14 @@ export function Navbar() {
         {
           href: "/artists",
           label: "Explore Artists",
-          icon: "👥",
-          description: "Discover talented artists",
-          color: "from-violet-400 to-purple-500"
+          icon: Users,
+          description: "Discover talented artists"
         },
         {
           href: "/equipments",
           label: "Explore Equipments",
-          icon: "🎵",
-          description: "Browse available equipment",
-          color: "from-emerald-400 to-teal-500"
+          icon: Music,
+          description: "Browse available equipment"
         }
       ]
     },
@@ -43,27 +47,23 @@ export function Navbar() {
         {
           href: "/create-event",
           label: "Create an Event",
-          icon: "📅",
-          description: "Organize and manage events",
-          color: "from-pink-400 to-rose-500"
+          icon: Calendar,
+          description: "Organize and manage events"
         },
         {
           href: "/book-artist",
           label: "Book Artist",
-          icon: "🎤",
-          description: "Find and book artists",
-          color: "from-purple-400 to-indigo-500"
+          icon: Mic,
+          description: "Find and book artists"
         },
         {
           href: "/book-equipment",
           label: "Book Equipment",
-          icon: "🎹",
-          description: "Rent professional equipment",
-          color: "from-amber-400 to-orange-500"
+          icon: Piano,
+          description: "Rent professional equipment"
         }
       ]
-    },
-    { href: "/join-us", label: "Join Us" }
+    }
   ]
 
   const handleMouseEnter = (idx: number) => {
@@ -78,7 +78,6 @@ export function Navbar() {
     <>
       <header
         className="fixed top-0 left-0 right-0 z-50 transition-all duration-500 bg-gradient-to-r from-white via-white to-white backdrop-blur-sm"
-        
       >
         <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-40">
           <div className="musical-note note-1">♪</div>
@@ -141,35 +140,38 @@ export function Navbar() {
                     <div 
                       className="absolute top-full left-0 pt-2 w-72 animate-dropdown"
                     >
-                      <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-purple-100/50 backdrop-blur-xl">
+                      <div className="bg-white/95 rounded-3xl shadow-2xl overflow-hidden border border-purple-100/50 backdrop-blur-xl">
                         <div className="p-2">
-                          {item.dropdown.map((subItem, subIdx) => (
-                            <Link
-                              key={subIdx}
-                              href={subItem.href}
-                              className="flex items-start space-x-4 p-4 rounded-2xl transition-all duration-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 group relative overflow-hidden"
-                            >
-                              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${subItem.color} flex items-center justify-center text-2xl shadow-lg transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300`}>
-                                {subItem.icon}
-                              </div>
-                              <div className="flex-1">
-                                <div className="font-semibold text-gray-800 group-hover:text-purple-700 transition-colors">
-                                  {subItem.label}
-                                </div>
-                                <div className="text-xs text-gray-500 mt-0.5">
-                                  {subItem.description}
-                                </div>
-                              </div>
-                              <svg
-                                className="w-5 h-5 text-gray-400 opacity-0 group-hover:opacity-100 transform translate-x-[-10px] group-hover:translate-x-0 transition-all duration-300"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
+                          {item.dropdown.map((subItem, subIdx) => {
+                            const IconComponent = subItem.icon
+                            return (
+                              <Link
+                                key={subIdx}
+                                href={subItem.href}
+                                className="flex items-start space-x-4 p-4 rounded-2xl transition-all duration-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 group relative overflow-hidden"
                               >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                              </svg>
-                            </Link>
-                          ))}
+                                <div className="w-12 h-12 rounded-xl bg-purple-700 backdrop-blur-md flex items-center justify-center shadow-lg transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 border border-purple-500/30">
+                                  <IconComponent className="w-6 h-6 text-white" />
+                                </div>
+                                <div className="flex-1">
+                                  <div className="font-semibold text-gray-900 group-hover:text-purple-700 transition-colors">
+                                    {subItem.label}
+                                  </div>
+                                  <div className="text-xs text-gray-600 mt-0.5">
+                                    {subItem.description}
+                                  </div>
+                                </div>
+                                <svg
+                                  className="w-5 h-5 text-gray-400 opacity-0 group-hover:opacity-100 transform translate-x-[-10px] group-hover:translate-x-0 transition-all duration-300"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                              </Link>
+                            )
+                          })}
                         </div>
                       </div>
                     </div>
@@ -180,6 +182,15 @@ export function Navbar() {
 
             {/* Action Buttons */}
             <div className="hidden lg:flex items-center space-x-3 z-10">
+              {/* Language Toggle Button */}
+              <button
+                onClick={toggleLanguage}
+                className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 font-semibold rounded-full border-2 border-purple-200 hover:border-purple-400 hover:bg-purple-50 transition-all duration-300 hover:shadow-lg"
+              >
+                <Languages className="w-4 h-4" />
+                <span>{language === 'en' ? 'العربية' : 'English'}</span>
+              </button>
+              
               <Link
                 href="/signin"
                 className="px-5 py-2 text-sm text-gray-700 font-semibold rounded-full border-2 border-purple-200 hover:border-purple-400 hover:bg-purple-50 transition-all duration-300 hover:shadow-lg"
@@ -255,17 +266,22 @@ export function Navbar() {
                           </button>
                           {activeDropdown === idx && item.dropdown && (
                             <div className="mt-2 ml-4 space-y-1">
-                              {item.dropdown.map((subItem, subIdx) => (
-                                <Link
-                                  key={subIdx}
-                                  href={subItem.href}
-                                  className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-600 rounded-xl hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 hover:text-purple-700 transition-all duration-300"
-                                  onClick={() => setIsMobileMenuOpen(false)}
-                                >
-                                  <span className="text-xl">{subItem.icon}</span>
-                                  <span className="font-medium">{subItem.label}</span>
-                                </Link>
-                              ))}
+                              {item.dropdown.map((subItem, subIdx) => {
+                                const IconComponent = subItem.icon
+                                return (
+                                  <Link
+                                    key={subIdx}
+                                    href={subItem.href}
+                                    className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-600 rounded-xl hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 hover:text-purple-700 transition-all duration-300"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                  >
+                                    <div className="w-8 h-8 rounded-lg bg-purple-700 flex items-center justify-center flex-shrink-0">
+                                      <IconComponent className="w-4 h-4 text-white" />
+                                    </div>
+                                    <span className="font-medium">{subItem.label}</span>
+                                  </Link>
+                                )
+                              })}
                             </div>
                           )}
                         </>
@@ -275,6 +291,13 @@ export function Navbar() {
                 </nav>
                 
                 <div className="px-4 pb-4 space-y-3 border-t border-purple-100 pt-4">
+                  <button
+                    onClick={toggleLanguage}
+                    className="flex items-center justify-center space-x-2 w-full px-4 py-2.5 text-sm text-gray-700 font-semibold rounded-2xl border-2 border-purple-200 hover:bg-purple-50 transition-all duration-300"
+                  >
+                    <Languages className="w-4 h-4" />
+                    <span>{language === 'en' ? 'العربية' : 'English'}</span>
+                  </button>
                   <Link
                     href="/signin"
                     className="block w-full px-4 py-2.5 text-sm text-center text-gray-700 font-semibold rounded-2xl border-2 border-purple-200 hover:bg-purple-50 transition-all duration-300"
