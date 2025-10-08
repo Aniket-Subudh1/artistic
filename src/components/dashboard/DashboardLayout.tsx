@@ -18,6 +18,7 @@ export function DashboardLayout({ user, children, onLogout }: DashboardLayoutPro
   const router = useRouter();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const isRTL = locale === 'ar';
 
   useEffect(() => {
     const handleResize = () => {
@@ -33,7 +34,9 @@ export function DashboardLayout({ user, children, onLogout }: DashboardLayoutPro
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
+    <div className="min-h-screen bg-gray-50 flex" dir={isRTL ? 'rtl' : 'ltr'}>
+    
+      {/* Mobile overlay */}
       {isMobileSidebarOpen && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
@@ -41,14 +44,19 @@ export function DashboardLayout({ user, children, onLogout }: DashboardLayoutPro
         />
       )}
 
+      {/* Sidebar */}
       <div className={`
-        fixed inset-y-0 left-0 z-50 h-screen
+        fixed inset-y-0 z-50 h-screen
         transform transition-transform duration-300 ease-in-out
-        ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        ${locale === 'ar' ? 'right-0 left-auto' : 'left-0'}
+        ${isMobileSidebarOpen ? 'translate-x-0' : isRTL ? 'translate-x-full lg:translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        ${isRTL ? 'right-0' : 'left-0'}
         ${isSidebarCollapsed ? 'w-20' : 'w-80'}
       `}>
-        <div className="bg-white border-r border-gray-200 h-full flex flex-col">
+        <div className="bg-white h-full flex flex-col shadow-lg border-gray-200" 
+             style={{ 
+               borderRightWidth: isRTL ? '0' : '1px',
+               borderLeftWidth: isRTL ? '1px' : '0'
+             }}>
           <div className="p-6 border-b border-gray-200 flex-shrink-0">
             <UserProfile user={user} isCollapsed={isSidebarCollapsed} onLogout={onLogout} />
           </div>
@@ -64,9 +72,14 @@ export function DashboardLayout({ user, children, onLogout }: DashboardLayoutPro
         </div>
       </div>
 
+      {/* Mobile menu button */}
       <button
         onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white shadow-lg border border-gray-200 text-gray-600 hover:bg-gray-100 transition-colors"
+        className={`
+          lg:hidden fixed top-4 z-50 p-2 rounded-lg bg-white shadow-lg border border-gray-200 
+          text-gray-600 hover:bg-gray-100 transition-colors
+          ${isRTL ? 'right-4' : 'left-4'}
+        `}
       >
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           {isMobileSidebarOpen ? (
@@ -77,31 +90,20 @@ export function DashboardLayout({ user, children, onLogout }: DashboardLayoutPro
         </svg>
       </button>
 
-      <div className={`min-h-screen ${isSidebarCollapsed ? 'ml-20' : 'ml-80'} w-full transition-all duration-300`}>
-        <main className="min-h-screen overflow-auto  bg-gray-50">
+      {/* Main content */}
+      <div className={`
+        min-h-screen w-full transition-all duration-300
+        ${isRTL 
+          ? (isSidebarCollapsed ? 'mr-20 lg:mr-20' : 'mr-0 lg:mr-80')
+          : (isSidebarCollapsed ? 'ml-20 lg:ml-20' : 'ml-0 lg:ml-80')
+        }
+      `}>
+        <main className="min-h-screen overflow-auto bg-gray-50">
           <div className="p-6">
             {children}
           </div>
         </main>
 
-        <footer className="bg-white border-t border-gray-200 px-6 py-4">
-          <div className="flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
-            <div className="mb-2 md:mb-0">
-              © 2025 Artistic Platform. {locale === 'ar' ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'}
-            </div>
-            <div className="flex space-x-4 rtl:space-x-reverse">
-              <a href="/privacy" className="hover:text-gray-700 transition-colors">
-                {locale === 'ar' ? 'الخصوصية' : 'Privacy'}
-              </a>
-              <a href="/terms" className="hover:text-gray-700 transition-colors">
-                {locale === 'ar' ? 'الشروط' : 'Terms'}
-              </a>
-              <a href="/support" className="hover:text-gray-700 transition-colors">
-                {locale === 'ar' ? 'الدعم' : 'Support'}
-              </a>
-            </div>
-          </div>
-        </footer>
       </div>
     </div>
   );
