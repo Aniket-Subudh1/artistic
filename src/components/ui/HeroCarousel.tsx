@@ -5,11 +5,10 @@ import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 
 interface Slide {
-  image?: string;
+  image: string; 
   title: string;
   titleHighlight: string;
   subtitle: string;
-  bgGradient: string;
   ctaText: string;
   ctaLink: string;
   category: string;
@@ -148,10 +147,23 @@ function MobileCarousel({ slides, dir }: { slides: Slide[], dir: 'ltr' | 'rtl' }
             {slides.map((slide, index) => (
               <div key={index} className="w-full flex-shrink-0">
                 <div className="relative h-[320px] rounded-2xl overflow-hidden shadow-2xl">
-                  <div
-                    className="w-full h-full relative"
-                    style={{ background: slide.bgGradient }}
-                  >
+                  <div className="w-full h-full relative">
+                    {/* Background Image */}
+                    <img 
+                      src={slide.image} 
+                      alt={slide.title}
+                      className="absolute inset-0 w-full h-full object-cover"
+                      loading={index === 0 ? "eager" : "lazy"}
+                    />
+                    
+                    <div 
+                      className="absolute inset-0 w-full h-full"
+                      onError={(e) => {
+                        const target = e.target as HTMLElement;
+                        target.style.opacity = '1';
+                      }}
+                    />
+                    
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/30" />
 
                     <div className="absolute inset-0 flex flex-col justify-end p-6 z-10">
@@ -424,10 +436,24 @@ function DesktopCarousel({
                   className="flex-shrink-0 w-[70vw] px-2"
                 >
                   <div className="relative h-[350px] lg:h-[300px] rounded-2xl overflow-hidden shadow-2xl group cursor-pointer">
-                    <div
-                      className="w-full h-full relative"
-                      style={{ background: slide.bgGradient }}
-                    >
+                    <div className="w-full h-full relative">
+                      {/* Background Image */}
+                      <img 
+                        src={slide.image} 
+                        alt={slide.title}
+                        className="absolute inset-0 w-full h-full object-cover"
+                        loading={i === 1 ? "eager" : "lazy"} // Eager load first visible slide
+                      />
+                      
+                      <div 
+                        className="absolute inset-0 w-full h-full"
+                
+                        onError={(e) => {
+                          const target = e.target as HTMLElement;
+                          target.style.opacity = '1';
+                        }}
+                      />
+                      
                       <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-black/60" />
 
                       {/* Decorative elements */}
@@ -537,8 +563,6 @@ function DesktopCarousel({
           0% { width: 0%; } 
           100% { width: 100%; } 
         }
-        
-      
         
         .animate-progress-fill { 
           animation: progress-fill 5s linear; 

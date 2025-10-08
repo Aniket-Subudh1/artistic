@@ -23,60 +23,50 @@ export default function HomePage() {
 
   const carouselSlides = [
     {
-      image: '/assets/images/1.jpg',
+      image: '/1.jpg',
       title: t('home.heroTitle'),
       titleHighlight: t('home.heroHighlight'),
       subtitle: t('home.heroSubtitle'),
-      bgGradient:
-        'linear-gradient(135deg, #391C71 0%, #5B2C87 25%, #7C3A9D 50%, #9D47B3 75%, #BE54C9 100%)',
       ctaText: t('nav.joinUs'),
       ctaLink: '/join-us',
       category: 'Featured',
     },
     {
-      image: '/assets/images/3.jpg',
+      image: '/3.jpg',
       title: 'Experience Live',
       titleHighlight: 'Music Concerts!',
       subtitle:
         'Feel the rhythm and energy of live performances from world-class artists and emerging talents.',
-      bgGradient:
-        'linear-gradient(135deg, #FF6B6B 0%, #FF8E53 25%, #FF6B9D 50%, #C44569 75%, #F8B500 100%)',
       ctaText: 'Book Concert',
       ctaLink: '/events',
       category: 'Music',
     },
     {
-      image: '/assets/images/5.jpg',
+      image: '/5.jpg',
       title: 'Immerse in',
       titleHighlight: 'Art Exhibitions!',
       subtitle:
         'Discover contemporary and classical artworks from renowned galleries and independent artists.',
-      bgGradient:
-        'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%)',
       ctaText: 'Explore Art',
       ctaLink: '/events',
       category: 'Art',
     },
     {
-      image: '/assets/images/7.jpg',
+      image: '/7.jpg',
       title: 'Join Creative',
       titleHighlight: 'Workshops!',
       subtitle:
         'Learn new skills and techniques from expert instructors in hands-on creative sessions.',
-      bgGradient:
-        'linear-gradient(135deg, #fa709a 0%, #fee140 25%, #fa709a 50%, #fee140 75%, #fa709a 100%)',
       ctaText: 'Join Workshop',
       ctaLink: '/events',
       category: 'Workshop',
     },
     {
-      image: '/assets/images/8.jpg',
+      image: '/8.jpg',
       title: 'Stream Movies',
       titleHighlight: 'At Home!',
       subtitle:
         'Watch the latest blockbusters and indie films from the comfort of your home.',
-      bgGradient:
-        'linear-gradient(135deg, #11998e 0%, #38ef7d 25%, #667eea 50%, #764ba2 75%, #f093fb 100%)',
       ctaText: 'Stream Now',
       ctaLink: '/stream',
       category: 'Movies',
