@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 
@@ -30,6 +30,20 @@ export default function HeroCarousel({
   const EDGE_GUTTER = (100 - SLIDE_W) / 2; 
 
   const [dir, setDir] = useState<'ltr' | 'rtl'>('ltr');
+  const [isVisible, setIsVisible] = useState(true);
+
+  // Track page visibility
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsVisible(!document.hidden);
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
   useEffect(() => {
     if (typeof document === 'undefined') return;
     const doc = document.documentElement;
@@ -54,84 +68,141 @@ export default function HeroCarousel({
   const [isTransitioning, setIsTransitioning] = useState(false);
   const railRef = useRef<HTMLDivElement | null>(null);
   const autoTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const resetToSafeState = useCallback(() => {
+    if (!loopSlides.length) return;
+    
+
+    if (index < 0 || index >= loopSlides.length) {
+      setIndex(1);
+    }
+    setAnim(true);
+    setIsTransitioning(false);
+  }, [loopSlides.length, index]);
+
 
   useEffect(() => {
-    if (!isAuto || loopSlides.length <= 1) return;
-    const id = setInterval(() => {
-      if (!isTransitioning) {
-        setIndex((p) => p + 1);
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+
+    if (!isVisible || !isAuto || loopSlides.length <= 1) {
+      return;
+    }
+
+    intervalRef.current = setInterval(() => {
+
+      if (!document.hidden && !isTransitioning) {
+        setIndex((prevIndex) => {
+       
+          if (prevIndex < 0 || prevIndex >= loopSlides.length) {
+            return 1;
+          }
+          return prevIndex + 1;
+        });
       }
     }, autoSlideInterval);
-    return () => clearInterval(id);
-  }, [isAuto, autoSlideInterval, loopSlides.length, isTransitioning]);
 
-  const onTransitionEnd = () => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [isAuto, autoSlideInterval, loopSlides.length, isTransitioning, isVisible]);
+
+
+  useEffect(() => {
+    if (isVisible) {
+ 
+      const timeoutId = setTimeout(() => {
+        resetToSafeState();
+      }, 100);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isVisible, resetToSafeState]);
+
+  const onTransitionEnd = useCallback(() => {
     if (!loopSlides.length) return;
     
     setIsTransitioning(false);
    
     if (index === loopSlides.length - 1) {
       setAnim(false);
-      setIndex(1);
-      requestAnimationFrame(() =>
-        requestAnimationFrame(() => setAnim(true))
-      );
-    }
-    if (index === 0) {
+      setTimeout(() => {
+        setIndex(1);
+        setTimeout(() => setAnim(true), 10);
+      }, 10);
+    } else if (index === 0) {
       setAnim(false);
-      setIndex(loopSlides.length - 2);
-      requestAnimationFrame(() =>
-        requestAnimationFrame(() => setAnim(true))
-      );
+      setTimeout(() => {
+        setIndex(loopSlides.length - 2);
+        setTimeout(() => setAnim(true), 10);
+      }, 10);
     }
-  };
+  }, [index, loopSlides.length]);
 
-  const handleManualNavigation = (newIndex: number) => {
+  const handleManualNavigation = useCallback((newIndex: number) => {
     if (isTransitioning || !loopSlides.length) return;
     
     setIsTransitioning(true);
     setIsAuto(false);
     setIndex(newIndex);
     
-    // Clear any existing timeout
     if (autoTimeoutRef.current) {
       clearTimeout(autoTimeoutRef.current);
+      autoTimeoutRef.current = null;
     }
     
-    // Set new timeout to re-enable auto-play
     autoTimeoutRef.current = setTimeout(() => {
-      setIsAuto(true);
-      setIsTransitioning(false);
+      if (!document.hidden) {
+        setIsAuto(true);
+        setIsTransitioning(false);
+      }
     }, manualPause);
-  };
+  }, [isTransitioning, loopSlides.length, manualPause]);
 
-  const next = () => {
+  const next = useCallback(() => {
     handleManualNavigation(index + 1);
-  };
+  }, [handleManualNavigation, index]);
 
-  const prev = () => {
+  const prev = useCallback(() => {
     handleManualNavigation(index - 1);
-  };
+  }, [handleManualNavigation, index]);
 
-  const goToSlide = (slideIndex: number) => {
+  const goToSlide = useCallback((slideIndex: number) => {
     handleManualNavigation(slideIndex + 1);
-  };
+  }, [handleManualNavigation]);
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (autoTimeoutRef.current) {
         clearTimeout(autoTimeoutRef.current);
       }
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
     };
   }, []);
 
-  const offset = index * SLIDE_W - EDGE_GUTTER;
-  const translate =
-    dir === 'rtl' ? `translateX(${offset}%)` : `translateX(-${offset}%)`;
+  if (!slides.length || !loopSlides.length) {
+    return (
+      <section className="py-8 pt-24">
+        <div className="text-center text-gray-500">
+          No slides available
+        </div>
+      </section>
+    );
+  }
+
+  const safeIndex = Math.max(0, Math.min(index, loopSlides.length - 1));
+  const offset = safeIndex * SLIDE_W - EDGE_GUTTER;
+  const translate = dir === 'rtl' ? `translateX(${offset}%)` : `translateX(-${offset}%)`;
 
   const realCount = slides.length;
-  const realActive = realCount ? (index - 1 + realCount) % realCount : 0;
+  const realActive = realCount ? (safeIndex - 1 + realCount) % realCount : 0;
 
   const prevPosClass = dir === 'rtl' ? 'right-6' : 'left-6';
   const nextPosClass = dir === 'rtl' ? 'left-6' : 'right-6';
@@ -248,7 +319,7 @@ export default function HeroCarousel({
                     </div>
                   </div>
 
-                  {i === index && (
+                  {i === safeIndex && (
                     <div className="absolute bottom-0 left-0 w-full h-1 bg-white/30">
                       <div className="h-full bg-white animate-progress-fill" />
                     </div>

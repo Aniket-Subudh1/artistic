@@ -7,6 +7,9 @@ import { MapPin, Star } from 'lucide-react';
 import { Navbar } from '@/components/main/Navbar';
 import { Footer } from '@/components/main/Footer';
 import HeroCarousel from '@/components/ui/HeroCarousel';
+import { Iansui } from 'next/font/google';
+import Image from 'next/image';
+import TitleTag from '@/components/ui/TitleTag';
 
 export default function HomePage() {
   const t = useTranslations();
@@ -210,44 +213,30 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-white relative">
-      {/* Floating background */}
+      {/* Floating background watermark - glassmorphism effect */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div
-          className="absolute w-96 h-96 rounded-full opacity-5 animate-float-slow"
-          style={{
-            background: `radial-gradient(circle, #391C71 0%, transparent 70%)`,
-            top: '10%',
-            left: '5%',
-            transform: `translateY(${scrollY * 0.1}px)`,
-          }}
-        />
-        <div
-          className="absolute w-64 h-64 rounded-full opacity-3 animate-float-delayed"
-          style={{
-            background: `radial-gradient(circle, #391C71 0%, transparent 70%)`,
-            top: '60%',
-            right: '10%',
-            transform: `translateY(${-scrollY * 0.15}px)`,
-          }}
-        />
-        <div
-          className="absolute w-48 h-48 rounded-full opacity-4 animate-float"
-          style={{
-            background: `radial-gradient(circle, #391C71 0%, transparent 70%)`,
-            top: '30%',
-            right: '30%',
-            transform: `translateY(${scrollY * 0.08}px)`,
-          }}
-        />
+        <div 
+          className="absolute justify-center items-center top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-30"
+        >
+          <Image 
+            src="/design.png"
+            alt="Background Watermark"
+            height={1500}
+            width={1200}
+            className="select-none opacity-50 max-w-full h-auto"
+          />
+        </div>
+        {/* Subtle glass overlay effect */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/3 via-transparent to-white/2"></div>
       </div>
-
+      
       <Navbar />
 
       {/* Extracted carousel */}
       <HeroCarousel slides={carouselSlides} />
-
+      <TitleTag />
       {/* Featured Events */}
-      <section className="py-20 max-w-7xl mx-auto px-6">
+      <section className="py-20 max-w-7xl mx-auto px-6 relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-5xl font-bold text-gray-900 mb-6 relative">
             {t('home.featuredEvents')}
@@ -314,7 +303,7 @@ export default function HomePage() {
       </section>
 
       {/* Book Your Artist */}
-      <section className="py-20 relative">
+      <section className="py-20 relative z-10">
         <div className="absolute inset-0 bg-gradient-to-r from-gray-50 to-purple-50" />
         <div className="max-w-7xl mx-auto px-6 relative">
           <div className="text-center mb-16">
@@ -383,7 +372,7 @@ export default function HomePage() {
       </section>
 
       {/* Book Equipment */}
-      <section className="py-20 max-w-7xl mx-auto px-6">
+      <section className="py-20 max-w-7xl mx-auto px-6 relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-5xl font-bold text-gray-900 mb-6 relative">
             {t('home.bookEquipment')}
@@ -449,7 +438,7 @@ export default function HomePage() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 relative overflow-hidden">
+      <section className="py-20 relative overflow-hidden z-10">
         <div
           className="absolute inset-0"
           style={{
@@ -468,7 +457,7 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <Link
               href="/create-event"
-              className="group px-10 py-4 bg-white text-[#391C71] rounded-full font-medium hover:bg-yellow-300 transition-all duration-500 shadow-2xl hover:scale-105"
+              className="group px-10 py-4 bg-white text-[#391C71] rounded-full font-medium hover:bg-yellow-300 transition-all duration-500 shadow-2xl hover:scale-105 relative z-20"
             >
               <span className="group-hover:tracking-wider transition-all duration-300">
                 {t('nav.createEvent')}
@@ -476,7 +465,7 @@ export default function HomePage() {
             </Link>
             <Link
               href="/contact"
-              className="group px-10 py-4 bg-white/15 backdrop-blur-xl border border-white/30 text-white rounded-full hover:bg-white/25 transition-all duration-500 font-medium shadow-2xl hover:scale-105"
+              className="group px-10 py-4 bg-white/15 backdrop-blur-xl border border-white/30 text-white rounded-full hover:bg-white/25 transition-all duration-500 font-medium shadow-2xl hover:scale-105 relative z-20"
             >
               <span className="group-hover:tracking-wider transition-all duration-300">
                 {t('home.contactUs')}
@@ -487,7 +476,7 @@ export default function HomePage() {
       </section>
 
       {/* Testimonials */}
-      <section className="py-20 relative">
+      <section className="py-20 relative z-10">
         <div className="absolute inset-0 bg-gradient-to-r from-gray-50 to-purple-50" />
         <div className="max-w-7xl mx-auto px-6 relative">
           <div className="text-center mb-16">
@@ -560,43 +549,40 @@ export default function HomePage() {
 
       <Footer />
 
-      {/* page-scoped background float animations used outside the carousel */}
+      {/* Enhanced floating animations for watermark */}
       <style jsx>{`
         @keyframes float-slow {
-          0%,
-          100% {
-            transform: translateY(0px) rotate(0deg);
+          0%, 100% {
+            transform: translateY(0px) rotate(0deg) scale(1);
           }
-          50% {
-            transform: translateY(-20px) rotate(180deg);
+          33% {
+            transform: translateY(-20px) rotate(60deg) scale(0.95);
+          }
+          66% {
+            transform: translateY(10px) rotate(120deg) scale(1.05);
           }
         }
         @keyframes float {
-          0%,
-          100% {
-            transform: translateY(0px);
+          0%, 100% {
+            transform: translateY(0px) scale(1);
           }
           50% {
-            transform: translateY(-15px);
+            transform: translateY(-15px) scale(0.98);
           }
         }
         @keyframes float-delayed {
-          0%,
-          100% {
-            transform: translateY(0px) rotate(0deg);
+          0%, 100% {
+            transform: translateY(0px) rotate(0deg) scale(1);
+          }
+          25% {
+            transform: translateY(-25px) rotate(-45deg) scale(0.92);
           }
           50% {
-            transform: translateY(-25px) rotate(-180deg);
+            transform: translateY(-5px) rotate(-90deg) scale(1.08);
           }
-        }
-        .animate-float-slow {
-          animation: float-slow 20s ease-in-out infinite;
-        }
-        .animate-float {
-          animation: float 15s ease-in-out infinite;
-        }
-        .animate-float-delayed {
-          animation: float-delayed 25s ease-in-out infinite;
+          75% {
+            transform: translateY(-15px) rotate(-135deg) scale(0.96);
+          }
         }
         .line-clamp-2 {
           display: -webkit-box;

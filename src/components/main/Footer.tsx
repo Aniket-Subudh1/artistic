@@ -17,7 +17,7 @@ export function Footer() {
   };
 
   return (
-    <footer className="bg-gradient-to-br from-purple-900 via-[#391C71] to-[#391C72] text-white">
+    <footer className="bg-gradient-to-br from-purple-900 via-[#391C71] to-[#391C72] text-white z-10 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* Brand Section */}
