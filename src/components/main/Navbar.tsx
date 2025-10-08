@@ -229,7 +229,7 @@ export function Navbar() {
               </button>
               
               <Link
-                href="/signin"
+                href="/auth/signin"
                 className={`px-5 py-2 text-sm font-semibold rounded-full border-2 transition-all duration-300 hover:shadow-lg ${
                   isScrolled
                     ? 'text-gray-800 border-white/30 hover:border-white/50 hover:bg-white/20 backdrop-blur-sm'
