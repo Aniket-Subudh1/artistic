@@ -8,7 +8,7 @@ import Image from 'next/image';
 import { Footer } from '@/components/main/Footer';
 
 export default function SignInPage() {
-  const t = useTranslations();
+  const t = useTranslations('auth.signIn');
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -81,17 +81,17 @@ export default function SignInPage() {
 
                 <div className="text-center mb-6">
                   <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                    Sign In
+                    {t('title')}
                   </h1>
                   <p className="text-gray-700 text-sm">
-                    Access your account and unlock all features
+                    {t('subtitle')}
                   </p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-800 mb-1">
-                      Email Address
+                      {t('emailLabel')}
                     </label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-800" />
@@ -102,7 +102,7 @@ export default function SignInPage() {
                         value={formData.email}
                         onChange={handleChange}
                         className="w-full pl-10 pr-3 py-3 border border-gray-300/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white/70 backdrop-blur-sm"
-                        placeholder="Enter your email"
+                        placeholder={t('emailPlaceholder')}
                         required
                       />
                     </div>
@@ -110,7 +110,7 @@ export default function SignInPage() {
 
                   <div>
                     <label htmlFor="password" className="block text-sm font-medium text-gray-800 mb-1">
-                      Password
+                      {t('passwordLabel')}
                     </label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-black" />
@@ -121,7 +121,7 @@ export default function SignInPage() {
                         value={formData.password}
                         onChange={handleChange}
                         className="w-full pl-10 pr-10 py-3 border border-gray-300/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white/70 backdrop-blur-sm"
-                        placeholder="Enter your password"
+                        placeholder={t('passwordPlaceholder')}
                         required
                       />
                       <button
@@ -140,10 +140,10 @@ export default function SignInPage() {
                         type="checkbox"
                         className="w-3 h-3 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-1"
                       />
-                      <span className="ml-2 text-gray-700">Remember me</span>
+                      <span className="ml-2 text-gray-700">{t('rememberMe')}</span>
                     </label>
                     <Link href="/auth/forgot-password" className="text-purple-600 hover:text-purple-700 transition-colors font-medium">
-                      Forgot password?
+                      {t('forgotPassword')}
                     </Link>
                   </div>
 
@@ -151,7 +151,7 @@ export default function SignInPage() {
                     type="submit"
                     className="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-purple-800 hover:shadow-lg transition-all duration-300 transform hover:scale-105"
                   >
-                    Sign In
+                    {t('signInButton')}
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </button>
                 </form>
@@ -163,7 +163,7 @@ export default function SignInPage() {
                       <div className="w-full border-t border-gray-300/50"></div>
                     </div>
                     <div className="relative flex justify-center text-xs">
-                      <span className="px-2 bg-white/10 text-gray-600">Or continue with</span>
+                      <span className="px-2 bg-white/10 text-gray-600">{t('orContinueWith')}</span>
                     </div>
                   </div>
                 </div>
@@ -178,14 +178,14 @@ export default function SignInPage() {
                     <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                     <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                   </svg>
-                  Continue with Google
+                  {t('continueWithGoogle')}
                 </button>
 
                 <div className="mt-4 text-center">
                   <p className="text-gray-700 text-sm">
-                    Don't have an account?{' '}
+                    {t('noAccount')}{' '}
                     <Link href="/auth/signup" className="text-purple-600 hover:text-purple-700 font-semibold transition-colors">
-                      Sign up here
+                      {t('signUpHere')}
                     </Link>
                   </p>
                 </div>
