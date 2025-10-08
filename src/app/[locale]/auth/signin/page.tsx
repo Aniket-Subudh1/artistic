@@ -29,7 +29,6 @@ export default function SignInPage() {
 
   return (
     <div className="min-h-screen relative">
-      {/* Background Image */}
       <div className="fixed inset-0 z-0">
         <Image
           src="/design.png"
@@ -41,14 +40,11 @@ export default function SignInPage() {
         <div className="absolute inset-0 bg-gradient-to-br from-purple-50/80 via-white/50 to-pink-50/80"></div>
       </div>
 
-      {/* Main Content */}
       <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-4xl">
           <div className="grid lg:grid-cols-2 gap-0 bg-white/60 backdrop-blur-md rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
             
-            {/* Left Side - Design Panel */}
             <div className="hidden lg:flex bg-gradient-to-br from-purple-100/30 via-purple-200/30 to-purple-100/30 backdrop-blur-sm p-8 flex-col justify-center items-center relative overflow-hidden">
-              {/* Design Image Placeholder */}
               <div className="relative z-10 right-[160px] bottom-16 w-full h-full flex items-center justify-center">
                 <Image
                   src="/login-bg.svg"
@@ -59,7 +55,6 @@ export default function SignInPage() {
                 />
               </div>
               
-              {/* Logo */}
               <div className="absolute bottom-6 left-6">
                 <Image
                   src="/logo-main.webp"
@@ -173,7 +168,6 @@ export default function SignInPage() {
                   </div>
                 </div>
 
-                {/* Google Sign In */}
                 <button
                   type="button"
                   className="w-full flex items-center justify-center px-4 py-3 bg-white/70 backdrop-blur-sm border border-gray-300/50 rounded-xl text-gray-700 font-medium hover:bg-white/90 hover:shadow-md transition-all duration-300"
