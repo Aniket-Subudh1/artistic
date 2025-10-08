@@ -1,34 +1,16 @@
 import React from 'react'
-import Image from 'next/image'
+import Image from 'next/image';
 
 const TitleTag = () => {
   return (
-    <div className="w-full flex items-center justify-between px-10">
-      {/* Left design */}
+    <div className="w-full h-auto flex items-center z-50 bg-white/40 backdrop-blur-md justify-center -mb-10 sm:px-6 md:px-8 lg:px-10 py-2 sm:py-3">
       <Image
-        src="/design.png"
-        alt="Left Design"
-        width={200}
-        height={200}
-        className="select-none opacity-90"
-      />
-
-      {/* Center Logo */}
-      <Image
-        src="/Logo.svg"
+        src="/ld.png"
         alt="Center Logo"
-        width={250}
-        height={250}
-        className="select-none opacity-100"
-      />
-
-      {/* Right design */}
-      <Image
-        src="/design.png"
-        alt="Right Design"
-        width={200}
-        height={200}
-        className="select-none opacity-90"
+        width={500}
+        height={800}
+        className="select-none w-full max-h-[150px] object-contain"
+        priority
       />
     </div>
   )

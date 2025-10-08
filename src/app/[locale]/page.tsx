@@ -213,17 +213,14 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-white relative">
-      {/* Floating background watermark - glassmorphism effect */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div 
-          className="absolute justify-center items-center top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-30"
-        >
+      <div className="fixed inset-0 pointer-events-none  z-0">
+        <div className="absolute inset-0 flex items-center justify-center">
           <Image 
             src="/design.png"
             alt="Background Watermark"
             height={1500}
             width={1200}
-            className="select-none opacity-50 max-w-full h-auto"
+            className="select-none opacity-10 max-w-[2000px] relative h-auto"
           />
         </div>
         {/* Subtle glass overlay effect */}
