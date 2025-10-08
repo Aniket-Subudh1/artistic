@@ -1,29 +1,31 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import Image from 'next/image';
 import { User, UserRole } from '@/types/dashboard';
-import { Crown, Shield, Mic, Package, MapPin, User as UserIcon } from 'lucide-react';
+import { Crown, Shield, Mic, Package, MapPin, User as UserIcon, LogOut, Settings, ChevronDown } from 'lucide-react';
 
 interface UserProfileProps {
   user: User;
+  onLogout: () => void;
+  isCollapsed?: boolean;
 }
 
 const getRoleIcon = (role: UserRole) => {
   switch (role) {
     case 'super_admin':
-      return <Crown className="w-5 h-5 text-yellow-500" />;
+      return <Crown className="w-4 h-4 text-yellow-500" />;
     case 'admin':
-      return <Shield className="w-5 h-5 text-blue-500" />;
+      return <Shield className="w-4 h-4 text-blue-500" />;
     case 'artist':
-      return <Mic className="w-5 h-5 text-purple-500" />;
+      return <Mic className="w-4 h-4 text-purple-500" />;
     case 'equipment_provider':
-      return <Package className="w-5 h-5 text-green-500" />;
+      return <Package className="w-4 h-4 text-green-500" />;
     case 'venue_owner':
-      return <MapPin className="w-5 h-5 text-orange-500" />;
+      return <MapPin className="w-4 h-4 text-orange-500" />;
     default:
-      return <UserIcon className="w-5 h-5 text-gray-500" />;
+      return <UserIcon className="w-4 h-4 text-gray-500" />;
   }
 };
 
@@ -67,12 +69,49 @@ const getRoleBadgeColor = (role: UserRole) => {
   }
 };
 
-export function UserProfile({ user }: UserProfileProps) {
+export function UserProfile({ user, onLogout, isCollapsed = false }: UserProfileProps) {
   const locale = useLocale();
   const t = useTranslations('dashboard');
+  const [showDropdown, setShowDropdown] = useState(false);
   
+  if (isCollapsed) {
+    return (
+      <div className="flex flex-col items-center space-y-2">
+        {/* Collapsed Avatar */}
+        <div className="relative group">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center overflow-hidden ring-2 ring-white shadow-lg">
+            {user.avatar ? (
+              <Image
+                src={user.avatar}
+                alt={`${user.firstName} ${user.lastName}`}
+                width={40}
+                height={40}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center">
+                <span className="text-white font-bold text-sm">
+                  {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+                </span>
+              </div>
+            )}
+          </div>
+          
+          {/* Online status indicator */}
+          <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
+        </div>
+
+        {/* Role Icon */}
+        <div className="p-1">
+          {getRoleIcon(user.role)}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6 shadow-sm">
+    <div className="space-y-4">
+      {/* User Info */}
       <div className="flex items-center space-x-4 rtl:space-x-reverse">
         {/* Avatar */}
         <div className="relative group">
@@ -98,38 +137,27 @@ export function UserProfile({ user }: UserProfileProps) {
           <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
         </div>
 
-        {/* User Info */}
+        {/* User Details */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center space-x-2 rtl:space-x-reverse mb-1">
-            <h2 className="text-xl font-bold text-gray-900 truncate">
-              {user.firstName} {user.lastName}
-            </h2>
-            
-            {/* Role Badge */}
-            <div className={`inline-flex items-center space-x-1 rtl:space-x-reverse px-2 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(user.role)} shadow-sm`}>
-              {getRoleIcon(user.role)}
-              <span>{getRoleLabel(user.role, locale)}</span>
-            </div>
-          </div>
-          
-          <p className="text-gray-600 text-sm mb-1 truncate">
+          <h2 className="text-lg font-bold text-gray-900 truncate">
+            {user.firstName} {user.lastName}
+          </h2>
+          <p className="text-sm text-gray-600 truncate">
             {user.email}
           </p>
-          
-          <p className="text-gray-500 text-xs">
+          <p className="text-xs text-gray-500">
             {locale === 'ar' ? `عضو منذ ${user.memberSince}` : `Member since ${user.memberSince}`}
           </p>
         </div>
-
-        {/* Action Menu */}
-        <div className="flex items-center space-x-2 rtl:space-x-reverse">
-          <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01" />
-            </svg>
-          </button>
-        </div>
       </div>
+
+      {/* Role Badge */}
+      <div className={`inline-flex items-center space-x-2 rtl:space-x-reverse px-3 py-2 rounded-lg text-sm font-medium ${getRoleBadgeColor(user.role)} shadow-sm w-full justify-center`}>
+        {getRoleIcon(user.role)}
+        <span>{getRoleLabel(user.role, locale)}</span>
+      </div>
+
+
     </div>
   );
 }

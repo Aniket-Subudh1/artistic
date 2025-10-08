@@ -235,7 +235,7 @@ export function DashboardContent({ user }: DashboardContentProps) {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       {/* Welcome Header */}
       <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-6 text-white">
         <h1 className="text-2xl font-bold mb-2">

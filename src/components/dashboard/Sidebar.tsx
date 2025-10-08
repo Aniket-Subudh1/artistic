@@ -4,9 +4,12 @@ import React, { useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { usePathname } from 'next/navigation';
 import { Link } from '@/i18n/routing';
+import Image from 'next/image';
 import { 
   ChevronDown, 
   ChevronRight,
+  ChevronLeft,
+  ChevronUp,
   LayoutDashboard,
   Calendar,
   CalendarDays,
@@ -16,8 +19,8 @@ import {
   Plus,
   Mic,
   User,
-  Image,
   Users,
+  LogOut,
   FileText,
   Settings,
   Package,
@@ -38,7 +41,10 @@ import {
   ArrowLeftRight,
   Bell,
   UserCog,
-  Cog
+  Cog,
+  Bookmark,
+  Receipt as ReceiptIcon,
+  BellRing
 } from 'lucide-react';
 import { User as UserType } from '@/types/dashboard';
 import { getSidebarItems, filterSidebarItems } from '@/lib/permissions';
@@ -47,6 +53,7 @@ interface SidebarProps {
   user: UserType;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
+  onLogout: () => void;
 }
 
 const iconMap = {
@@ -59,7 +66,6 @@ const iconMap = {
   Plus,
   Mic,
   User,
-  Image,
   Users,
   FileText,
   Settings,
@@ -84,7 +90,9 @@ const iconMap = {
   Cog
 };
 
-export function Sidebar({ user, isCollapsed, onToggleCollapse }: SidebarProps) {
+
+
+export function Sidebar({ user, isCollapsed, onToggleCollapse, onLogout }: SidebarProps) {
   const locale = useLocale();
   const pathname = usePathname();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
@@ -105,8 +113,10 @@ export function Sidebar({ user, isCollapsed, onToggleCollapse }: SidebarProps) {
   };
 
   const getIcon = (iconName: string, className: string = "w-5 h-5") => {
-    const IconComponent = iconMap[iconName as keyof typeof iconMap];
-    return IconComponent ? <IconComponent className={className} /> : null;
+    const IconComponent = iconMap[iconName as keyof typeof iconMap] || 
+                          (iconName === 'Bookmark' ? Bookmark : 
+                           iconName === 'BellRing' ? BellRing : LayoutDashboard);
+    return <IconComponent className={className} />;
   };
 
   const renderSidebarItem = (item: any, level: number = 0) => {
@@ -115,16 +125,23 @@ export function Sidebar({ user, isCollapsed, onToggleCollapse }: SidebarProps) {
     const itemIsActive = isActive(item.href);
     const hasActiveChild = hasChildren && item.children.some((child: any) => isActive(child.href));
 
+    const iconSize = isCollapsed && level === 0 ? "w-8 h-8" : "w-5 h-5";
+
     const itemClasses = `
-      flex items-center w-full px-3 py-2.5 text-sm rounded-lg transition-all duration-200
-      ${level > 0 ? 'ml-6 pl-6 border-l border-gray-200' : ''}
+      flex items-center w-full rounded-lg transition-all duration-200
+      ${isCollapsed && level === 0 
+        ? 'justify-center px-2 py-4' 
+        : level > 0 
+        ? 'ml-6 pl-6 border-l border-gray-200 px-3 py-2.5' 
+        : 'px-3 py-2.5'
+      }
+      text-sm
       ${itemIsActive 
         ? 'bg-purple-100 text-purple-700 font-medium shadow-sm' 
         : hasActiveChild
         ? 'bg-purple-50 text-purple-600'
         : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
       }
-      ${isCollapsed && level === 0 ? 'justify-center' : ''}
     `;
 
     if (item.href && !hasChildren) {
@@ -134,7 +151,7 @@ export function Sidebar({ user, isCollapsed, onToggleCollapse }: SidebarProps) {
           href={item.href}
           className={itemClasses}
         >
-          {getIcon(item.icon)}
+          {getIcon(item.icon, iconSize)}
           {!isCollapsed && (
             <>
               <span className="ml-3 flex-1 text-left rtl:text-right">
@@ -157,7 +174,7 @@ export function Sidebar({ user, isCollapsed, onToggleCollapse }: SidebarProps) {
           onClick={() => hasChildren && toggleExpanded(item.id)}
           className={itemClasses}
         >
-          {getIcon(item.icon)}
+          {getIcon(item.icon, iconSize)}
           {!isCollapsed && (
             <>
               <span className="ml-3 flex-1 text-left rtl:text-right">
@@ -181,7 +198,6 @@ export function Sidebar({ user, isCollapsed, onToggleCollapse }: SidebarProps) {
           )}
         </button>
 
-        {/* Submenu */}
         {hasChildren && (isExpanded || isCollapsed) && !isCollapsed && (
           <div className="mt-1 space-y-1">
             {item.children.map((child: any) => renderSidebarItem(child, level + 1))}
@@ -192,57 +208,58 @@ export function Sidebar({ user, isCollapsed, onToggleCollapse }: SidebarProps) {
   };
 
   return (
-    <aside className={`
-      bg-white border-r border-gray-200 transition-all duration-300 flex flex-col h-full
-      ${isCollapsed ? 'w-16' : 'w-64'}
-    `}>
-      {/* Sidebar Header */}
-      <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-        {!isCollapsed && (
-          <div className="flex items-center space-x-2 rtl:space-x-reverse">
-            <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-purple-700 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">A</span>
-            </div>
-            <span className="font-bold text-gray-900">
-              {locale === 'ar' ? 'لوحة التحكم' : 'Dashboard'}
-            </span>
-          </div>
-        )}
-        
+    <div className="flex flex-col  h-full">
+      <div className="hidden lg:flex justify-end  border-b border-gray-200">
         <button
           onClick={onToggleCollapse}
           className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
         >
-          <svg 
-            className={`w-4 h-4 text-gray-500 transition-transform ${isCollapsed ? 'rotate-180' : ''}`} 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-          </svg>
+          {isCollapsed ? (
+            <ChevronRight className="w-4 h-4 text-gray-500" />
+          ) : (
+            <ChevronLeft className="w-4 h-4 text-gray-500" />
+          )}
         </button>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+      <div className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
         {sidebarItems.map(item => renderSidebarItem(item))}
-      </nav>
+      </div>
 
-      {/* Sidebar Footer */}
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-1  border-t border-gray-200">
+        <button 
+          onClick={onLogout}
+          className={`w-full flex items-center space-x-3 rtl:space-x-reverse px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors ${
+            isCollapsed ? 'justify-center' : ''
+          }`}
+        >
+          <LogOut className="w-4 h-4" />
+          {!isCollapsed && <span>{locale === 'ar' ? 'تسجيل الخروج' : 'Logout'}</span>}
+        </button>
+      </div>
+
+      <div className="p-2 border-t border-gray-200">
         {!isCollapsed ? (
-          <div className="text-xs text-gray-500 text-center">
-            {locale === 'ar' ? 'منصة Artistic' : 'Artistic Platform'}
-            <br />
-            <span className="text-gray-400">v2.0</span>
-          </div>
+          <div className="flex items-center justify-center text-xs text-gray-500">
+  <Image
+    src="/logo-main.webp"
+    alt="Fima Logo"
+    height={24}
+    width={80}
+  />
+</div>
+
         ) : (
-          <div className="flex justify-center">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-          </div>
+          <div className="flex items-center justify-center text-xs text-gray-500">
+  <Image
+    src="/Logo.svg"
+    alt="Fima Logo"
+    height={24}
+    width={20}
+  />
+</div>
         )}
       </div>
-    </aside>
+    </div>
   );
 }

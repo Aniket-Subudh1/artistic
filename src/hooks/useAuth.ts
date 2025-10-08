@@ -72,28 +72,58 @@ const mockUsers: Record<string, User> = {
   },
 };
 
+const DEFAULT_USER: User = mockUsers['user@artistic.com']; 
+
 export const useAuthLogic = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  useEffect(() => {
+    const initializeAuth = () => {
+      const storedUser = localStorage.getItem('user');
+      const storedToken = localStorage.getItem('authToken');
+      
+      if (storedUser && storedToken) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+        } catch (error) {
+          console.error('Error parsing stored user:', error);
+          setUser(DEFAULT_USER);
+          localStorage.setItem('user', JSON.stringify(DEFAULT_USER));
+          localStorage.setItem('authToken', 'mock-jwt-token');
+        }
+      } else {
+        setUser(DEFAULT_USER);
+        localStorage.setItem('user', JSON.stringify(DEFAULT_USER));
+        localStorage.setItem('authToken', 'mock-jwt-token');
+      }
+      
+      setIsLoading(false);
+    };
 
-  const login = async (_email: string, _password: string) => {
-  setIsLoading(true);
-  try {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const superAdmin = mockUsers['superadmin@artistic.com'];
+    initializeAuth();
+  }, []);
 
-    setUser(superAdmin);
-    localStorage.setItem('authToken', 'mock-jwt-token');
-    localStorage.setItem('user', JSON.stringify(superAdmin));
-  } catch (error) {
-    throw error;
-  } finally {
-    setIsLoading(false);
-  }
-};
+  const login = async (email: string, _password: string) => {
+    setIsLoading(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const foundUser = mockUsers[email.toLowerCase()];
+      if (!foundUser) {
+        throw new Error('User not found');
+      }
 
+      setUser(foundUser);
+      localStorage.setItem('authToken', 'mock-jwt-token');
+      localStorage.setItem('user', JSON.stringify(foundUser));
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const logout = () => {
     setUser(null);
@@ -109,6 +139,17 @@ export const useAuthLogic = () => {
     }
   };
 
+  const setUserDirectly = (userEmail: string) => {
+    const foundUser = mockUsers[userEmail];
+    if (foundUser) {
+      setUser(foundUser);
+      localStorage.setItem('user', JSON.stringify(foundUser));
+      localStorage.setItem('authToken', 'mock-jwt-token');
+    } else {
+      console.error('User not found:', userEmail);
+    }
+  };
+
   return {
     user,
     isLoading,
@@ -116,5 +157,6 @@ export const useAuthLogic = () => {
     login,
     logout,
     updateUser,
+    setUserDirectly,
   };
 };

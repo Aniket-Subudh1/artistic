@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -9,8 +8,12 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 export default function DashboardPage() {
   const { user, isLoading } = useAuthLogic();
 
-  if (isLoading || !user) {
-    return <LoadingSpinner text="Loading dashboard..." />;
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+
+  if (!user) {
+    return null;
   }
 
   return <DashboardContent user={user} />;
