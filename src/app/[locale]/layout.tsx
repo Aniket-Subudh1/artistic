@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     description: "Discover and book talented artists, rent professional equipment, and create unforgettable events.",
     images: [
       {
-        url: "https://artistic.global/", 
+        url: "/banner.png", 
         width: 1200,
         height: 630,
         alt: "Artistic - Creative Events & Talent Hub",

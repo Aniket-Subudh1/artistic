@@ -82,7 +82,11 @@ export function Navbar() {
   return (
     <>
       <header
-        className="fixed top-0 start-0 end-0 z-50 transition-all duration-500 bg-gradient-to-r from-white via-white to-white backdrop-blur-sm"
+        className={`fixed top-0 start-0 end-0 z-50 transition-all duration-500 ${
+          isScrolled 
+            ? 'bg-white/20 backdrop-blur-xl border-b border-white/20 shadow-lg' 
+            : 'bg-gradient-to-r from-purple-100 via-white/80 to-purple-100 backdrop-blur-sm'
+        }`}
       >
         <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-40">
           <div className="musical-note note-1">♪</div>
@@ -119,13 +123,25 @@ export function Navbar() {
                   {item.href ? (
                     <Link
                       href={item.href}
-                      className="px-4 py-2 text-sm text-gray-700 font-medium rounded-full transition-all duration-300 hover:bg-gradient-to-r hover:from-purple-100 hover:to-pink-100 hover:text-purple-700 hover:shadow-md relative overflow-hidden group block"
+                      className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 relative overflow-hidden group block ${
+                        isScrolled 
+                          ? 'text-gray-800 hover:bg-white/30 hover:text-purple-700 hover:shadow-lg backdrop-blur-sm border border-white/20'
+                          : 'text-gray-700 hover:bg-gradient-to-r hover:from-purple-100 hover:to-pink-100 hover:text-purple-700 hover:shadow-md'
+                      }`}
                     >
                       <span className="relative z-10">{item.label}</span>
-                      <div className="absolute inset-0 bg-gradient-to-r from-purple-200/0 via-pink-200/0 to-purple-200/0 group-hover:from-purple-200/50 group-hover:via-pink-200/50 group-hover:to-purple-200/50 transition-all duration-500 blur-xl" />
+                      <div className={`absolute inset-0 transition-all duration-500 blur-xl ${
+                        isScrolled 
+                          ? 'bg-gradient-to-r from-white/0 via-white/0 to-white/0 group-hover:from-white/30 group-hover:via-white/30 group-hover:to-white/30'
+                          : 'bg-gradient-to-r from-purple-200/0 via-pink-200/0 to-purple-200/0 group-hover:from-purple-200/50 group-hover:via-pink-200/50 group-hover:to-purple-200/50'
+                      }`} />
                     </Link>
                   ) : (
-                    <button className="px-4 py-2 text-sm text-gray-700 font-medium rounded-full transition-all duration-300 hover:bg-gradient-to-r hover:from-purple-100 hover:to-pink-100 hover:text-purple-700 hover:shadow-md flex items-center space-x-1 group">
+                    <button className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 flex items-center space-x-1 group ${
+                      isScrolled 
+                        ? 'text-gray-800 hover:bg-white/30 hover:text-purple-700 hover:shadow-lg backdrop-blur-sm border border-white/20'
+                        : 'text-gray-700 hover:bg-gradient-to-r hover:from-purple-100 hover:to-pink-100 hover:text-purple-700 hover:shadow-md'
+                    }`}>
                       <span>{item.label}</span>
                       <svg
                         className={`w-4 h-4 transition-transform duration-300 ${
@@ -145,7 +161,11 @@ export function Navbar() {
                     <div 
                       className="absolute top-full start-0 pt-2 w-72 animate-dropdown"
                     >
-                      <div className="bg-white/95 rounded-3xl shadow-2xl overflow-hidden border border-purple-100/50 backdrop-blur-xl">
+                      <div className={`rounded-3xl shadow-2xl overflow-hidden backdrop-blur-xl transition-all duration-300 ${
+                        isScrolled 
+                          ? 'bg-white/60 border border-white/40'
+                          : 'bg-white/95 border border-purple-100/50'
+                      }`}>
                         <div className="p-2">
                           {item.dropdown.map((subItem, subIdx) => {
                             const IconComponent = subItem.icon
@@ -153,16 +173,24 @@ export function Navbar() {
                               <Link
                                 key={subIdx}
                                 href={subItem.href}
-                                className="flex items-start space-x-4 p-4 rounded-2xl transition-all duration-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 group relative overflow-hidden"
+                                className={`flex items-start space-x-4 p-4 rounded-2xl transition-all duration-300 group relative overflow-hidden ${
+                                  isScrolled
+                                    ? 'hover:bg-white/50 backdrop-blur-sm'
+                                    : 'hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50'
+                                }`}
                               >
                                 <div className="w-12 h-12 rounded-xl bg-purple-700 backdrop-blur-md flex items-center justify-center shadow-lg transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 border border-purple-500/30">
                                   <IconComponent className="w-6 h-6 text-white" />
                                 </div>
                                 <div className="flex-1">
-                                  <div className="font-semibold text-gray-900 group-hover:text-purple-700 transition-colors">
+                                  <div className={`font-semibold group-hover:text-purple-700 transition-colors ${
+                                    isScrolled ? 'text-gray-900' : 'text-gray-900'
+                                  }`}>
                                     {subItem.label}
                                   </div>
-                                  <div className="text-xs text-gray-600 mt-0.5">
+                                  <div className={`text-xs mt-0.5 ${
+                                    isScrolled ? 'text-gray-800' : 'text-gray-600'
+                                  }`}>
                                     {subItem.description}
                                   </div>
                                 </div>
@@ -190,7 +218,11 @@ export function Navbar() {
               {/* Language Toggle Button */}
               <button
                 onClick={toggleLanguage}
-                className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 font-semibold rounded-full border-2 border-purple-200 hover:border-purple-400 hover:bg-purple-50 transition-all duration-300 hover:shadow-lg"
+                className={`flex items-center space-x-2 px-4 py-2 text-sm font-semibold rounded-full border-2 transition-all duration-300 hover:shadow-lg ${
+                  isScrolled
+                    ? 'text-gray-800 border-white/30 hover:border-white/50 hover:bg-white/20 backdrop-blur-sm'
+                    : 'text-gray-700 border-purple-200 hover:border-purple-400 hover:bg-purple-50'
+                }`}
               >
                 <Languages className="w-4 h-4" />
                 <span>{locale === 'en' ? 'العربية' : 'English'}</span>
@@ -198,7 +230,11 @@ export function Navbar() {
               
               <Link
                 href="/signin"
-                className="px-5 py-2 text-sm text-gray-700 font-semibold rounded-full border-2 border-purple-200 hover:border-purple-400 hover:bg-purple-50 transition-all duration-300 hover:shadow-lg"
+                className={`px-5 py-2 text-sm font-semibold rounded-full border-2 transition-all duration-300 hover:shadow-lg ${
+                  isScrolled
+                    ? 'text-gray-800 border-white/30 hover:border-white/50 hover:bg-white/20 backdrop-blur-sm'
+                    : 'text-gray-700 border-purple-200 hover:border-purple-400 hover:bg-purple-50'
+                }`}
               >
                 {t('signIn')}
               </Link>
@@ -217,7 +253,11 @@ export function Navbar() {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 text-gray-700 hover:bg-purple-100 rounded-xl transition-all duration-300 z-10"
+              className={`lg:hidden p-2 rounded-xl transition-all duration-300 z-10 ${
+                isScrolled
+                  ? 'text-gray-800 hover:bg-white/20 backdrop-blur-sm border border-white/20'
+                  : 'text-gray-700 hover:bg-purple-100'
+              }`}
               aria-label="Toggle menu"
             >
               <svg
@@ -239,14 +279,22 @@ export function Navbar() {
           {/* Mobile Menu */}
           {isMobileMenuOpen && (
             <div className="lg:hidden pb-6 pt-4 animate-dropdown">
-              <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-purple-100 overflow-hidden">
+              <div className={`backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden transition-all duration-300 ${
+                isScrolled
+                  ? 'bg-white/60 border border-white/40'
+                  : 'bg-white/95 border border-purple-100'
+              }`}>
                 <nav className="p-4 space-y-2">
                   {navItems.map((item, idx) => (
                     <div key={idx}>
                       {item.href ? (
                         <Link
                           href={item.href}
-                          className="block px-4 py-2.5 text-sm text-gray-700 font-medium rounded-2xl hover:bg-gradient-to-r hover:from-purple-100 hover:to-pink-100 hover:text-purple-700 transition-all duration-300"
+                          className={`block px-4 py-2.5 text-sm font-medium rounded-2xl transition-all duration-300 ${
+                            isScrolled
+                              ? 'text-gray-800 hover:bg-white/30 hover:text-purple-700 backdrop-blur-sm'
+                              : 'text-gray-700 hover:bg-gradient-to-r hover:from-purple-100 hover:to-pink-100 hover:text-purple-700'
+                          }`}
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
                           {item.label}
@@ -255,7 +303,11 @@ export function Navbar() {
                         <>
                           <button
                             onClick={() => setActiveDropdown(activeDropdown === idx ? null : idx)}
-                            className="w-full flex items-center justify-between px-4 py-2.5 text-sm text-gray-700 font-medium rounded-2xl hover:bg-gradient-to-r hover:from-purple-100 hover:to-pink-100 hover:text-purple-700 transition-all duration-300"
+                            className={`w-full flex items-center justify-between px-4 py-2.5 text-sm font-medium rounded-2xl transition-all duration-300 ${
+                              isScrolled
+                                ? 'text-gray-800 hover:bg-white/30 hover:text-purple-700 backdrop-blur-sm'
+                                : 'text-gray-700 hover:bg-gradient-to-r hover:from-purple-100 hover:to-pink-100 hover:text-purple-700'
+                            }`}
                           >
                             <span>{item.label}</span>
                             <svg
@@ -277,7 +329,11 @@ export function Navbar() {
                                   <Link
                                     key={subIdx}
                                     href={subItem.href}
-                                    className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-600 rounded-xl hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 hover:text-purple-700 transition-all duration-300"
+                                    className={`flex items-center space-x-3 px-4 py-2.5 text-sm rounded-xl transition-all duration-300 ${
+                                      isScrolled
+                                        ? 'text-gray-700 hover:bg-white/30 hover:text-purple-700 backdrop-blur-sm'
+                                        : 'text-gray-600 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 hover:text-purple-700'
+                                    }`}
                                     onClick={() => setIsMobileMenuOpen(false)}
                                   >
                                     <div className="w-8 h-8 rounded-lg bg-purple-700 flex items-center justify-center flex-shrink-0">
@@ -295,17 +351,27 @@ export function Navbar() {
                   ))}
                 </nav>
                 
-                <div className="px-4 pb-4 space-y-3 border-t border-purple-100 pt-4">
+                <div className={`px-4 pb-4 space-y-3 border-t pt-4 ${
+                  isScrolled ? 'border-white/20' : 'border-purple-100'
+                }`}>
                   <button
                     onClick={toggleLanguage}
-                    className="flex items-center justify-center space-x-2 w-full px-4 py-2.5 text-sm text-gray-700 font-semibold rounded-2xl border-2 border-purple-200 hover:bg-purple-50 transition-all duration-300"
+                    className={`flex items-center justify-center space-x-2 w-full px-4 py-2.5 text-sm font-semibold rounded-2xl border-2 transition-all duration-300 ${
+                      isScrolled
+                        ? 'text-gray-800 border-white/30 hover:bg-white/20 backdrop-blur-sm'
+                        : 'text-gray-700 border-purple-200 hover:bg-purple-50'
+                    }`}
                   >
                     <Languages className="w-4 h-4" />
                     <span>{locale === 'en' ? 'العربية' : 'English'}</span>
                   </button>
                   <Link
                     href="/signin"
-                    className="block w-full px-4 py-2.5 text-sm text-center text-gray-700 font-semibold rounded-2xl border-2 border-purple-200 hover:bg-purple-50 transition-all duration-300"
+                    className={`block w-full px-4 py-2.5 text-sm text-center font-semibold rounded-2xl border-2 transition-all duration-300 ${
+                      isScrolled
+                        ? 'text-gray-800 border-white/30 hover:bg-white/20 backdrop-blur-sm'
+                        : 'text-gray-700 border-purple-200 hover:bg-purple-50'
+                    }`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     {t('signIn')}
