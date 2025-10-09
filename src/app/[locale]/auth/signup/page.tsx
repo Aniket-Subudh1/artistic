@@ -2,16 +2,23 @@
 
 import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Link } from '@/i18n/routing';
-import { Eye, EyeOff, Mail, User, Lock, ChevronDown } from 'lucide-react';
+import { Link, useRouter } from '@/i18n/routing';
+import { Eye, EyeOff, Mail, User, Lock, ChevronDown, AlertCircle, CheckCircle } from 'lucide-react';
 import Image from 'next/image';
 import { Footer } from '@/components/main/Footer';
+import { useAuthLogic } from '@/hooks/useAuth';
 
 export default function SignUpPage() {
   const t = useTranslations('auth.signUp');
   const tCountries = useTranslations('auth.countries');
+  const router = useRouter();
+  const { signup, isLoading } = useAuthLogic();
+  
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -50,9 +57,54 @@ export default function SignUpPage() {
     setShowCountryDropdown(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Sign up attempt:', formData, agreements);
+    setError('');
+    setSuccess('');
+
+    // Validation
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.mobile || !formData.password) {
+      setError('Please fill in all required fields');
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return;
+    }
+
+    if (!agreements.terms || !agreements.privacy) {
+      setError('Please accept the Terms of Service and Privacy Policy');
+      return;
+    }
+
+    try {
+      const phoneNumber = selectedCountry.code + formData.mobile;
+      const response = await signup({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phoneNumber: phoneNumber,
+        password: formData.password,
+        role: 'user', // Only user accounts can be created via signup
+      });
+
+      setSuccess('Account created successfully! You can now sign in.');
+      
+      // Redirect to sign in page after successful registration
+      setTimeout(() => {
+        router.push('/auth/signin');
+      }, 2000);
+      
+    } catch (error: any) {
+      console.error('Sign up error:', error);
+      setError(error.message || 'Registration failed. Please try again.');
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,6 +112,9 @@ export default function SignUpPage() {
       ...prev,
       [e.target.name]: e.target.value
     }));
+    // Clear messages when user starts typing
+    if (error) setError('');
+    if (success) setSuccess('');
   };
 
   const handleAgreementChange = (field: string) => {
@@ -100,45 +155,44 @@ export default function SignUpPage() {
 
                 <div className="text-center mb-4">
                   <h1 className="text-xl font-bold text-gray-900 mb-1">
-                    {t('title')}
+                    Create User Account
                   </h1>
                   <p className="text-gray-700 text-xs">
-                    {t('alreadyHaveAccount')}{' '}
+                    Already have an account?{' '}
                     <Link href="/auth/signin" className="text-purple-600 hover:text-purple-700 font-semibold transition-colors">
-                      {t('signInHere')}
+                      Sign in here
                     </Link>
                   </p>
                 </div>
 
-                <button
-                  type="button"
-                  className="w-full flex items-center justify-center px-3 py-2.5 mb-3 bg-white/70 backdrop-blur-sm border border-gray-300/50 rounded-lg text-gray-700 text-sm font-medium hover:bg-white/90 hover:shadow-md transition-all duration-300"
-                >
-                  <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                  </svg>
-                  {t('signUpWithGoogle')}
-                </button>
-
-                <div className="my-3">
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-gray-300/50"></div>
-                    </div>
-                    <div className="relative flex justify-center text-xs">
-                      <span className="px-2 bg-white/10 text-gray-600">{t('orContinueWithEmail')}</span>
-                    </div>
-                  </div>
+                {/* Info Box */}
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-blue-800 text-xs text-center">
+                    <strong>Artists, Venue Owners & Equipment Providers:</strong><br />
+                    Please use the "Join Us" button to apply for professional accounts.
+                  </p>
                 </div>
+
+                {/* Error/Success Messages */}
+                {error && (
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-2 text-red-700">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    <span className="text-sm">{error}</span>
+                  </div>
+                )}
+
+                {success && (
+                  <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center space-x-2 text-green-700">
+                    <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                    <span className="text-sm">{success}</span>
+                  </div>
+                )}
 
                 <form onSubmit={handleSubmit} className="space-y-3">
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label htmlFor="firstName" className="block text-xs font-medium text-gray-800 mb-1">
-                        {t('firstNameLabel')} {t('required')}
+                        First Name *
                       </label>
                       <div className="relative">
                         <User className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-900" />
@@ -149,14 +203,15 @@ export default function SignUpPage() {
                           value={formData.firstName}
                           onChange={handleChange}
                           className="w-full pl-8 pr-2 py-2.5 text-sm border border-gray-300/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white/70 backdrop-blur-sm"
-                          placeholder={t('firstNamePlaceholder')}
+                          placeholder="First name"
                           required
+                          disabled={isLoading}
                         />
                       </div>
                     </div>
                     <div>
                       <label htmlFor="lastName" className="block text-xs font-medium text-gray-800 mb-1">
-                        {t('lastNameLabel')} {t('required')}
+                        Last Name *
                       </label>
                       <div className="relative">
                         <User className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-900" />
@@ -167,8 +222,9 @@ export default function SignUpPage() {
                           value={formData.lastName}
                           onChange={handleChange}
                           className="w-full pl-8 pr-2 py-2.5 text-sm border border-gray-300/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white/70 backdrop-blur-sm"
-                          placeholder={t('lastNamePlaceholder')}
+                          placeholder="Last name"
                           required
+                          disabled={isLoading}
                         />
                       </div>
                     </div>
@@ -176,7 +232,7 @@ export default function SignUpPage() {
 
                   <div>
                     <label htmlFor="email" className="block text-xs font-medium text-gray-800 mb-1">
-                      {t('emailLabel')} {t('required')}
+                      Email Address *
                     </label>
                     <div className="relative">
                       <Mail className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-900" />
@@ -187,15 +243,16 @@ export default function SignUpPage() {
                         value={formData.email}
                         onChange={handleChange}
                         className="w-full pl-8 pr-2 py-2.5 text-sm border border-gray-300/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white/70 backdrop-blur-sm"
-                        placeholder={t('emailPlaceholder')}
+                        placeholder="Enter your email"
                         required
+                        disabled={isLoading}
                       />
                     </div>
                   </div>
 
                   <div>
                     <label htmlFor="mobile" className="block text-xs font-medium text-gray-800 mb-1">
-                      {t('mobileLabel')} {t('required')}
+                      Mobile Number *
                     </label>
                     <div className="relative">
                       <div className="flex">
@@ -204,6 +261,7 @@ export default function SignUpPage() {
                             type="button"
                             onClick={() => setShowCountryDropdown(!showCountryDropdown)}
                             className="flex items-center px-2.5 py-2.5 bg-white/70 backdrop-blur-sm border border-gray-300/50 border-r-0 rounded-l-lg text-xs font-medium text-gray-700 hover:bg-white/90 transition-all duration-300 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                            disabled={isLoading}
                           >
                             <span className="mr-1">{selectedCountry.flag}</span>
                             <span className="mr-1">{selectedCountry.code}</span>
@@ -235,8 +293,9 @@ export default function SignUpPage() {
                           value={formData.mobile}
                           onChange={handleChange}
                           className="flex-1 px-2 py-2.5 text-sm border border-gray-300/50 border-l-0 rounded-r-lg focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white/70 backdrop-blur-sm"
-                          placeholder={t('mobilePlaceholder')}
+                          placeholder="Mobile number"
                           required
+                          disabled={isLoading}
                         />
                       </div>
                     </div>
@@ -245,7 +304,7 @@ export default function SignUpPage() {
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label htmlFor="password" className="block text-xs font-medium text-gray-800 mb-1">
-                        {t('passwordLabel')} {t('required')}
+                        Password *
                       </label>
                       <div className="relative">
                         <Lock className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-900" />
@@ -256,13 +315,15 @@ export default function SignUpPage() {
                           value={formData.password}
                           onChange={handleChange}
                           className="w-full pl-8 pr-8 py-2.5 text-sm border border-gray-300/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white/70 backdrop-blur-sm"
-                          placeholder={t('passwordPlaceholder')}
+                          placeholder="Password"
                           required
+                          disabled={isLoading}
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
                           className="absolute right-2.5 top-1/2 transform -translate-y-1/2 text-gray-900 hover:text-purple-500 transition-colors"
+                          disabled={isLoading}
                         >
                           {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                         </button>
@@ -270,7 +331,7 @@ export default function SignUpPage() {
                     </div>
                     <div>
                       <label htmlFor="confirmPassword" className="block text-xs font-medium text-gray-800 mb-1">
-                        {t('confirmPasswordLabel')} {t('required')}
+                        Confirm Password *
                       </label>
                       <div className="relative">
                         <Lock className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-900" />
@@ -281,13 +342,15 @@ export default function SignUpPage() {
                           value={formData.confirmPassword}
                           onChange={handleChange}
                           className="w-full pl-8 pr-8 py-2.5 text-sm border border-gray-300/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white/70 backdrop-blur-sm"
-                          placeholder={t('confirmPasswordPlaceholder')}
+                          placeholder="Confirm password"
                           required
+                          disabled={isLoading}
                         />
                         <button
                           type="button"
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                           className="absolute right-2.5 top-1/2 transform -translate-y-1/2 text-gray-900 hover:text-purple-500 transition-colors"
+                          disabled={isLoading}
                         >
                           {showConfirmPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                         </button>
@@ -303,12 +366,13 @@ export default function SignUpPage() {
                         onChange={() => handleAgreementChange('terms')}
                         className="w-3 h-3 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-1 mt-0.5 mr-2 flex-shrink-0"
                         required
+                        disabled={isLoading}
                       />
                       <span className="text-gray-700 leading-tight">
-                        {t('agreeToTerms')}{' '}
+                        I agree to the{' '}
                         <Link href="/terms" className="text-purple-600 hover:text-purple-700 font-medium">
-                          {t('termsOfService')}
-                        </Link> {t('required')}
+                          Terms of Service
+                        </Link> *
                       </span>
                     </label>
                     <label className="flex items-start cursor-pointer">
@@ -318,12 +382,13 @@ export default function SignUpPage() {
                         onChange={() => handleAgreementChange('privacy')}
                         className="w-3 h-3 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-1 mt-0.5 mr-2 flex-shrink-0"
                         required
+                        disabled={isLoading}
                       />
                       <span className="text-gray-700 leading-tight">
-                        {t('agreeToPrivacy')}{' '}
+                        I agree to the{' '}
                         <Link href="/privacy" className="text-purple-600 hover:text-purple-700 font-medium">
-                          {t('privacyPolicy')}
-                        </Link> {t('required')}
+                          Privacy Policy
+                        </Link> *
                       </span>
                     </label>
                     <label className="flex items-start cursor-pointer">
@@ -332,24 +397,45 @@ export default function SignUpPage() {
                         checked={agreements.marketing}
                         onChange={() => handleAgreementChange('marketing')}
                         className="w-3 h-3 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-1 mt-0.5 mr-2 flex-shrink-0"
+                        disabled={isLoading}
                       />
                       <span className="text-gray-700 leading-tight">
-                        {t('marketingCommunications')}
+                        I would like to receive marketing communications
                       </span>
                     </label>
                   </div>
 
                   <button
                     type="submit"
-                    className="w-full flex items-center justify-center px-3 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-purple-800 hover:shadow-lg transition-all duration-300 transform hover:scale-105 text-sm"
+                    disabled={isLoading}
+                    className="w-full flex items-center justify-center px-3 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-purple-800 hover:shadow-lg transition-all duration-300 transform hover:scale-105 text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                   >
-                    {t('createAccountButton')}
+                    {isLoading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
+                        Creating Account...
+                      </>
+                    ) : (
+                      'Create User Account'
+                    )}
                   </button>
                 </form>
 
+                <div className="mt-4 text-center">
+                  <div className="text-xs text-gray-500 mb-2">
+                    Looking to join as a professional?
+                  </div>
+                  <Link
+                    href="/join-us"
+                    className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-lg font-medium hover:from-orange-600 hover:to-pink-600 transition-all duration-300 text-sm"
+                  >
+                    Apply to Join Us
+                  </Link>
+                </div>
+
                 <div className="mt-3 text-center">
                   <Link href="/" className="text-gray-600 hover:text-purple-600 text-xs transition-colors">
-                    {t('backToHome')}
+                    Back to Home
                   </Link>
                 </div>
               </div>
