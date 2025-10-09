@@ -36,7 +36,8 @@ export default function SignUpPage() {
     { code: '+966', flag: '🇸🇦', name: tCountries('saudiArabia') },
     { code: '+974', flag: '🇶🇦', name: tCountries('qatar') },
     { code: '+973', flag: '🇧🇭', name: tCountries('bahrain') },
-    { code: '+968', flag: '🇴🇲', name: tCountries('oman') }
+    { code: '+968', flag: '🇴🇲', name: tCountries('oman') },
+    { code: '+91', flag: '🇮🇳', name: tCountries('india') }
   ];
 
   const [selectedCountry, setSelectedCountry] = useState({
@@ -62,7 +63,6 @@ export default function SignUpPage() {
     setError('');
     setSuccess('');
 
-    // Validation
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.mobile || !formData.password) {
       setError('Please fill in all required fields');
       return;
@@ -91,12 +91,11 @@ export default function SignUpPage() {
         email: formData.email,
         phoneNumber: phoneNumber,
         password: formData.password,
-        role: 'user', // Only user accounts can be created via signup
+        role: 'user', 
       });
 
       setSuccess('Account created successfully! You can now sign in.');
       
-      // Redirect to sign in page after successful registration
       setTimeout(() => {
         router.push('/auth/signin');
       }, 2000);
@@ -165,13 +164,7 @@ export default function SignUpPage() {
                   </p>
                 </div>
 
-                {/* Info Box */}
-                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-blue-800 text-xs text-center">
-                    <strong>Artists, Venue Owners & Equipment Providers:</strong><br />
-                    Please use the "Join Us" button to apply for professional accounts.
-                  </p>
-                </div>
+               
 
                 {/* Error/Success Messages */}
                 {error && (
@@ -260,7 +253,7 @@ export default function SignUpPage() {
                           <button
                             type="button"
                             onClick={() => setShowCountryDropdown(!showCountryDropdown)}
-                            className="flex items-center px-2.5 py-2.5 bg-white/70 backdrop-blur-sm border border-gray-300/50 border-r-0 rounded-l-lg text-xs font-medium text-gray-700 hover:bg-white/90 transition-all duration-300 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                            className="flex items-center px-2.5 py-3 bg-white/70 backdrop-blur-sm border border-gray-300/50 border-r-0 rounded-l-lg text-xs font-medium text-gray-700 hover:bg-white/90 transition-all duration-300 focus:outline-none focus:ring-1 focus:ring-purple-500"
                             disabled={isLoading}
                           >
                             <span className="mr-1">{selectedCountry.flag}</span>
@@ -421,17 +414,7 @@ export default function SignUpPage() {
                   </button>
                 </form>
 
-                <div className="mt-4 text-center">
-                  <div className="text-xs text-gray-500 mb-2">
-                    Looking to join as a professional?
-                  </div>
-                  <Link
-                    href="/join-us"
-                    className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-lg font-medium hover:from-orange-600 hover:to-pink-600 transition-all duration-300 text-sm"
-                  >
-                    Apply to Join Us
-                  </Link>
-                </div>
+               
 
                 <div className="mt-3 text-center">
                   <Link href="/" className="text-gray-600 hover:text-purple-600 text-xs transition-colors">
