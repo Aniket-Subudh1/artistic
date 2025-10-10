@@ -14,12 +14,35 @@ export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState<number | null>(null)
+  const [isVisible, setIsVisible] = useState(true)
+  const [lastScrollY, setLastScrollY] = useState(0)
   
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 50)
-    window.addEventListener("scroll", handleScroll)
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY
+      
+      // Determine if scrolled enough to change appearance
+      setIsScrolled(currentScrollY > 50)
+      
+      // Determine visibility based on scroll direction
+      if (currentScrollY < lastScrollY || currentScrollY < 100) {
+        // Scrolling up or near top - show navbar
+        setIsVisible(true)
+      } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        // Scrolling down and not near top - hide navbar
+        setIsVisible(false)
+        // Close mobile menu if open
+        setIsMobileMenuOpen(false)
+        // Close dropdowns
+        setActiveDropdown(null)
+      }
+      
+      setLastScrollY(currentScrollY)
+    }
+
+    window.addEventListener("scroll", handleScroll, { passive: true })
     return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+  }, [lastScrollY])
 
   const toggleLanguage = () => {
     const newLocale = locale === 'en' ? 'ar' : 'en'
@@ -68,7 +91,8 @@ export function Navbar() {
           description: t('bookEquipmentDesc')
         }
       ]
-    }
+    },
+    { href: "/join-us", label: t('joinUs') },
   ]
 
   const handleMouseEnter = (idx: number) => {
@@ -83,6 +107,8 @@ export function Navbar() {
     <>
       <header
         className={`fixed top-0 start-0 end-0 z-50 transition-all duration-500 ${
+          isVisible ? 'translate-y-0' : '-translate-y-full'
+        } ${
           isScrolled 
             ? 'bg-white/20 backdrop-blur-xl border-b border-white/20 shadow-lg' 
             : 'bg-gradient-to-r from-purple-100 via-white/80 to-purple-100 backdrop-blur-sm'
@@ -228,21 +254,12 @@ export function Navbar() {
                 <span>{locale === 'en' ? 'العربية' : 'English'}</span>
               </button>
               
+              
               <Link
                 href="/auth/signin"
-                className={`px-5 py-2 text-sm font-semibold rounded-full border-2 transition-all duration-300 hover:shadow-lg ${
-                  isScrolled
-                    ? 'text-gray-800 border-white/30 hover:border-white/50 hover:bg-white/20 backdrop-blur-sm'
-                    : 'text-gray-700 border-purple-200 hover:border-purple-400 hover:bg-purple-50'
-                }`}
-              >
-                {t('signIn')}
-              </Link>
-              <Link
-                href="/join-us"
                 className="relative px-6 py-2 text-sm bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 text-white font-bold rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group"
               >
-                <span className="relative z-10">{t('joinUs')}</span>
+                <span className="relative z-10">{t('signIn')}</span>
                 <div className="absolute inset-0 bg-gradient-to-r from-orange-500 via-pink-600 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="absolute inset-0 animate-pulse-slow opacity-30">
                   <div className="absolute top-0 start-0 w-full h-full bg-gradient-to-r from-transparent via-white to-transparent transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
@@ -366,7 +383,7 @@ export function Navbar() {
                     <span>{locale === 'en' ? 'العربية' : 'English'}</span>
                   </button>
                   <Link
-                    href="/signin"
+                    href="/auth/signin"
                     className={`block w-full px-4 py-2.5 text-sm text-center font-semibold rounded-2xl border-2 transition-all duration-300 ${
                       isScrolled
                         ? 'text-gray-800 border-white/30 hover:bg-white/20 backdrop-blur-sm'

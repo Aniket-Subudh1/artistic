@@ -125,10 +125,22 @@ export default async function RootLayout({
   return (
     <html lang={locale} dir={direction}>
       <head>
-        <meta name="theme-color" content="#9333ea" />
+        {/* Mobile browser theme colors - Set to white for clean appearance */}
+        <meta name="theme-color" content="#ffffff" />
+        <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+        <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#ffffff" />
+        
+        {/* Mobile web app settings */}
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        
+        {/* Additional mobile browser styling */}
+        <meta name="msapplication-navbutton-color" content="#ffffff" />
+        <meta name="msapplication-TileColor" content="#ffffff" />
+        
+        {/* Viewport settings for better mobile experience */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         
         <script
           type="application/ld+json"
