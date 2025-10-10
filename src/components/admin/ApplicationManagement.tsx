@@ -1,3 +1,4 @@
+// src/components/admin/ApplicationManagement.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -15,7 +16,9 @@ import {
   AlertCircle,
   Search,
   Filter,
-  MessageSquare
+  MessageSquare,
+  Users,
+  Trash2
 } from 'lucide-react';
 import { ApplicationService, Application } from '@/services/application.service';
 
@@ -27,6 +30,7 @@ export function ApplicationManagement() {
   const [success, setSuccess] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewComment, setReviewComment] = useState('');
@@ -38,7 +42,7 @@ export function ApplicationManagement() {
 
   useEffect(() => {
     filterApplications();
-  }, [applications, searchTerm, statusFilter]);
+  }, [applications, searchTerm, statusFilter, typeFilter]);
 
   const loadApplications = async () => {
     setIsLoading(true);
@@ -66,6 +70,11 @@ export function ApplicationManagement() {
     // Filter by status
     if (statusFilter !== 'all') {
       filtered = filtered.filter(app => app.status === statusFilter);
+    }
+
+    // Filter by application type
+    if (typeFilter !== 'all') {
+      filtered = filtered.filter(app => app.applicationType.toLowerCase() === typeFilter.toLowerCase());
     }
 
     setFilteredApplications(filtered);
@@ -139,6 +148,17 @@ export function ApplicationManagement() {
     return type === 'Solo' ? 'Solo Artist' : 'Team/Group';
   };
 
+  const getApplicationTypeBadge = (type: string) => {
+    return (
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+        type === 'Solo' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
+      }`}>
+        {type === 'Solo' ? <User className="w-3 h-3 mr-1" /> : <Users className="w-3 h-3 mr-1" />}
+        {getApplicationTypeLabel(type)}
+      </span>
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -186,6 +206,63 @@ export function ApplicationManagement() {
         </div>
       )}
 
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Applications</p>
+              <p className="text-2xl font-bold text-gray-900">{applications.length}</p>
+            </div>
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <FileText className="w-6 h-6 text-blue-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Pending Review</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {applications.filter(app => app.status === 'pending').length}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+              <Clock className="w-6 h-6 text-yellow-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Solo Artists</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {applications.filter(app => app.applicationType === 'Solo').length}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+              <User className="w-6 h-6 text-purple-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Teams/Groups</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {applications.filter(app => app.applicationType === 'Team').length}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <Users className="w-6 h-6 text-green-600" />
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
@@ -208,6 +285,15 @@ export function ApplicationManagement() {
           <option value="approved">Approved</option>
           <option value="rejected">Rejected</option>
         </select>
+        <select
+          value={typeFilter}
+          onChange={(e) => setTypeFilter(e.target.value)}
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+        >
+          <option value="all">All Types</option>
+          <option value="solo">Solo Artist</option>
+          <option value="team">Team/Group</option>
+        </select>
       </div>
 
       {/* Applications Table */}
@@ -217,7 +303,7 @@ export function ApplicationManagement() {
             <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No applications found</h3>
             <p className="text-gray-600">
-              {searchTerm || statusFilter !== 'all' 
+              {searchTerm || statusFilter !== 'all' || typeFilter !== 'all'
                 ? 'Try adjusting your search or filters'
                 : 'No applications have been submitted yet'
               }
@@ -271,9 +357,7 @@ export function ApplicationManagement() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                        {getApplicationTypeLabel(application.applicationType)}
-                      </span>
+                      {getApplicationTypeBadge(application.applicationType)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {getStatusBadge(application.status)}
@@ -358,7 +442,9 @@ export function ApplicationManagement() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Application Type</label>
-                    <p className="text-gray-900">{getApplicationTypeLabel(selectedApplication.applicationType)}</p>
+                    <div className="mt-1">
+                      {getApplicationTypeBadge(selectedApplication.applicationType)}
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Status</label>
@@ -379,6 +465,21 @@ export function ApplicationManagement() {
                     >
                       <Video className="w-4 h-4 mr-1" />
                       View Portfolio Video
+                    </a>
+                  </div>
+                )}
+
+                {selectedApplication.cvFileUrl && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">CV/Resume</label>
+                    <a
+                      href={selectedApplication.cvFileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 flex items-center mt-1"
+                    >
+                      <Download className="w-4 h-4 mr-1" />
+                      Download CV/Resume
                     </a>
                   </div>
                 )}
@@ -445,6 +546,28 @@ export function ApplicationManagement() {
                       )}
                       Reject
                     </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Already reviewed message */}
+              {selectedApplication.status !== 'pending' && (
+                <div className={`p-4 rounded-lg ${
+                  selectedApplication.status === 'approved' 
+                    ? 'bg-green-50 border border-green-200' 
+                    : 'bg-red-50 border border-red-200'
+                }`}>
+                  <div className="flex items-center gap-2">
+                    {selectedApplication.status === 'approved' ? (
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                    ) : (
+                      <XCircle className="w-5 h-5 text-red-600" />
+                    )}
+                    <span className={`font-medium ${
+                      selectedApplication.status === 'approved' ? 'text-green-800' : 'text-red-800'
+                    }`}>
+                      This application has been {selectedApplication.status}
+                    </span>
                   </div>
                 </div>
               )}

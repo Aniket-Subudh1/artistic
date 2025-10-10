@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { Plus, Search, Filter, Eye, Edit, Trash2, Star, MapPin, Clock, AlertCircle, CheckCircle } from 'lucide-react';
+import { Plus, Search, Filter, Eye, Edit, Trash2, Star, MapPin, Clock, AlertCircle, CheckCircle, Mail, Phone } from 'lucide-react';
 import { ArtistService, Artist, ArtistType, CreateArtistRequest } from '@/services/artist.service';
 import { AdminService } from '@/services/admin.service';
 
@@ -15,8 +15,11 @@ export function ArtistManagement() {
   const [success, setSuccess] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showCreateTypeModal, setShowCreateTypeModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
+  const [generatedPassword, setGeneratedPassword] = useState('');
+  const [newArtistInfo, setNewArtistInfo] = useState<any>(null);
 
   // Form states
   const [artistForm, setArtistForm] = useState<CreateArtistRequest>({
@@ -71,6 +74,10 @@ export function ArtistManagement() {
     }
   };
 
+  const generateRandomPassword = () => {
+    return Math.random().toString(36).slice(-8);
+  };
+
   const handleCreateArtist = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -78,9 +85,21 @@ export function ArtistManagement() {
     setSuccess('');
 
     try {
+      const password = generateRandomPassword();
+      setGeneratedPassword(password);
+      
       const response = await ArtistService.createArtist(artistForm, files);
+      
+      setNewArtistInfo({
+        name: `${artistForm.firstName} ${artistForm.lastName}`,
+        email: artistForm.email,
+        stageName: artistForm.stageName,
+        password: password
+      });
+      
       setSuccess('Artist created successfully!');
       setShowCreateModal(false);
+      setShowPasswordModal(true);
       resetArtistForm();
       loadData(); // Reload the list
     } catch (error: any) {
@@ -171,6 +190,31 @@ export function ArtistManagement() {
     return matchesSearch && matchesFilter;
   });
 
+  const sendPasswordEmail = () => {
+    // In a real app, you would send this via email service
+    const emailBody = `Dear ${newArtistInfo?.name},
+
+Welcome to Artistic! Your artist account has been created successfully.
+
+Login Details:
+Email: ${newArtistInfo?.email}
+Password: ${generatedPassword}
+Stage Name: ${newArtistInfo?.stageName}
+
+Please log in to your account and change your password for security reasons.
+
+Best regards,
+Artistic Team`;
+
+    const mailtoLink = `mailto:${newArtistInfo?.email}?subject=Welcome to Artistic - Your Account Details&body=${encodeURIComponent(emailBody)}`;
+    window.open(mailtoLink);
+  };
+
+  const copyPasswordToClipboard = () => {
+    navigator.clipboard.writeText(generatedPassword);
+    alert('Password copied to clipboard!');
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -219,6 +263,61 @@ export function ArtistManagement() {
           {success}
         </div>
       )}
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Artists</p>
+              <p className="text-2xl font-bold text-gray-900">{artists.length}</p>
+            </div>
+            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+              <Star className="w-6 h-6 text-purple-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Artist Types</p>
+              <p className="text-2xl font-bold text-gray-900">{artistTypes.length}</p>
+            </div>
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Filter className="w-6 h-6 text-blue-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Active Artists</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {artists.filter(artist => artist.user.isActive).length}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <CheckCircle className="w-6 h-6 text-green-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Avg. Price/Hour</p>
+              <p className="text-2xl font-bold text-gray-900">
+                ${artists.length > 0 ? Math.round(artists.reduce((sum, artist) => sum + artist.pricePerHour, 0) / artists.length) : 0}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+              <Star className="w-6 h-6 text-yellow-600" />
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
@@ -272,9 +371,17 @@ export function ArtistManagement() {
               <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium">
                 {artist.category}
               </div>
+
+              <div className="absolute top-4 left-4">
+                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                  artist.user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                }`}>
+                  {artist.user.isActive ? 'Active' : 'Inactive'}
+                </span>
+              </div>
             </div>
 
-            <div className="p-4">
+            <div className="p-6">
               <div className="flex items-start justify-between mb-2">
                 <div>
                   <h3 className="font-semibold text-gray-900">{artist.stageName}</h3>
@@ -286,7 +393,15 @@ export function ArtistManagement() {
                 </div>
               </div>
 
-              <div className="space-y-2 text-sm text-gray-600">
+              <div className="space-y-2 text-sm text-gray-600 mb-4">
+                <div className="flex items-center gap-2">
+                  <Mail className="w-4 h-4" />
+                  <span className="truncate">{artist.user.email}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Phone className="w-4 h-4" />
+                  <span>{artist.user.phoneNumber}</span>
+                </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4" />
                   <span>{artist.country}</span>
@@ -663,6 +778,84 @@ export function ArtistManagement() {
         </div>
       )}
 
+      {/* Password Display Modal */}
+      {showPasswordModal && newArtistInfo && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="w-8 h-8 text-green-600" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900">Artist Created Successfully!</h2>
+                <p className="text-gray-600 mt-2">Here are the login credentials for the new artist:</p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="space-y-2">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Name:</label>
+                      <p className="text-gray-900">{newArtistInfo.name}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Stage Name:</label>
+                      <p className="text-gray-900">{newArtistInfo.stageName}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Email:</label>
+                      <p className="text-gray-900">{newArtistInfo.email}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Password:</label>
+                      <div className="flex items-center gap-2">
+                        <p className="text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded flex-1">{generatedPassword}</p>
+                        <button
+                          onClick={copyPasswordToClipboard}
+                          className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                        >
+                          Copy
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-yellow-800">
+                      <p className="font-medium">Important:</p>
+                      <p>Please share these credentials securely with the artist. They should change their password after first login.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={sendPasswordEmail}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Mail className="w-4 h-4" />
+                  Send Email
+                </button>
+                <button
+                  onClick={() => {
+                    setShowPasswordModal(false);
+                    setNewArtistInfo(null);
+                    setGeneratedPassword('');
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Create Artist Type Modal */}
       {showCreateTypeModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -688,7 +881,7 @@ export function ArtistManagement() {
                     value={typeForm.name}
                     onChange={(e) => setTypeForm(prev => ({ ...prev, name: e.target.value }))}
                     required
-                    placeholder="e.g., Singer, Dancer, Painter"
+                    placeholder="e.g., Solo Artist, Band"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   />
                 </div>

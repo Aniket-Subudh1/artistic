@@ -94,11 +94,21 @@ export default function SignUpPage() {
         role: 'user', 
       });
 
-      setSuccess('Account created successfully! You can now sign in.');
-      
-      setTimeout(() => {
-        router.push('/auth/signin');
-      }, 2000);
+      // Check if response indicates OTP verification is needed
+      if (response.message?.includes('verify') || response.message?.includes('otp')) {
+        setSuccess('Account created! Please verify your phone number.');
+        
+        // Redirect to OTP verification page with phone number
+        setTimeout(() => {
+          router.push(`/auth/verify-otp?phone=${encodeURIComponent(phoneNumber)}`);
+        }, 2000);
+      } else {
+        setSuccess('Account created successfully! You can now sign in.');
+        
+        setTimeout(() => {
+          router.push('/auth/signin');
+        }, 2000);
+      }
       
     } catch (error: any) {
       console.error('Sign up error:', error);
@@ -163,8 +173,6 @@ export default function SignUpPage() {
                     </Link>
                   </p>
                 </div>
-
-               
 
                 {/* Error/Success Messages */}
                 {error && (
@@ -413,8 +421,6 @@ export default function SignUpPage() {
                     )}
                   </button>
                 </form>
-
-               
 
                 <div className="mt-3 text-center">
                   <Link href="/" className="text-gray-600 hover:text-purple-600 text-xs transition-colors">

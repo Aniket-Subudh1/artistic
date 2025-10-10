@@ -7,8 +7,8 @@ const TitleTag = () => {
       <Image
         src="/ld.png"
         alt="Center Logo"
-        width={500}
-        height={800}
+        width={3000}
+        height={3000}
         className="select-none w-full max-h-[150px] object-contain"
         priority
       />
