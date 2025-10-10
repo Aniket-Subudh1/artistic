@@ -384,21 +384,10 @@ export function Navbar() {
                   </button>
                   <Link
                     href="/auth/signin"
-                    className={`block w-full px-4 py-2.5 text-sm text-center font-semibold rounded-2xl border-2 transition-all duration-300 ${
-                      isScrolled
-                        ? 'text-gray-800 border-white/30 hover:bg-white/20 backdrop-blur-sm'
-                        : 'text-gray-700 border-purple-200 hover:bg-purple-50'
-                    }`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {t('signIn')}
-                  </Link>
-                  <Link
-                    href="/join-us"
                     className="block w-full px-4 py-2.5 text-sm text-center bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    {t('joinUs')}
+                    {t('signIn')}
                   </Link>
                 </div>
               </div>
