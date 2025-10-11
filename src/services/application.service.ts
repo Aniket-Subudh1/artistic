@@ -5,7 +5,7 @@ export interface CreateApplicationRequest {
   email: string;
   age: string;
   gender: string;
-  applicationType: 'Solo' | 'Team';
+  applicationType: 'SOLO' | 'GROUP'; 
   videoLink?: string;
 }
 
@@ -17,17 +17,14 @@ export interface Application {
   gender: string;
   applicationType: string;
   videoLink?: string;
-  cvFileUrl?: string;
-  status: 'pending' | 'approved' | 'rejected';
-  submittedAt: string;
-  reviewedAt?: string;
-  reviewedBy?: string;
-  reviewComment?: string;
+  resume?: string; 
+  status: 'PENDING' | 'APPROVED' | 'REJECTED'; 
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ApplicationResponse {
   message: string;
-  application?: Application;
   data?: Application;
 }
 
@@ -36,85 +33,138 @@ export class ApplicationService {
     applicationData: CreateApplicationRequest,
     cvFile?: File
   ): Promise<ApplicationResponse> {
-    const formData = new FormData();
+    try {
+      const formData = new FormData();
 
-    // Add all text fields
-    Object.entries(applicationData).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        formData.append(key, value.toString());
+      Object.entries(applicationData).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          formData.append(key, value.toString());
+        }
+      });
+
+      if (cvFile) {
+        formData.append('resume', cvFile);
       }
-    });
 
-    // Add CV file if provided
-    if (cvFile) {
-      formData.append('resume', cvFile); // Backend expects 'resume' field name
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.APPLICATIONS.SUBMIT}`, {
+        method: 'POST',
+        headers: getMultipartAuthHeaders(),
+        body: formData,
+      });
+
+      const responseData = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        if (response.status === 400) {
+          throw new Error(responseData.message || 'Invalid application data. Please check all fields.');
+        } else if (response.status === 409) {
+          throw new Error(responseData.message || 'An application with this email already exists.');
+        } else if (response.status === 413) {
+          throw new Error('File size is too large. Please upload a smaller file.');
+        } else if (response.status >= 500) {
+          throw new Error('Server error. Please try again later.');
+        } else {
+          throw new Error(responseData.message || 'Failed to submit application. Please try again.');
+        }
+      }
+
+      return responseData;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error; 
+      }
+      
+      if (typeof error === 'object' && error !== null) {
+        const errorObj = error as any;
+        if (errorObj.name === 'TypeError' || errorObj.message?.includes('fetch')) {
+          throw new Error('Network error. Please check your internet connection and try again.');
+        }
+        
+        if (errorObj.message) {
+          throw new Error(errorObj.message);
+        }
+      }
+      
+      throw new Error('Failed to submit application. Please try again.');
     }
-
-    const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ARTIST.SUBMIT_APPLICATION}`, {
-      method: 'POST',
-      headers: getMultipartAuthHeaders(),
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || 'Failed to submit application');
-    }
-
-    return response.json();
   }
 
   static async getAllApplications(): Promise<Application[]> {
-    return apiRequest<Application[]>(API_CONFIG.ENDPOINTS.ARTIST.LIST_APPLICATIONS, {
-      method: 'GET',
-    });
+    try {
+      return await apiRequest<Application[]>(API_CONFIG.ENDPOINTS.APPLICATIONS.LIST_ALL, {
+        method: 'GET',
+      });
+    } catch (error) {
+      throw new Error('Failed to load applications. Please try again.');
+    }
   }
 
   static async getPendingApplications(): Promise<Application[]> {
-    return apiRequest<Application[]>(`${API_CONFIG.ENDPOINTS.ARTIST.LIST_APPLICATIONS}?status=pending`, {
-      method: 'GET',
-    });
+    try {
+      return await apiRequest<Application[]>(`${API_CONFIG.ENDPOINTS.APPLICATIONS.LIST_ALL}?status=PENDING`, {
+        method: 'GET',
+      });
+    } catch (error) {
+      throw new Error('Failed to load pending applications. Please try again.');
+    }
   }
 
-  static async getApplicationsByStatus(status: 'pending' | 'approved' | 'rejected'): Promise<Application[]> {
-    return apiRequest<Application[]>(`${API_CONFIG.ENDPOINTS.ARTIST.LIST_APPLICATIONS}?status=${status}`, {
-      method: 'GET',
-    });
+  static async getApplicationsByStatus(status: 'PENDING' | 'APPROVED' | 'REJECTED'): Promise<Application[]> {
+    try {
+      return await apiRequest<Application[]>(`${API_CONFIG.ENDPOINTS.APPLICATIONS.LIST_ALL}?status=${status}`, {
+        method: 'GET',
+      });
+    } catch (error) {
+      throw new Error(`Failed to load ${status.toLowerCase()} applications. Please try again.`);
+    }
   }
 
+  // CORRECTED: Use backend endpoint structure /artist/:id/status
   static async reviewApplication(
     applicationId: string,
     action: 'approve' | 'reject',
     comment?: string
   ): Promise<{ message: string }> {
-    // Map frontend actions to backend status
-    const statusMap = {
-      approve: 'APPROVED',
-      reject: 'REJECTED'
-    };
+    try {
+      // Map frontend actions to backend status values
+      const statusMap = {
+        approve: 'APPROVED',
+        reject: 'REJECTED'
+      };
 
-    return apiRequest<{ message: string }>(API_CONFIG.ENDPOINTS.ARTIST.UPDATE_APPLICATION_STATUS(applicationId), {
-      method: 'PATCH',
-      body: JSON.stringify({
-        status: statusMap[action],
-        comment: comment || ''
-      }),
-    });
+      return await apiRequest<{ message: string }>(API_CONFIG.ENDPOINTS.APPLICATIONS.REVIEW(applicationId), {
+        method: 'PATCH',
+        body: JSON.stringify({
+          status: statusMap[action],
+          comment: comment || ''
+        }),
+      });
+    } catch (error) {
+      throw new Error(`Failed to ${action} application. Please try again.`);
+    }
   }
 
   static async getApplicationById(id: string): Promise<Application> {
-    return apiRequest<Application>(`${API_CONFIG.ENDPOINTS.ARTIST.LIST_APPLICATIONS}/${id}`, {
-      method: 'GET',
-    });
+    try {
+      return await apiRequest<Application>(`${API_CONFIG.ENDPOINTS.APPLICATIONS.LIST_ALL}/${id}`, {
+        method: 'GET',
+      });
+    } catch (error) {
+      throw new Error('Failed to load application details. Please try again.');
+    }
   }
 
   static async deleteApplication(id: string): Promise<{ message: string }> {
-    return apiRequest<{ message: string }>(`${API_CONFIG.ENDPOINTS.ARTIST.LIST_APPLICATIONS}/${id}`, {
-      method: 'DELETE',
-    });
+    try {
+      return await apiRequest<{ message: string }>(`${API_CONFIG.ENDPOINTS.APPLICATIONS.LIST_ALL}/${id}`, {
+        method: 'DELETE',
+      });
+    } catch (error) {
+      throw new Error('Failed to delete application. Please try again.');
+    }
   }
 
-  // Statistics methods
+  // Statistics methods - these will work with existing data
   static async getApplicationStats(): Promise<{
     total: number;
     pending: number;
@@ -128,146 +178,81 @@ export class ApplicationService {
       
       return {
         total: applications.length,
-        pending: applications.filter(app => app.status === 'pending').length,
-        approved: applications.filter(app => app.status === 'approved').length,
-        rejected: applications.filter(app => app.status === 'rejected').length,
-        soloArtists: applications.filter(app => app.applicationType === 'Solo').length,
-        teams: applications.filter(app => app.applicationType === 'Team').length,
+        pending: applications.filter(app => app.status === 'PENDING').length,
+        approved: applications.filter(app => app.status === 'APPROVED').length,
+        rejected: applications.filter(app => app.status === 'REJECTED').length,
+        soloArtists: applications.filter(app => app.applicationType === 'SOLO').length,
+        teams: applications.filter(app => app.applicationType === 'GROUP').length,
       };
     } catch (error) {
       throw new Error('Failed to get application statistics');
     }
   }
 
-  // Bulk operations
-  static async bulkReview(
-    applicationIds: string[],
-    action: 'approve' | 'reject',
-    comment?: string
-  ): Promise<{ message: string; processed: number }> {
-    const results = await Promise.allSettled(
-      applicationIds.map(id => this.reviewApplication(id, action, comment))
-    );
-
-    const successful = results.filter(result => result.status === 'fulfilled').length;
-    
-    return {
-      message: `${successful} applications ${action}d successfully`,
-      processed: successful
-    };
-  }
-
   // Export applications data
   static async exportApplications(format: 'csv' | 'json' = 'csv'): Promise<Blob> {
-    const applications = await this.getAllApplications();
-    
-    if (format === 'json') {
-      const jsonData = JSON.stringify(applications, null, 2);
-      return new Blob([jsonData], { type: 'application/json' });
+    try {
+      const applications = await this.getAllApplications();
+      
+      if (format === 'json') {
+        const jsonData = JSON.stringify(applications, null, 2);
+        return new Blob([jsonData], { type: 'application/json' });
+      }
+      
+      // CSV format
+      const headers = [
+        'Full Name',
+        'Email',
+        'Age',
+        'Gender',
+        'Application Type',
+        'Status',
+        'Submitted At',
+        'Video Link',
+        'Resume URL'
+      ];
+      
+      const csvRows = [
+        headers.join(','),
+        ...applications.map(app => [
+          `"${app.fullName}"`,
+          `"${app.email}"`,
+          app.age,
+          `"${app.gender}"`,
+          `"${app.applicationType}"`,
+          `"${app.status}"`,
+          `"${new Date(app.createdAt).toLocaleString()}"`,
+          `"${app.videoLink || ''}"`,
+          `"${app.resume || ''}"`
+        ].join(','))
+      ];
+      
+      const csvData = csvRows.join('\n');
+      return new Blob([csvData], { type: 'text/csv' });
+    } catch (error) {
+      throw new Error('Failed to export applications');
     }
-    
-    // CSV format
-    const headers = [
-      'Full Name',
-      'Email',
-      'Age',
-      'Gender',
-      'Application Type',
-      'Status',
-      'Submitted At',
-      'Reviewed At',
-      'Review Comment',
-      'Video Link'
-    ];
-    
-    const csvRows = [
-      headers.join(','),
-      ...applications.map(app => [
-        `"${app.fullName}"`,
-        `"${app.email}"`,
-        app.age,
-        `"${app.gender}"`,
-        `"${app.applicationType}"`,
-        `"${app.status}"`,
-        `"${new Date(app.submittedAt).toLocaleString()}"`,
-        `"${app.reviewedAt ? new Date(app.reviewedAt).toLocaleString() : ''}"`,
-        `"${app.reviewComment || ''}"`,
-        `"${app.videoLink || ''}"`
-      ].join(','))
-    ];
-    
-    const csvData = csvRows.join('\n');
-    return new Blob([csvData], { type: 'text/csv' });
   }
 
   // Search applications
   static async searchApplications(searchTerm: string): Promise<Application[]> {
-    const applications = await this.getAllApplications();
-    
-    if (!searchTerm.trim()) {
-      return applications;
-    }
-    
-    const term = searchTerm.toLowerCase();
-    return applications.filter(app =>
-      app.fullName.toLowerCase().includes(term) ||
-      app.email.toLowerCase().includes(term) ||
-      app.gender.toLowerCase().includes(term) ||
-      app.applicationType.toLowerCase().includes(term) ||
-      app.status.toLowerCase().includes(term)
-    );
-  }
-
-  // Get applications with pagination
-  static async getApplicationsPaginated(
-    page: number = 1,
-    limit: number = 10,
-    status?: 'pending' | 'approved' | 'rejected',
-    sortBy: string = 'submittedAt',
-    sortOrder: 'asc' | 'desc' = 'desc'
-  ): Promise<{
-    applications: Application[];
-    total: number;
-    page: number;
-    totalPages: number;
-  }> {
     try {
-      let applications = await this.getAllApplications();
+      const applications = await this.getAllApplications();
       
-      // Filter by status if provided
-      if (status) {
-        applications = applications.filter(app => app.status === status);
+      if (!searchTerm.trim()) {
+        return applications;
       }
       
-      applications.sort((a, b) => {
-        const aValue = a[sortBy as keyof Application];
-        const bValue = b[sortBy as keyof Application];
-        
-        if (aValue == null && bValue == null) return 0;
-        if (aValue == null) return sortOrder === 'asc' ? -1 : 1;
-        if (bValue == null) return sortOrder === 'asc' ? 1 : -1;
-        
-        if (sortOrder === 'asc') {
-          return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-        } else {
-          return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
-        }
-      });
-      
-      // Paginate
-      const total = applications.length;
-      const totalPages = Math.ceil(total / limit);
-      const startIndex = (page - 1) * limit;
-      const paginatedApplications = applications.slice(startIndex, startIndex + limit);
-      
-      return {
-        applications: paginatedApplications,
-        total,
-        page,
-        totalPages
-      };
+      const term = searchTerm.toLowerCase();
+      return applications.filter(app =>
+        app.fullName.toLowerCase().includes(term) ||
+        app.email.toLowerCase().includes(term) ||
+        app.gender.toLowerCase().includes(term) ||
+        app.applicationType.toLowerCase().includes(term) ||
+        app.status.toLowerCase().includes(term)
+      );
     } catch (error) {
-      throw new Error('Failed to get paginated applications');
+      throw new Error('Failed to search applications');
     }
   }
 }

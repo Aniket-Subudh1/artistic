@@ -1,58 +1,34 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
-import { Plus, Search, Filter, Eye, Edit, Trash2, Star, MapPin, Clock, AlertCircle, CheckCircle, Mail, Phone } from 'lucide-react';
-import { ArtistService, Artist, ArtistType, CreateArtistRequest } from '@/services/artist.service';
+import { 
+  Plus, 
+  Search, 
+  Eye, 
+  Edit, 
+  Star, 
+  MapPin, 
+  Clock, 
+  AlertCircle, 
+  CheckCircle,
+  Mail,
+  Phone,
+  User
+} from 'lucide-react';
+import { ArtistService, Artist, ArtistType } from '@/services/artist.service';
 import { AdminService } from '@/services/admin.service';
 
 export function ArtistManagement() {
-  const t = useTranslations('dashboard');
   const [artists, setArtists] = useState<Artist[]>([]);
   const [artistTypes, setArtistTypes] = useState<ArtistType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showCreateTypeModal, setShowCreateTypeModal] = useState(false);
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
-  const [generatedPassword, setGeneratedPassword] = useState('');
-  const [newArtistInfo, setNewArtistInfo] = useState<any>(null);
-
-  // Form states
-  const [artistForm, setArtistForm] = useState<CreateArtistRequest>({
-    firstName: '',
-    lastName: '',
-    phoneNumber: '',
-    email: '',
-    stageName: '',
-    about: '',
-    yearsOfExperience: 0,
-    skills: [],
-    musicLanguages: [],
-    awards: [],
-    pricePerHour: 0,
-    gender: '',
-    artistType: '',
-    category: '',
-    country: '',
-    performPreference: ['private'],
-  });
-
-  const [files, setFiles] = useState<{
-    profileImage?: File;
-    profileCoverImage?: File;
-    demoVideo?: File;
-  }>({});
-
-  const [typeForm, setTypeForm] = useState({
-    name: '',
-    description: '',
-  });
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedArtist, setSelectedArtist] = useState<Artist | null>(null);
+  const [showViewModal, setShowViewModal] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -74,111 +50,6 @@ export function ArtistManagement() {
     }
   };
 
-  const generateRandomPassword = () => {
-    return Math.random().toString(36).slice(-8);
-  };
-
-  const handleCreateArtist = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError('');
-    setSuccess('');
-
-    try {
-      const password = generateRandomPassword();
-      setGeneratedPassword(password);
-      
-      const response = await ArtistService.createArtist(artistForm, files);
-      
-      setNewArtistInfo({
-        name: `${artistForm.firstName} ${artistForm.lastName}`,
-        email: artistForm.email,
-        stageName: artistForm.stageName,
-        password: password
-      });
-      
-      setSuccess('Artist created successfully!');
-      setShowCreateModal(false);
-      setShowPasswordModal(true);
-      resetArtistForm();
-      loadData(); // Reload the list
-    } catch (error: any) {
-      setError('Failed to create artist: ' + (error.message || 'Unknown error'));
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleCreateType = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError('');
-    setSuccess('');
-
-    try {
-      await AdminService.createArtistType(typeForm);
-      setSuccess('Artist type created successfully!');
-      setShowCreateTypeModal(false);
-      setTypeForm({ name: '', description: '' });
-      
-      // Reload artist types
-      const typesData = await ArtistService.getArtistTypes();
-      setArtistTypes(typesData);
-    } catch (error: any) {
-      setError('Failed to create artist type: ' + (error.message || 'Unknown error'));
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const resetArtistForm = () => {
-    setArtistForm({
-      firstName: '',
-      lastName: '',
-      phoneNumber: '',
-      email: '',
-      stageName: '',
-      about: '',
-      yearsOfExperience: 0,
-      skills: [],
-      musicLanguages: [],
-      awards: [],
-      pricePerHour: 0,
-      gender: '',
-      artistType: '',
-      category: '',
-      country: '',
-      performPreference: ['private'],
-    });
-    setFiles({});
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setArtistForm(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleArrayInputChange = (name: string, value: string) => {
-    const arrayValue = value.split(',').map(item => item.trim()).filter(item => item);
-    setArtistForm(prev => ({
-      ...prev,
-      [name]: arrayValue
-    }));
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, files: fileList } = e.target;
-    if (fileList && fileList[0]) {
-      setFiles(prev => ({
-        ...prev,
-        [name]: fileList[0]
-      }));
-    }
-  };
-
   const filteredArtists = artists.filter(artist => {
     const matchesSearch = artist.stageName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          artist.user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -189,31 +60,6 @@ export function ArtistManagement() {
     
     return matchesSearch && matchesFilter;
   });
-
-  const sendPasswordEmail = () => {
-    // In a real app, you would send this via email service
-    const emailBody = `Dear ${newArtistInfo?.name},
-
-Welcome to Artistic! Your artist account has been created successfully.
-
-Login Details:
-Email: ${newArtistInfo?.email}
-Password: ${generatedPassword}
-Stage Name: ${newArtistInfo?.stageName}
-
-Please log in to your account and change your password for security reasons.
-
-Best regards,
-Artistic Team`;
-
-    const mailtoLink = `mailto:${newArtistInfo?.email}?subject=Welcome to Artistic - Your Account Details&body=${encodeURIComponent(emailBody)}`;
-    window.open(mailtoLink);
-  };
-
-  const copyPasswordToClipboard = () => {
-    navigator.clipboard.writeText(generatedPassword);
-    alert('Password copied to clipboard!');
-  };
 
   if (isLoading) {
     return (
@@ -232,13 +78,6 @@ Artistic Team`;
           <p className="text-gray-600">Manage artists and their profiles</p>
         </div>
         <div className="flex gap-2">
-          <button
-            onClick={() => setShowCreateTypeModal(true)}
-            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Add Type
-          </button>
           <button
             onClick={() => setShowCreateModal(true)}
             className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
@@ -264,7 +103,7 @@ Artistic Team`;
         </div>
       )}
 
-      {/* Stats */}
+      {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
           <div className="flex items-center justify-between">
@@ -273,19 +112,7 @@ Artistic Team`;
               <p className="text-2xl font-bold text-gray-900">{artists.length}</p>
             </div>
             <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <Star className="w-6 h-6 text-purple-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Artist Types</p>
-              <p className="text-2xl font-bold text-gray-900">{artistTypes.length}</p>
-            </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Filter className="w-6 h-6 text-blue-600" />
+              <User className="w-6 h-6 text-purple-600" />
             </div>
           </div>
         </div>
@@ -307,7 +134,19 @@ Artistic Team`;
         <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Avg. Price/Hour</p>
+              <p className="text-sm font-medium text-gray-600">Categories</p>
+              <p className="text-2xl font-bold text-gray-900">{artistTypes.length}</p>
+            </div>
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Star className="w-6 h-6 text-blue-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Avg. Rate</p>
               <p className="text-2xl font-bold text-gray-900">
                 ${artists.length > 0 ? Math.round(artists.reduce((sum, artist) => sum + artist.pricePerHour, 0) / artists.length) : 0}
               </p>
@@ -416,7 +255,13 @@ Artistic Team`;
               </div>
 
               <div className="mt-4 flex gap-2">
-                <button className="flex-1 px-3 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors flex items-center justify-center gap-1">
+                <button 
+                  onClick={() => {
+                    setSelectedArtist(artist);
+                    setShowViewModal(true);
+                  }}
+                  className="flex-1 px-3 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors flex items-center justify-center gap-1"
+                >
                   <Eye className="w-4 h-4" />
                   View
                 </button>
@@ -440,10 +285,114 @@ Artistic Team`;
         </div>
       )}
 
-      {/* Create Artist Modal */}
-      {showCreateModal && (
+      {/* View Artist Modal */}
+      {showViewModal && selectedArtist && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900">Artist Details</h2>
+                <button
+                  onClick={() => setShowViewModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {/* Artist Header */}
+                <div className="text-center">
+                  <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-white font-bold text-2xl">
+                      {selectedArtist.user.firstName.charAt(0)}{selectedArtist.user.lastName.charAt(0)}
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900">{selectedArtist.stageName}</h3>
+                  <p className="text-gray-600">{selectedArtist.user.firstName} {selectedArtist.user.lastName}</p>
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mt-2 ${
+                    selectedArtist.user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                  }`}>
+                    {selectedArtist.user.isActive ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+
+                {/* Basic Info */}
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <label className="block font-medium text-gray-700">Email</label>
+                    <p className="text-gray-900">{selectedArtist.user.email}</p>
+                  </div>
+                  <div>
+                    <label className="block font-medium text-gray-700">Phone</label>
+                    <p className="text-gray-900">{selectedArtist.user.phoneNumber}</p>
+                  </div>
+                  <div>
+                    <label className="block font-medium text-gray-700">Category</label>
+                    <p className="text-gray-900">{selectedArtist.category}</p>
+                  </div>
+                  <div>
+                    <label className="block font-medium text-gray-700">Country</label>
+                    <p className="text-gray-900">{selectedArtist.country}</p>
+                  </div>
+                  <div>
+                    <label className="block font-medium text-gray-700">Experience</label>
+                    <p className="text-gray-900">{selectedArtist.yearsOfExperience} years</p>
+                  </div>
+                  <div>
+                    <label className="block font-medium text-gray-700">Rate</label>
+                    <p className="text-gray-900">${selectedArtist.pricePerHour}/hour</p>
+                  </div>
+                </div>
+
+                {/* About */}
+                <div>
+                  <label className="block font-medium text-gray-700 mb-1">About</label>
+                  <p className="text-gray-900">{selectedArtist.about || 'No description provided'}</p>
+                </div>
+
+                {/* Skills */}
+                <div>
+                  <label className="block font-medium text-gray-700 mb-2">Skills</label>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedArtist.skills.map((skill, index) => (
+                      <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Languages */}
+                <div>
+                  <label className="block font-medium text-gray-700 mb-2">Languages</label>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedArtist.musicLanguages.map((lang, index) => (
+                      <span key={index} className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                        {lang}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6">
+                <button
+                  onClick={() => setShowViewModal(false)}
+                  className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Artist Modal Placeholder */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-md w-full">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-gray-900">Add New Artist</h2>
@@ -455,468 +404,19 @@ Artistic Team`;
                 </button>
               </div>
 
-              <form onSubmit={handleCreateArtist} className="space-y-4">
-                {/* Personal Information */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      First Name *
-                    </label>
-                    <input
-                      type="text"
-                      name="firstName"
-                      value={artistForm.firstName}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Last Name *
-                    </label>
-                    <input
-                      type="text"
-                      name="lastName"
-                      value={artistForm.lastName}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Email *
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={artistForm.email}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Phone Number *
-                    </label>
-                    <input
-                      type="tel"
-                      name="phoneNumber"
-                      value={artistForm.phoneNumber}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    />
-                  </div>
-                </div>
-
-                {/* Artist Information */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Stage Name *
-                    </label>
-                    <input
-                      type="text"
-                      name="stageName"
-                      value={artistForm.stageName}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Gender *
-                    </label>
-                    <select
-                      name="gender"
-                      value={artistForm.gender}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    >
-                      <option value="">Select Gender</option>
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Artist Type *
-                    </label>
-                    <select
-                      name="artistType"
-                      value={artistForm.artistType}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    >
-                      <option value="">Select Type</option>
-                      {artistTypes.map((type) => (
-                        <option key={type._id} value={type._id}>
-                          {type.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Category *
-                    </label>
-                    <input
-                      type="text"
-                      name="category"
-                      value={artistForm.category}
-                      onChange={handleInputChange}
-                      required
-                      placeholder="e.g., Music, Dance, Art"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Years of Experience *
-                    </label>
-                    <input
-                      type="number"
-                      name="yearsOfExperience"
-                      value={artistForm.yearsOfExperience}
-                      onChange={handleInputChange}
-                      min="0"
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Price per Hour ($) *
-                    </label>
-                    <input
-                      type="number"
-                      name="pricePerHour"
-                      value={artistForm.pricePerHour}
-                      onChange={handleInputChange}
-                      min="0"
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Country *
-                  </label>
-                  <input
-                    type="text"
-                    name="country"
-                    value={artistForm.country}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    About
-                  </label>
-                  <textarea
-                    name="about"
-                    value={artistForm.about}
-                    onChange={handleInputChange}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                  />
-                </div>
-
-                {/* Skills and Languages */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Skills (comma-separated)
-                  </label>
-                  <input
-                    type="text"
-                    value={artistForm.skills.join(', ')}
-                    onChange={(e) => handleArrayInputChange('skills', e.target.value)}
-                    placeholder="e.g., Singing, Guitar, Piano"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Music Languages (comma-separated)
-                  </label>
-                  <input
-                    type="text"
-                    value={artistForm.musicLanguages.join(', ')}
-                    onChange={(e) => handleArrayInputChange('musicLanguages', e.target.value)}
-                    placeholder="e.g., English, Arabic, Hindi"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Awards (comma-separated)
-                  </label>
-                  <input
-                    type="text"
-                    value={artistForm.awards.join(', ')}
-                    onChange={(e) => handleArrayInputChange('awards', e.target.value)}
-                    placeholder="e.g., Best Artist 2023, Grammy Winner"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                  />
-                </div>
-
-                {/* File Uploads */}
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Profile Image
-                    </label>
-                    <input
-                      type="file"
-                      name="profileImage"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Cover Image
-                    </label>
-                    <input
-                      type="file"
-                      name="profileCoverImage"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Demo Video
-                    </label>
-                    <input
-                      type="file"
-                      name="demoVideo"
-                      accept="video/*"
-                      onChange={handleFileChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    />
-                  </div>
-                </div>
-
-                {/* Performance Preference */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Performance Preference
-                  </label>
-                  <div className="flex gap-4">
-                    {['private', 'public', 'international'].map((pref) => (
-                      <label key={pref} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={artistForm.performPreference.includes(pref)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setArtistForm(prev => ({
-                                ...prev,
-                                performPreference: [...prev.performPreference, pref]
-                              }));
-                            } else {
-                              setArtistForm(prev => ({
-                                ...prev,
-                                performPreference: prev.performPreference.filter(p => p !== pref)
-                              }));
-                            }
-                          }}
-                          className="mr-2"
-                        />
-                        <span className="capitalize">{pref}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Submit Buttons */}
-                <div className="flex gap-4 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => setShowCreateModal(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isSubmitting ? 'Creating...' : 'Create Artist'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Password Display Modal */}
-      {showPasswordModal && newArtistInfo && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-md w-full">
-            <div className="p-6">
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle className="w-8 h-8 text-green-600" />
-                </div>
-                <h2 className="text-xl font-bold text-gray-900">Artist Created Successfully!</h2>
-                <p className="text-gray-600 mt-2">Here are the login credentials for the new artist:</p>
-              </div>
-
-              <div className="space-y-4">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <div className="space-y-2">
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Name:</label>
-                      <p className="text-gray-900">{newArtistInfo.name}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Stage Name:</label>
-                      <p className="text-gray-900">{newArtistInfo.stageName}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Email:</label>
-                      <p className="text-gray-900">{newArtistInfo.email}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Password:</label>
-                      <div className="flex items-center gap-2">
-                        <p className="text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded flex-1">{generatedPassword}</p>
-                        <button
-                          onClick={copyPasswordToClipboard}
-                          className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-                        >
-                          Copy
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                  <div className="flex items-start gap-2">
-                    <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
-                    <div className="text-sm text-yellow-800">
-                      <p className="font-medium">Important:</p>
-                      <p>Please share these credentials securely with the artist. They should change their password after first login.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-3 mt-6">
+              <div className="text-center py-8">
+                <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Feature Coming Soon</h3>
+                <p className="text-gray-600 mb-4">
+                  Artist creation form will be available once the backend endpoints are ready.
+                </p>
                 <button
-                  onClick={sendPasswordEmail}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                  onClick={() => setShowCreateModal(false)}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                 >
-                  <Mail className="w-4 h-4" />
-                  Send Email
-                </button>
-                <button
-                  onClick={() => {
-                    setShowPasswordModal(false);
-                    setNewArtistInfo(null);
-                    setGeneratedPassword('');
-                  }}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  Done
+                  Got it
                 </button>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Create Artist Type Modal */}
-      {showCreateTypeModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-md w-full">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900">Add Artist Type</h2>
-                <button
-                  onClick={() => setShowCreateTypeModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  ×
-                </button>
-              </div>
-
-              <form onSubmit={handleCreateType} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Type Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={typeForm.name}
-                    onChange={(e) => setTypeForm(prev => ({ ...prev, name: e.target.value }))}
-                    required
-                    placeholder="e.g., Solo Artist, Band"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Description *
-                  </label>
-                  <textarea
-                    value={typeForm.description}
-                    onChange={(e) => setTypeForm(prev => ({ ...prev, description: e.target.value }))}
-                    required
-                    rows={3}
-                    placeholder="Describe this artist type..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                  />
-                </div>
-
-                <div className="flex gap-4 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => setShowCreateTypeModal(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isSubmitting ? 'Creating...' : 'Create Type'}
-                  </button>
-                </div>
-              </form>
             </div>
           </div>
         </div>

@@ -1,4 +1,3 @@
-// src/lib/permissions.ts
 import { UserRole, SidebarItem } from '@/types/dashboard';
 
 export const ROLE_HIERARCHY: Record<UserRole, number> = {
@@ -72,70 +71,71 @@ export const getSidebarItems = (): SidebarItem[] => [
     icon: 'LayoutDashboard',
     href: '/dashboard',
     roles: ['super_admin', 'admin', 'artist', 'equipment_provider', 'venue_owner', 'user'],
-    
   },
 
-  // Admin specific routes
+  // Admin Management Section
   {
-    id: 'admin',
+    id: 'admin-panel',
     label: 'Admin Panel',
     labelAr: 'لوحة الإدارة',
     icon: 'Shield',
     roles: ['super_admin', 'admin'],
     children: [
       {
-        id: 'admin-dashboard',
-        label: 'Admin Dashboard',
-        labelAr: 'لوحة الإدارة',
+        id: 'admin-overview',
+        label: 'Admin Overview',
+        labelAr: 'نظرة عامة للإدارة',
         icon: 'LayoutDashboard',
         href: '/dashboard/admin',
         roles: ['super_admin', 'admin'],
       },
+      {
+        id: 'system-settings',
+        label: 'System Settings',
+        labelAr: 'إعدادات النظام',
+        icon: 'Cog',
+        href: '/dashboard/admin/system',
+        roles: ['super_admin'],
+      },
     ],
   },
 
+  // User Management Section
   {
-    id: 'users',
-    label: 'Users',
-    labelAr: 'المستخدمين',
+    id: 'user-management',
+    label: 'User Management',
+    labelAr: 'إدارة المستخدمين',
     icon: 'Users',
-    roles: ['super_admin','admin'],
+    roles: ['super_admin', 'admin'],
     children: [
       {
-        id: 'user-roles',
-        label: 'Manage Roles',
-        labelAr: 'إدارة الأدوار',
-        icon: 'Shield',
-        href: '/dashboard/users/roles',
-        roles: ['super_admin'],
-      },
-       {
-        id: 'admin-users',
-        label: 'User Management',
-        labelAr: 'إدارة المستخدمين',
+        id: 'all-users',
+        label: 'All Users',
+        labelAr: 'جميع المستخدمين',
         icon: 'Users',
         href: '/dashboard/admin/users',
         roles: ['super_admin', 'admin'],
       },
       {
-        id: 'user-permissions',
-        label: 'Permissions',
-        labelAr: 'الصلاحيات',
-        icon: 'Lock',
-        href: '/dashboard/users/permissions',
+        id: 'user-roles',
+        label: 'Roles & Permissions',
+        labelAr: 'الأدوار والصلاحيات',
+        icon: 'Shield',
+        href: '/dashboard/admin/roles',
         roles: ['super_admin'],
       },
     ],
   },
 
-  // Artist specific routes
+  // Artist Management Section - Reorganized
   {
-    id: 'artists',
-    label: 'Artists',
-    labelAr: 'الفنانين',
+    id: 'artist-management',
+    label: 'Artist Management',
+    labelAr: 'إدارة الفنانين',
     icon: 'Mic',
-    roles: ['super_admin', 'admin', 'artist', 'user'],
+    roles: ['super_admin', 'admin', 'artist'],
     children: [
+      // Artist Profile (for artists themselves)
       {
         id: 'my-artist-profile',
         label: 'My Profile',
@@ -144,33 +144,61 @@ export const getSidebarItems = (): SidebarItem[] => [
         href: '/dashboard/artist/profile',
         roles: ['artist'],
       },
-     {
-        id: 'admin-artists',
-        label: 'Artist Management',
-        labelAr: 'إدارة الفنانين',
+      {
+        id: 'my-portfolio',
+        label: 'My Portfolio',
+        labelAr: 'أعمالي',
+        icon: 'Bookmark',
+        href: '/dashboard/artist/portfolio',
+        roles: ['artist'],
+      },
+      
+      // Admin Artist Management
+      {
+        id: 'all-artists',
+        label: 'All Artists',
+        labelAr: 'جميع الفنانين',
         icon: 'Mic',
         href: '/dashboard/admin/artists',
         roles: ['super_admin', 'admin'],
-      }, {
-        id: 'admin-applications',
-        label: 'Applications',
-        labelAr: 'الطلبات',
+      },
+      {
+        id: 'artist-applications',
+        label: 'Artist Applications',
+        labelAr: 'طلبات الفنانين',
         icon: 'FileText',
         href: '/dashboard/admin/applications',
         roles: ['super_admin', 'admin'],
         badge: 'new',
       },
+      {
+        id: 'artist-types',
+        label: 'Artist Categories',
+        labelAr: 'فئات الفنانين',
+        icon: 'Settings',
+        href: '/dashboard/admin/artist-types',
+        roles: ['super_admin', 'admin'],
+      },
+      {
+        id: 'artist-verification',
+        label: 'Artist Verification',
+        labelAr: 'التحقق من الفنانين',
+        icon: 'UserCheck',
+        href: '/dashboard/admin/artist-verification',
+        roles: ['super_admin', 'admin'],
+      },
     ],
   },
 
-  // Equipment specific routes
+  // Equipment Management Section
   {
-    id: 'equipment',
+    id: 'equipment-management',
     label: 'Equipment',
     labelAr: 'المعدات',
     icon: 'Package',
-    roles: ['super_admin', 'admin', 'equipment_provider', 'user'],
+    roles: ['super_admin', 'admin', 'equipment_provider'],
     children: [
+      // Equipment Provider specific
       {
         id: 'my-equipment',
         label: 'My Equipment',
@@ -187,25 +215,36 @@ export const getSidebarItems = (): SidebarItem[] => [
         href: '/dashboard/equipment/add',
         roles: ['equipment_provider'],
       },
-       {
-        id: 'admin-equipment',
-        label: 'Equipment Mangement',
-        labelAr: 'المعدات',
-        icon: 'Package',
+      {
+        id: 'equipment-bookings',
+        label: 'Equipment Bookings',
+        labelAr: 'حجوزات المعدات',
+        icon: 'Calendar',
+        href: '/dashboard/equipment/bookings',
+        roles: ['equipment_provider'],
+      },
+      
+      // Admin Equipment Management
+      {
+        id: 'all-equipment',
+        label: 'All Equipment',
+        labelAr: 'جميع المعدات',
+        icon: 'Package2',
         href: '/dashboard/admin/equipment',
         roles: ['super_admin', 'admin'],
       },
     ],
   },
 
-  // Venue specific routes
+  // Venue Management Section
   {
-    id: 'venues',
+    id: 'venue-management',
     label: 'Venues',
     labelAr: 'الأماكن',
     icon: 'MapPin',
-    roles: ['super_admin', 'admin', 'venue_owner', 'user'],
+    roles: ['super_admin', 'admin', 'venue_owner'],
     children: [
+      // Venue Owner specific
       {
         id: 'my-venues',
         label: 'My Venues',
@@ -223,17 +262,27 @@ export const getSidebarItems = (): SidebarItem[] => [
         roles: ['venue_owner'],
       },
       {
-        id: 'browse-venues',
-        label: 'Browse Venues',
-        labelAr: 'تصفح الأماكن',
-        icon: 'Search',
-        href: '/dashboard/venues/browse',
-        roles: ['super_admin', 'admin', 'user'],
+        id: 'venue-bookings',
+        label: 'Venue Bookings',
+        labelAr: 'حجوزات الأماكن',
+        icon: 'Calendar',
+        href: '/dashboard/venues/bookings',
+        roles: ['venue_owner'],
+      },
+      
+      // Admin/User Venue Management
+      {
+        id: 'all-venues',
+        label: 'All Venues',
+        labelAr: 'جميع الأماكن',
+        icon: 'Map',
+        href: '/dashboard/admin/venues',
+        roles: ['super_admin', 'admin'],
       },
     ],
   },
 
-  // Bookings
+  // Bookings Management
   {
     id: 'bookings',
     label: 'Bookings',
@@ -254,7 +303,7 @@ export const getSidebarItems = (): SidebarItem[] => [
         label: 'All Bookings',
         labelAr: 'جميع الحجوزات',
         icon: 'CalendarRange',
-        href: '/dashboard/bookings/all',
+        href: '/dashboard/admin/bookings',
         roles: ['super_admin', 'admin'],
       },
       {
@@ -290,7 +339,7 @@ export const getSidebarItems = (): SidebarItem[] => [
         label: 'All Events',
         labelAr: 'جميع الفعاليات',
         icon: 'Calendar',
-        href: '/dashboard/events/all',
+        href: '/dashboard/admin/events',
         roles: ['super_admin', 'admin'],
       },
       {
@@ -313,7 +362,7 @@ export const getSidebarItems = (): SidebarItem[] => [
     roles: ['super_admin', 'admin', 'venue_owner', 'equipment_provider', 'artist'],
     children: [
       {
-        id: 'dashboard-analytics',
+        id: 'overview-analytics',
         label: 'Overview',
         labelAr: 'نظرة عامة',
         icon: 'TrendingUp',
@@ -368,7 +417,7 @@ export const getSidebarItems = (): SidebarItem[] => [
         label: 'All Transactions',
         labelAr: 'جميع المعاملات',
         icon: 'ArrowLeftRight',
-        href: '/dashboard/payments/all',
+        href: '/dashboard/payments/transactions',
         roles: ['super_admin', 'admin'],
       },
     ],
@@ -407,14 +456,6 @@ export const getSidebarItems = (): SidebarItem[] => [
         icon: 'UserCog',
         href: '/dashboard/settings/account',
         roles: ['super_admin', 'admin', 'venue_owner', 'equipment_provider', 'artist', 'user'],
-      },
-      {
-        id: 'system-settings',
-        label: 'System',
-        labelAr: 'النظام',
-        icon: 'Cog',
-        href: '/dashboard/settings/system',
-        roles: ['super_admin', 'admin'],
       },
     ],
   },

@@ -22,7 +22,7 @@ export default function JoinUsPage() {
     email: '',
     age: '',
     gender: '',
-    applicationType: 'Solo' as 'Solo' | 'Team',
+    applicationType: 'SOLO' as 'SOLO' | 'GROUP',
     videoLink: ''
   });
 
@@ -34,28 +34,38 @@ export default function JoinUsPage() {
     setSuccess('');
     setIsLoading(true);
 
-    // Validation
-    if (!formData.fullName || !formData.email || !formData.age || !formData.gender) {
-      setError('Please fill in all required fields');
-      setIsLoading(false);
-      return;
-    }
-
-    if (!uploadedFile) {
-      setError('Please upload your CV/Resume');
-      setIsLoading(false);
-      return;
-    }
-
     try {
+      // Validation
+      if (!formData.fullName || !formData.email || !formData.age || !formData.gender) {
+        throw new Error('Please fill in all required fields');
+      }
+
+      if (!uploadedFile) {
+        throw new Error('Please upload your CV/Resume');
+      }
+
+      // Validate age
+      const age = parseInt(formData.age);
+      if (isNaN(age) || age < 16 || age > 100) {
+        throw new Error('Please enter a valid age between 16 and 100');
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        throw new Error('Please enter a valid email address');
+      }
+
       const applicationData: CreateApplicationRequest = {
-        fullName: formData.fullName,
-        email: formData.email,
+        fullName: formData.fullName.trim(),
+        email: formData.email.trim().toLowerCase(),
         age: formData.age,
         gender: formData.gender,
         applicationType: formData.applicationType,
-        videoLink: formData.videoLink || undefined
+        videoLink: formData.videoLink.trim() || undefined
       };
+
+      console.log('Submitting application:', applicationData);
 
       const response = await ApplicationService.submitApplication(applicationData, uploadedFile);
       
@@ -67,7 +77,7 @@ export default function JoinUsPage() {
         email: '',
         age: '',
         gender: '',
-        applicationType: 'Solo',
+        applicationType: 'SOLO',
         videoLink: ''
       });
       setUploadedFile(null);
@@ -78,9 +88,26 @@ export default function JoinUsPage() {
         fileInput.value = '';
       }
       
-    } catch (error: any) {
+    } catch (error) {
       console.error('Application submission error:', error);
-      setError(error.message || 'Failed to submit application. Please try again.');
+      
+      // Better error handling
+      let errorMessage = 'Failed to submit application. Please try again.';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error && typeof error === 'object') {
+        const errorObj = error as any;
+        if (errorObj.message) {
+          errorMessage = errorObj.message;
+        } else if (errorObj.error) {
+          errorMessage = errorObj.error;
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -91,6 +118,7 @@ export default function JoinUsPage() {
       ...prev,
       [e.target.name]: e.target.value
     }));
+    // Clear messages when user starts typing
     if (error) setError('');
     if (success) setSuccess('');
   };
@@ -99,7 +127,12 @@ export default function JoinUsPage() {
     const file = e.target.files?.[0];
     if (file) {
       // Validate file type
-      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      const allowedTypes = [
+        'application/pdf', 
+        'application/msword', 
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ];
+      
       if (!allowedTypes.includes(file.type)) {
         setError('Please upload a PDF, DOC, or DOCX file');
         return;
@@ -116,7 +149,7 @@ export default function JoinUsPage() {
     }
   };
 
-  const handleApplicationTypeChange = (type: 'Solo' | 'Team') => {
+  const handleApplicationTypeChange = (type: 'SOLO' | 'GROUP') => {
     setFormData(prev => ({
       ...prev,
       applicationType: type
@@ -181,6 +214,7 @@ export default function JoinUsPage() {
                         placeholder="Enter your full name"
                         required
                         disabled={isLoading}
+                        maxLength={100}
                       />
                     </div>
                   </div>
@@ -201,6 +235,7 @@ export default function JoinUsPage() {
                         placeholder="Enter your email"
                         required
                         disabled={isLoading}
+                        maxLength={255}
                       />
                     </div>
                   </div>
@@ -259,9 +294,9 @@ export default function JoinUsPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <button
                       type="button"
-                      onClick={() => handleApplicationTypeChange('Solo')}
+                      onClick={() => handleApplicationTypeChange('SOLO')}
                       className={`p-4 border-2 rounded-lg transition-all duration-200 text-left ${
-                        formData.applicationType === 'Solo'
+                        formData.applicationType === 'SOLO'
                           ? 'border-purple-500 bg-purple-50 text-purple-700'
                           : 'border-gray-300 hover:border-gray-400'
                       }`}
@@ -269,9 +304,9 @@ export default function JoinUsPage() {
                     >
                       <div className="flex items-center space-x-3">
                         <div className={`w-4 h-4 rounded-full border-2 ${
-                          formData.applicationType === 'Solo' ? 'bg-purple-500 border-purple-500' : 'border-gray-300'
+                          formData.applicationType === 'SOLO' ? 'bg-purple-500 border-purple-500' : 'border-gray-300'
                         }`}>
-                          {formData.applicationType === 'Solo' && (
+                          {formData.applicationType === 'SOLO' && (
                             <div className="w-full h-full rounded-full bg-white transform scale-50"></div>
                           )}
                         </div>
@@ -284,9 +319,9 @@ export default function JoinUsPage() {
 
                     <button
                       type="button"
-                      onClick={() => handleApplicationTypeChange('Team')}
+                      onClick={() => handleApplicationTypeChange('GROUP')}
                       className={`p-4 border-2 rounded-lg transition-all duration-200 text-left ${
-                        formData.applicationType === 'Team'
+                        formData.applicationType === 'GROUP'
                           ? 'border-purple-500 bg-purple-50 text-purple-700'
                           : 'border-gray-300 hover:border-gray-400'
                       }`}
@@ -294,9 +329,9 @@ export default function JoinUsPage() {
                     >
                       <div className="flex items-center space-x-3">
                         <div className={`w-4 h-4 rounded-full border-2 ${
-                          formData.applicationType === 'Team' ? 'bg-purple-500 border-purple-500' : 'border-gray-300'
+                          formData.applicationType === 'GROUP' ? 'bg-purple-500 border-purple-500' : 'border-gray-300'
                         }`}>
-                          {formData.applicationType === 'Team' && (
+                          {formData.applicationType === 'GROUP' && (
                             <div className="w-full h-full rounded-full bg-white transform scale-50"></div>
                           )}
                         </div>
@@ -344,7 +379,7 @@ export default function JoinUsPage() {
                 {/* Video Link */}
                 <div>
                   <label htmlFor="videoLink" className="block text-sm font-medium text-gray-700 mb-2">
-                    Video Link (Portfolio/Showreel)
+                    Video Link (Portfolio/Showreel) - Optional
                   </label>
                   <div className="relative">
                     <Video className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />

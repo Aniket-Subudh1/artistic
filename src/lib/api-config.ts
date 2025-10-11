@@ -1,5 +1,5 @@
 export const API_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL ,
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL,
   ENDPOINTS: {
     AUTH: {
       LOGIN: '/auth/login',
@@ -7,6 +7,7 @@ export const API_CONFIG = {
     USER: {
       SIGNUP: '/user/signup',
       LIST_ALL: '/user/listall',
+      CREATE: '/user/signup',
       GET_BY_ID: (id: string) => `/user/${id}`,
       UPDATE: (id: string) => `/user/${id}`,
       DELETE: (id: string) => `/user/${id}`,
@@ -14,6 +15,8 @@ export const API_CONFIG = {
     },
     ADMIN: {
       ADD_ARTIST_TYPE: '/admin/add-artist-type',
+      DASHBOARD_STATS: '/admin/dashboard/stats',
+      SYSTEM_SETTINGS: '/admin/system/settings',
     },
     ARTIST: {
       LIST_TYPES: '/artist/list-types',
@@ -23,42 +26,42 @@ export const API_CONFIG = {
       UPDATE_REQUEST: '/artist/profile/update-request',
       PENDING_REQUESTS: '/artist/profile/update/pending-request',
       REVIEW_UPDATE: (id: string) => `/artist/profile/review-update/${id}`,
-      SUBMIT_APPLICATION: '/artist/submit-application',
-      LIST_APPLICATIONS: '/artist/application',
-      UPDATE_APPLICATION_STATUS: (id: string) => `/artist/${id}/status`,
+      GET_PROFILE: (id: string) => `/artist/profile/${id}`,
+      UPDATE_PROFILE: (id: string) => `/artist/profile/${id}`,
+      VERIFY: (id: string) => `/artist/${id}/verify`,
     },
     APPLICATIONS: {
-      SUBMIT: '/applications/submit',
-      LIST_ALL: '/applications',
-      LIST_PENDING: '/applications/pending',
-      REVIEW: (id: string) => `/applications/${id}/review`,
-    },
-    EQUIPMENT_PROVIDER: {
-      SIGNUP: '/equipment-provider/signup',
-      LOGIN: '/equipment-provider/login',
-      LIST_ALL: '/equipment-provider/listall',
-      CREATE_EQUIPMENT: '/equipment-provider/create/equipment',
-      LIST_EQUIPMENTS: '/equipment-provider/list-equipments',
-      MY_EQUIPMENTS: '/equipment-provider/me/equipments',
+      SUBMIT: '/artist/submit-application',
+      LIST_ALL: '/artist/application',
+      LIST_PENDING: '/artist/application?status=PENDING',
+      GET_BY_ID: (id: string) => `/artist/application/${id}`,
+      REVIEW: (id: string) => `/artist/${id}/status`,
+      DELETE: (id: string) => `/artist/application/${id}`,
+      STATS: '/artist/application/stats',
+      EXPORT: '/artist/application/export',
     },
     EQUIPMENT: {
-      LIST_ALL: '/equipment',
+      LIST_ALL: '/equipment-provider/list-equipments',
+      CREATE: '/equipment-provider/create/equipment',
       GET_BY_ID: (id: string) => `/equipment/${id}`,
       UPDATE: (id: string) => `/equipment/${id}`,
       DELETE: (id: string) => `/equipment/${id}`,
+      MY_EQUIPMENT: '/equipment-provider/me/equipments',
+      BOOKINGS: '/equipment/bookings',
     },
     VENUES: {
       LIST_ALL: '/venues',
-      GET_BY_ID: (id: string) => `/venues/${id}`,
       CREATE: '/venues',
+      GET_BY_ID: (id: string) => `/venues/${id}`,
       UPDATE: (id: string) => `/venues/${id}`,
       DELETE: (id: string) => `/venues/${id}`,
       MY_VENUES: '/venues/my',
+      BOOKINGS: '/venues/bookings',
     },
     BOOKINGS: {
       LIST_ALL: '/bookings',
-      GET_BY_ID: (id: string) => `/bookings/${id}`,
       CREATE: '/bookings',
+      GET_BY_ID: (id: string) => `/bookings/${id}`,
       UPDATE: (id: string) => `/bookings/${id}`,
       DELETE: (id: string) => `/bookings/${id}`,
       MY_BOOKINGS: '/bookings/my',
@@ -68,8 +71,8 @@ export const API_CONFIG = {
     },
     EVENTS: {
       LIST_ALL: '/events',
-      GET_BY_ID: (id: string) => `/events/${id}`,
       CREATE: '/events',
+      GET_BY_ID: (id: string) => `/events/${id}`,
       UPDATE: (id: string) => `/events/${id}`,
       DELETE: (id: string) => `/events/${id}`,
       MY_EVENTS: '/events/my',
@@ -82,12 +85,13 @@ export const API_CONFIG = {
     },
     PAYMENTS: {
       LIST_ALL: '/payments',
-      GET_BY_ID: (id: string) => `/payments/${id}`,
       CREATE: '/payments',
+      GET_BY_ID: (id: string) => `/payments/${id}`,
       MY_PAYMENTS: '/payments/my',
       METHODS: '/payments/methods',
       ADD_METHOD: '/payments/methods',
       DELETE_METHOD: (id: string) => `/payments/methods/${id}`,
+      TRANSACTIONS: '/payments/transactions',
     },
     NOTIFICATIONS: {
       LIST_ALL: '/notifications',
@@ -102,14 +106,13 @@ export const API_CONFIG = {
       GET_ACCOUNT: '/settings/account',
       UPDATE_ACCOUNT: '/settings/account',
       CHANGE_PASSWORD: '/settings/change-password',
-      GET_SYSTEM: '/settings/system',
-      UPDATE_SYSTEM: '/settings/system',
     },
   },
 };
 
-// Helper function to get auth headers
 export const getAuthHeaders = () => {
+  if (typeof window === 'undefined') return {};
+  
   const token = localStorage.getItem('authToken');
   return {
     'Content-Type': 'application/json',
@@ -117,15 +120,15 @@ export const getAuthHeaders = () => {
   };
 };
 
-// Helper function for multipart form data
 export const getMultipartAuthHeaders = () => {
+  if (typeof window === 'undefined') return {};
+  
   const token = localStorage.getItem('authToken');
   return {
     ...(token && { Authorization: `Bearer ${token}` }),
   };
 };
 
-// API Error handler
 export class APIError extends Error {
   constructor(public status: number, message: string, public data?: any) {
     super(message);
@@ -133,7 +136,14 @@ export class APIError extends Error {
   }
 }
 
-// Generic API request handler
+const handleUnauthorized = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    window.location.href = '/auth/signin';
+  }
+};
+
 export const apiRequest = async <T>(
   url: string,
   options: RequestInit = {}
@@ -148,6 +158,11 @@ export const apiRequest = async <T>(
         ...options.headers,
       },
     });
+
+    if (response.status === 401) {
+      handleUnauthorized();
+      throw new APIError(401, 'Unauthorized - Please login again');
+    }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -172,7 +187,6 @@ export const apiRequest = async <T>(
   }
 };
 
-// File upload helper
 export const uploadRequest = async <T>(
   url: string,
   formData: FormData
@@ -185,6 +199,11 @@ export const uploadRequest = async <T>(
       headers: getMultipartAuthHeaders(),
       body: formData,
     });
+
+    if (response.status === 401) {
+      handleUnauthorized();
+      throw new APIError(401, 'Unauthorized - Please login again');
+    }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -204,26 +223,23 @@ export const uploadRequest = async <T>(
   }
 };
 
-// Request interceptor for authentication
-export const setupInterceptors = () => {
-  const originalFetch = window.fetch;
+export const authenticatedFetch = async (
+  url: string,
+  options: RequestInit = {}
+): Promise<Response> => {
+  const fullUrl = url.startsWith('http') ? url : `${API_CONFIG.BASE_URL}${url}`;
   
-  window.fetch = async (url: RequestInfo | URL, options?: RequestInit) => {
-    const response = await originalFetch(url, options);
-    
-    // Handle unauthorized responses
-    if (response.status === 401) {
-      // Clear auth data and redirect to login
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
-      window.location.href = '/auth/signin';
-    }
-    
-    return response;
-  };
-};
+  const response = await fetch(fullUrl, {
+    ...options,
+    headers: {
+      ...getAuthHeaders(),
+      ...options.headers,
+    },
+  });
 
-// Initialize interceptors
-if (typeof window !== 'undefined') {
-  setupInterceptors();
-}
+  if (response.status === 401) {
+    handleUnauthorized();
+  }
+
+  return response;
+};
