@@ -69,7 +69,7 @@ export function ApplicationManagement() {
 
     // Filter by status
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(app => app.status === statusFilter);
+      filtered = filtered.filter(app => app.status === statusFilter.toUpperCase());
     }
 
     // Filter by application type
@@ -116,24 +116,28 @@ export function ApplicationManagement() {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      pending: {
+      PENDING: {
         label: 'Pending',
         classes: 'bg-yellow-100 text-yellow-800',
         icon: Clock
       },
-      approved: {
+      APPROVED: {
         label: 'Approved',
         classes: 'bg-green-100 text-green-800',
         icon: CheckCircle
       },
-      rejected: {
+      REJECTED: {
         label: 'Rejected',
         classes: 'bg-red-100 text-red-800',
         icon: XCircle
       }
     };
 
-    const config = statusConfig[status as keyof typeof statusConfig];
+    const config = statusConfig[status as keyof typeof statusConfig] || {
+      label: status || 'Unknown',
+      classes: 'bg-gray-100 text-gray-800',
+      icon: Clock
+    };
     const Icon = config.icon;
 
     return (
@@ -178,15 +182,15 @@ export function ApplicationManagement() {
         <div className="flex items-center space-x-2 text-sm">
           <div className="flex items-center space-x-1">
             <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-            <span>Pending: {applications.filter(app => app.status === 'pending').length}</span>
+            <span>Pending: {applications.filter(app => app.status === 'PENDING').length}</span>
           </div>
           <div className="flex items-center space-x-1">
             <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-            <span>Approved: {applications.filter(app => app.status === 'approved').length}</span>
+            <span>Approved: {applications.filter(app => app.status === 'APPROVED').length}</span>
           </div>
           <div className="flex items-center space-x-1">
             <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-            <span>Rejected: {applications.filter(app => app.status === 'rejected').length}</span>
+            <span>Rejected: {applications.filter(app => app.status === 'REJECTED').length}</span>
           </div>
         </div>
       </div>
@@ -225,7 +229,7 @@ export function ApplicationManagement() {
             <div>
               <p className="text-sm font-medium text-gray-600">Pending Review</p>
               <p className="text-2xl font-bold text-gray-900">
-                {applications.filter(app => app.status === 'pending').length}
+                {applications.filter(app => app.status === 'PENDING').length}
               </p>
             </div>
             <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
@@ -365,7 +369,7 @@ export function ApplicationManagement() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div className="flex items-center">
                         <Calendar className="w-3 h-3 mr-1" />
-                        {new Date(application.submittedAt).toLocaleDateString()}
+                        {new Date(application.createdAt).toLocaleDateString()}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -377,9 +381,9 @@ export function ApplicationManagement() {
                           <Eye className="w-4 h-4 mr-1" />
                           Review
                         </button>
-                        {application.cvFileUrl && (
+                        {application.resume && (
                           <a
-                            href={application.cvFileUrl}
+                            href={application.resume}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-600 hover:text-blue-900 flex items-center"
@@ -469,11 +473,11 @@ export function ApplicationManagement() {
                   </div>
                 )}
 
-                {selectedApplication.cvFileUrl && (
+                {selectedApplication.resume && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700">CV/Resume</label>
                     <a
-                      href={selectedApplication.cvFileUrl}
+                      href={selectedApplication.resume}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:text-blue-800 flex items-center mt-1"
@@ -486,26 +490,12 @@ export function ApplicationManagement() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Submitted At</label>
-                  <p className="text-gray-900">{new Date(selectedApplication.submittedAt).toLocaleString()}</p>
+                  <p className="text-gray-900">{new Date(selectedApplication.createdAt).toLocaleString()}</p>
                 </div>
-
-                {selectedApplication.reviewedAt && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Reviewed At</label>
-                    <p className="text-gray-900">{new Date(selectedApplication.reviewedAt).toLocaleString()}</p>
-                  </div>
-                )}
-
-                {selectedApplication.reviewComment && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Review Comment</label>
-                    <p className="text-gray-900 bg-gray-50 p-3 rounded-lg">{selectedApplication.reviewComment}</p>
-                  </div>
-                )}
+              
               </div>
 
-              {/* Review Actions (only for pending applications) */}
-              {selectedApplication.status === 'pending' && (
+              {selectedApplication.status === 'PENDING' && (
                 <div className="space-y-4">
                   <div>
                     <label htmlFor="reviewComment" className="block text-sm font-medium text-gray-700 mb-1">
@@ -551,20 +541,20 @@ export function ApplicationManagement() {
               )}
 
               {/* Already reviewed message */}
-              {selectedApplication.status !== 'pending' && (
-                <div className={`p-4 rounded-lg ${
-                  selectedApplication.status === 'approved' 
+              {selectedApplication.status !== 'PENDING' && (
+                  <div className={`p-4 rounded-lg ${
+                  selectedApplication.status === 'APPROVED' 
                     ? 'bg-green-50 border border-green-200' 
                     : 'bg-red-50 border border-red-200'
                 }`}>
                   <div className="flex items-center gap-2">
-                    {selectedApplication.status === 'approved' ? (
+                    {selectedApplication.status === 'APPROVED' ? (
                       <CheckCircle className="w-5 h-5 text-green-600" />
                     ) : (
                       <XCircle className="w-5 h-5 text-red-600" />
                     )}
                     <span className={`font-medium ${
-                      selectedApplication.status === 'approved' ? 'text-green-800' : 'text-red-800'
+                      selectedApplication.status === 'APPROVED' ? 'text-green-800' : 'text-red-800'
                     }`}>
                       This application has been {selectedApplication.status}
                     </span>
