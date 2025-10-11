@@ -21,7 +21,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     'manage_applications',
     'manage_artists',
     'manage_equipment',
-    'manage_venues'
+    'manage_venues',
+    'manage_equipment_providers'
   ],
   admin: [
     'manage_users',
@@ -32,7 +33,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     'manage_equipment',
     'moderate_content',
     'manage_applications',
-    'manage_venues'
+    'manage_venues',
+    'manage_equipment_providers'
   ],
   venue_owner: [
     'manage_own_venues',
@@ -45,7 +47,9 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     'manage_own_equipment',
     'view_equipment_bookings',
     'manage_equipment_listings',
-    'view_equipment_analytics'
+    'view_equipment_analytics',
+    'change_own_password',
+    'manage_own_profile'
   ],
   artist: [
     'manage_own_profile',
@@ -127,7 +131,7 @@ export const getSidebarItems = (): SidebarItem[] => [
     ],
   },
 
-  // Artist Management Section - Reorganized
+  // Artist Management Section
   {
     id: 'artist-management',
     label: 'Artist Management',
@@ -190,7 +194,7 @@ export const getSidebarItems = (): SidebarItem[] => [
     ],
   },
 
-  // Equipment Management Section
+  // Equipment Management Section - Updated
   {
     id: 'equipment-management',
     label: 'Equipment',
@@ -198,6 +202,16 @@ export const getSidebarItems = (): SidebarItem[] => [
     icon: 'Package',
     roles: ['super_admin', 'admin', 'equipment_provider'],
     children: [
+      // Equipment Provider Dashboard
+      {
+        id: 'equipment-provider-dashboard',
+        label: 'Provider Dashboard',
+        labelAr: 'لوحة مزود المعدات',
+        icon: 'LayoutDashboard',
+        href: '/dashboard/equipment-provider',
+        roles: ['equipment_provider'],
+      },
+      
       // Equipment Provider specific
       {
         id: 'my-equipment',
@@ -216,6 +230,14 @@ export const getSidebarItems = (): SidebarItem[] => [
         roles: ['equipment_provider'],
       },
       {
+        id: 'equipment-settings',
+        label: 'Settings',
+        labelAr: 'الإعدادات',
+        icon: 'Settings',
+        href: '/dashboard/equipment-provider/settings',
+        roles: ['equipment_provider'],
+      },
+      {
         id: 'equipment-bookings',
         label: 'Equipment Bookings',
         labelAr: 'حجوزات المعدات',
@@ -231,6 +253,14 @@ export const getSidebarItems = (): SidebarItem[] => [
         labelAr: 'جميع المعدات',
         icon: 'Package2',
         href: '/dashboard/admin/equipment',
+        roles: ['super_admin', 'admin'],
+      },
+      {
+        id: 'equipment-providers',
+        label: 'Equipment Providers',
+        labelAr: 'مقدمو المعدات',
+        icon: 'Users',
+        href: '/dashboard/admin/equipment-provider',
         roles: ['super_admin', 'admin'],
       },
     ],

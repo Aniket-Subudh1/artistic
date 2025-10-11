@@ -49,6 +49,17 @@ export const API_CONFIG = {
       MY_EQUIPMENT: '/equipment-provider/me/equipments',
       BOOKINGS: '/equipment/bookings',
     },
+    EQUIPMENT_PROVIDER: {
+      SIGNUP: '/equipment-provider/signup',
+      LOGIN: '/equipment-provider/login',
+      LIST_ALL: '/equipment-provider/listall',
+      CHANGE_PASSWORD: '/equipment-provider/changePass',
+      CREATE_EQUIPMENT: '/equipment-provider/create/equipment',
+      MY_EQUIPMENT: '/equipment-provider/me/equipments',
+      GET_BY_ID: (id: string) => `/equipment-provider/${id}`,
+      UPDATE: (id: string) => `/equipment-provider/${id}`,
+      DELETE: (id: string) => `/equipment-provider/${id}`,
+    },
     VENUES: {
       LIST_ALL: '/venues',
       CREATE: '/venues',

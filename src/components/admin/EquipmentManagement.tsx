@@ -17,26 +17,7 @@ import {
   MapPin,
   Settings
 } from 'lucide-react';
-import { EquipmentService } from '@/services/equipment.service';
-
-interface Equipment {
-  _id: string;
-  name: string;
-  category: string;
-  imageUrl: string;
-  description: string;
-  pricePerHour: number;
-  pricePerDay: number;
-  quantity: number;
-  provider: {
-    _id: string;
-    fullName: string;
-    email: string;
-    phoneNumber: string;
-  };
-  createdAt: string;
-  updatedAt: string;
-}
+import { EquipmentService, Equipment } from '@/services/equipment.service';
 
 export function EquipmentManagement() {
   const [equipment, setEquipment] = useState<Equipment[]>([]);
@@ -77,7 +58,7 @@ export function EquipmentManagement() {
       filtered = filtered.filter(item => 
         item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.provider.fullName.toLowerCase().includes(searchTerm.toLowerCase())
+        (typeof item.provider === 'string' ? item.provider : (item.provider as any).fullName).toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -270,7 +251,7 @@ export function EquipmentManagement() {
               <div className="space-y-2 text-sm text-gray-600 mb-4">
                 <div className="flex items-center gap-2">
                   <User className="w-4 h-4" />
-                  <span>{item.provider.fullName}</span>
+                  <span>{typeof item.provider === 'string' ? item.provider : (item.provider as any).fullName}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <DollarSign className="w-4 h-4" />
@@ -378,9 +359,13 @@ export function EquipmentManagement() {
                   <div className="col-span-2">
                     <label className="block font-medium text-gray-700">Provider Information</label>
                     <div className="bg-gray-50 p-4 rounded-lg mt-1">
-                      <p className="font-medium text-gray-900">{selectedEquipment.provider.fullName}</p>
-                      <p className="text-gray-600">{selectedEquipment.provider.email}</p>
-                      <p className="text-gray-600">{selectedEquipment.provider.phoneNumber}</p>
+                      <p className="font-medium text-gray-900">{typeof selectedEquipment.provider === 'string' ? selectedEquipment.provider : (selectedEquipment.provider as any).fullName}</p>
+                      {typeof selectedEquipment.provider !== 'string' && (
+                        <>
+                          <p className="text-gray-600">{(selectedEquipment.provider as any).email}</p>
+                          <p className="text-gray-600">{(selectedEquipment.provider as any).phoneNumber}</p>
+                        </>
+                      )}
                     </div>
                   </div>
 
