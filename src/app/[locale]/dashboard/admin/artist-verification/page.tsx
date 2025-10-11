@@ -59,12 +59,11 @@ export default function ArtistVerificationPage() {
     let filtered = artists;
 
     // Filter by search term
-    if (searchTerm) {
+      if (searchTerm) {
       filtered = filtered.filter(artist => 
-        artist.stageName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        artist.user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        artist.user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        artist.user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+        (artist.stageName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (artist.user?.firstName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (artist.user?.lastName || '').toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -72,7 +71,7 @@ export default function ArtistVerificationPage() {
     if (statusFilter !== 'all') {
       // Since we don't have verification status in the model, we'll use isActive as a proxy
       const isVerified = statusFilter === 'verified';
-      filtered = filtered.filter(artist => artist.user.isActive === isVerified);
+      filtered = filtered.filter(artist => !!artist.user?.isActive === isVerified);
     }
 
     setFilteredArtists(filtered);
@@ -127,11 +126,11 @@ export default function ArtistVerificationPage() {
           <div className="flex items-center space-x-2 text-sm">
             <div className="flex items-center space-x-1">
               <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-              <span>Verified: {artists.filter(artist => artist.user.isActive).length}</span>
+              <span>Verified: {artists.filter(artist => !!artist.user?.isActive).length}</span>
             </div>
             <div className="flex items-center space-x-1">
               <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-              <span>Pending: {artists.filter(artist => !artist.user.isActive).length}</span>
+              <span>Pending: {artists.filter(artist => !artist.user?.isActive).length}</span>
             </div>
           </div>
         </div>
@@ -170,7 +169,7 @@ export default function ArtistVerificationPage() {
               <div>
                 <p className="text-sm font-medium text-gray-600">Verified</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {artists.filter(artist => artist.user.isActive).length}
+                  {artists.filter(artist => !!artist.user?.isActive).length}
                 </p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -184,7 +183,7 @@ export default function ArtistVerificationPage() {
               <div>
                 <p className="text-sm font-medium text-gray-600">Pending</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {artists.filter(artist => !artist.user.isActive).length}
+                  {artists.filter(artist => !artist.user?.isActive).length}
                 </p>
               </div>
               <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
@@ -198,7 +197,7 @@ export default function ArtistVerificationPage() {
               <div>
                 <p className="text-sm font-medium text-gray-600">Verification Rate</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {artists.length > 0 ? Math.round((artists.filter(artist => artist.user.isActive).length / artists.length) * 100) : 0}%
+                  {artists.length > 0 ? Math.round((artists.filter(artist => !!artist.user?.isActive).length / artists.length) * 100) : 0}%
                 </p>
               </div>
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -277,7 +276,7 @@ export default function ArtistVerificationPage() {
                         <div className="flex items-center">
                           <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
                             <span className="text-white font-medium text-sm">
-                              {artist.user.firstName.charAt(0)}{artist.user.lastName.charAt(0)}
+                              {(artist.user?.firstName?.charAt(0) || 'A')}{(artist.user?.lastName?.charAt(0) || 'R')}
                             </span>
                           </div>
                           <div className="ml-4">
@@ -285,7 +284,7 @@ export default function ArtistVerificationPage() {
                               {artist.stageName}
                             </div>
                             <div className="text-sm text-gray-500">
-                              {artist.user.firstName} {artist.user.lastName}
+                              {artist.user?.firstName || 'Unknown'} {artist.user?.lastName || 'Artist'}
                             </div>
                             <div className="text-sm text-gray-500">
                               {artist.category}
@@ -295,13 +294,8 @@ export default function ArtistVerificationPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="space-y-1">
-                          <div className="flex items-center text-sm text-gray-900">
-                            <Mail className="w-4 h-4 mr-2 text-gray-400" />
-                            {artist.user.email}
-                          </div>
                           <div className="flex items-center text-sm text-gray-500">
-                            <Phone className="w-4 h-4 mr-2 text-gray-400" />
-                            {artist.user.phoneNumber}
+                            <span className="text-sm text-gray-900">Contact hidden</span>
                           </div>
                         </div>
                       </td>
@@ -317,7 +311,7 @@ export default function ArtistVerificationPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {getVerificationBadge(artist.user.isActive)}
+                        {getVerificationBadge(!!artist.user?.isActive)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2">
@@ -331,7 +325,7 @@ export default function ArtistVerificationPage() {
                             <Eye className="w-4 h-4 mr-1" />
                             View
                           </button>
-                          {!artist.user.isActive ? (
+                          {!artist.user?.isActive ? (
                             <button
                               onClick={() => handleVerifyArtist(artist._id, true)}
                               className="text-green-600 hover:text-green-900 flex items-center"
@@ -378,25 +372,25 @@ export default function ArtistVerificationPage() {
                   <div className="space-y-4">
                     <div className="text-center">
                       <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <span className="text-white font-bold text-2xl">
-                          {selectedArtist.user.firstName.charAt(0)}{selectedArtist.user.lastName.charAt(0)}
+                            <span className="text-white font-bold text-2xl">
+                          {(selectedArtist.user?.firstName?.charAt(0) || 'A')}{(selectedArtist.user?.lastName?.charAt(0) || 'R')}
                         </span>
                       </div>
                       <h3 className="text-xl font-bold text-gray-900">{selectedArtist.stageName}</h3>
-                      <p className="text-gray-600">{selectedArtist.user.firstName} {selectedArtist.user.lastName}</p>
+                      <p className="text-gray-600">{selectedArtist.user?.firstName || 'Unknown'} {selectedArtist.user?.lastName || 'Artist'}</p>
                       <div className="mt-2">
-                        {getVerificationBadge(selectedArtist.user.isActive)}
+                        {getVerificationBadge(!!selectedArtist.user?.isActive)}
                       </div>
                     </div>
 
                     <div className="space-y-3">
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Email</label>
-                        <p className="text-gray-900">{selectedArtist.user.email}</p>
+                        <p className="text-gray-900">Hidden</p>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Phone</label>
-                        <p className="text-gray-900">{selectedArtist.user.phoneNumber}</p>
+                        <p className="text-gray-900">Hidden</p>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Category</label>
@@ -487,7 +481,7 @@ export default function ArtistVerificationPage() {
                 </div>
 
                 {/* Verification Actions */}
-                {!selectedArtist.user.isActive && (
+                {!selectedArtist.user?.isActive && (
                   <div className="mt-6 pt-6 border-t border-gray-200">
                     <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mb-4">
                       <div className="flex items-start gap-2">
@@ -520,7 +514,7 @@ export default function ArtistVerificationPage() {
                   </div>
                 )}
 
-                {selectedArtist.user.isActive && (
+                {selectedArtist.user?.isActive && (
                   <div className="mt-6 pt-6 border-t border-gray-200">
                     <div className="bg-green-50 p-4 rounded-lg border border-green-200 mb-4">
                       <div className="flex items-start gap-2">

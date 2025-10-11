@@ -51,12 +51,12 @@ export function ArtistManagement() {
   };
 
   const filteredArtists = artists.filter(artist => {
-    const matchesSearch = artist.stageName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         artist.user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         artist.user.lastName.toLowerCase().includes(searchTerm.toLowerCase());
+  const matchesSearch = (artist.stageName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+             (artist.user?.firstName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+             (artist.user?.lastName || '').toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesFilter = selectedFilter === 'all' || 
-                         artist.category.toLowerCase() === selectedFilter.toLowerCase();
+                         (artist.category || '').toLowerCase() === selectedFilter.toLowerCase();
     
     return matchesSearch && matchesFilter;
   });
@@ -122,7 +122,7 @@ export function ArtistManagement() {
             <div>
               <p className="text-sm font-medium text-gray-600">Active Artists</p>
               <p className="text-2xl font-bold text-gray-900">
-                {artists.filter(artist => artist.user.isActive).length}
+                {artists.filter(artist => !!artist.user?.isActive).length}
               </p>
             </div>
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -199,7 +199,7 @@ export function ArtistManagement() {
                   <div className="text-center">
                     <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-2">
                       <span className="text-2xl font-bold">
-                        {artist.user.firstName.charAt(0)}{artist.user.lastName.charAt(0)}
+                        {(artist.user?.firstName?.charAt(0) || 'A')}{(artist.user?.lastName?.charAt(0) || 'R')}
                       </span>
                     </div>
                     <p className="text-sm">{artist.stageName}</p>
@@ -213,9 +213,9 @@ export function ArtistManagement() {
 
               <div className="absolute top-4 left-4">
                 <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                  artist.user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                  artist.user?.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                 }`}>
-                  {artist.user.isActive ? 'Active' : 'Inactive'}
+                  {artist.user?.isActive ? 'Active' : 'Inactive'}
                 </span>
               </div>
             </div>
@@ -223,8 +223,8 @@ export function ArtistManagement() {
             <div className="p-6">
               <div className="flex items-start justify-between mb-2">
                 <div>
-                  <h3 className="font-semibold text-gray-900">{artist.stageName}</h3>
-                  <p className="text-sm text-gray-600">{artist.user.firstName} {artist.user.lastName}</p>
+                  <h3 className="font-semibold text-gray-900">{artist.stageName || 'Unknown Artist'}</h3>
+                  <p className="text-sm text-gray-600">{artist.user?.firstName || 'Unknown'} {artist.user?.lastName || 'Artist'}</p>
                 </div>
                 <div className="flex items-center gap-1 text-sm text-gray-500">
                   <Star className="w-4 h-4 text-yellow-500" />
@@ -233,14 +233,6 @@ export function ArtistManagement() {
               </div>
 
               <div className="space-y-2 text-sm text-gray-600 mb-4">
-                <div className="flex items-center gap-2">
-                  <Mail className="w-4 h-4" />
-                  <span className="truncate">{artist.user.email}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Phone className="w-4 h-4" />
-                  <span>{artist.user.phoneNumber}</span>
-                </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4" />
                   <span>{artist.country}</span>
@@ -305,15 +297,15 @@ export function ArtistManagement() {
                 <div className="text-center">
                   <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
                     <span className="text-white font-bold text-2xl">
-                      {selectedArtist.user.firstName.charAt(0)}{selectedArtist.user.lastName.charAt(0)}
+                      {(selectedArtist.user?.firstName?.charAt(0) || 'A')}{(selectedArtist.user?.lastName?.charAt(0) || 'R')}
                     </span>
                   </div>
                   <h3 className="text-xl font-bold text-gray-900">{selectedArtist.stageName}</h3>
-                  <p className="text-gray-600">{selectedArtist.user.firstName} {selectedArtist.user.lastName}</p>
+                  <p className="text-gray-600">{selectedArtist.user?.firstName || 'Unknown'} {selectedArtist.user?.lastName || 'Artist'}</p>
                   <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mt-2 ${
-                    selectedArtist.user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    selectedArtist.user?.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                   }`}>
-                    {selectedArtist.user.isActive ? 'Active' : 'Inactive'}
+                    {selectedArtist.user?.isActive ? 'Active' : 'Inactive'}
                   </span>
                 </div>
 
@@ -321,11 +313,11 @@ export function ArtistManagement() {
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <label className="block font-medium text-gray-700">Email</label>
-                    <p className="text-gray-900">{selectedArtist.user.email}</p>
+                    <p className="text-gray-900">{selectedArtist.user?.email || '—'}</p>
                   </div>
                   <div>
                     <label className="block font-medium text-gray-700">Phone</label>
-                    <p className="text-gray-900">{selectedArtist.user.phoneNumber}</p>
+                    <p className="text-gray-900">{selectedArtist.user?.phoneNumber || '—'}</p>
                   </div>
                   <div>
                     <label className="block font-medium text-gray-700">Category</label>

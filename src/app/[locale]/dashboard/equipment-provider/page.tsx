@@ -1,4 +1,3 @@
-// src/app/[locale]/dashboard/equipment/page.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -9,431 +8,370 @@ import { EquipmentService } from '@/services/equipment.service';
 import { 
   Package, 
   Plus, 
-  Search, 
-  Filter, 
-  Eye, 
-  Edit, 
-  Trash2, 
-  DollarSign,
-  AlertCircle,
+  DollarSign, 
+  TrendingUp, 
+  Calendar, 
+  Settings,
+  Eye,
+  BarChart3,
   CheckCircle,
-  Calendar,
-  Settings
+  Clock,
+  AlertCircle
 } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 
-export default function EquipmentListPage() {
+export default function EquipmentProviderDashboard() {
   const { user, isLoading } = useAuthLogic();
-  const [equipment, setEquipment] = useState<any[]>([]);
-  const [filteredEquipment, setFilteredEquipment] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    totalEquipment: 0,
+    availableEquipment: 0,
+    totalBookings: 0,
+    monthlyRevenue: 0,
+    pendingRequests: 0
+  });
+  const [recentEquipment, setRecentEquipment] = useState<any[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [selectedEquipment, setSelectedEquipment] = useState<any>(null);
-  const [showViewModal, setShowViewModal] = useState(false);
 
   useEffect(() => {
     if (user) {
-      loadEquipment();
+      loadDashboardData();
     }
   }, [user]);
 
-  useEffect(() => {
-    filterEquipment();
-  }, [equipment, searchTerm, categoryFilter]);
-
-  const loadEquipment = async () => {
-    if (!user) return;
-    
+  const loadDashboardData = async () => {
     setIsLoadingData(true);
     try {
-      let equipmentData;
-      if (user.role === 'equipment_provider') {
-        // Load equipment for the current provider
-        equipmentData = await EquipmentService.getEquipmentByProvider(user.id);
-      } else {
-        // Load all equipment for admins/users
-        equipmentData = await EquipmentService.getAllEquipment();
-      }
-      setEquipment(equipmentData);
-    } catch (error: any) {
-      setError('Failed to load equipment: ' + (error.message || 'Unknown error'));
+      const equipmentData = await EquipmentService.getMyEquipment();
+      setRecentEquipment(equipmentData.slice(0, 5));
+      
+      setStats({
+        totalEquipment: equipmentData.length,
+        availableEquipment: equipmentData.filter(item => item.quantity > 0).length,
+        totalBookings: 0, // This would come from bookings API
+        monthlyRevenue: 0, // This would come from analytics API
+        pendingRequests: 0 // This would come from bookings API
+      });
+    } catch (error) {
+      console.error('Failed to load dashboard data:', error);
     } finally {
       setIsLoadingData(false);
     }
   };
 
-  const filterEquipment = () => {
-    let filtered = equipment;
-
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter(item => 
-        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Filter by category
-    if (categoryFilter !== 'all') {
-      filtered = filtered.filter(item => item.category === categoryFilter);
-    }
-
-    setFilteredEquipment(filtered);
-  };
-
-  const getCategoryBadge = (category: string) => {
-    const categoryConfig = {
-      SOUND: { label: 'Sound', classes: 'bg-blue-100 text-blue-800' },
-      DISPLAY: { label: 'Display', classes: 'bg-green-100 text-green-800' },
-      LIGHT: { label: 'Light', classes: 'bg-yellow-100 text-yellow-800' },
-      OTHER: { label: 'Other', classes: 'bg-gray-100 text-gray-800' }
-    };
-
-    const config = categoryConfig[category as keyof typeof categoryConfig] || categoryConfig.OTHER;
-    return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.classes}`}>
-        {config.label}
-      </span>
-    );
-  };
-
-  const getAvailabilityBadge = (quantity: number) => {
-    return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-        quantity > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-      }`}>
-        {quantity > 0 ? `${quantity} Available` : 'Out of Stock'}
-      </span>
-    );
-  };
-
   if (isLoading || !user) {
-    return <LoadingSpinner text="Loading equipment..." />;
+    return <LoadingSpinner text="Loading dashboard..." />;
   }
 
+  const quickActions = [
+    {
+      title: 'Add Equipment',
+      description: 'Add new equipment to your inventory',
+      icon: Plus,
+      href: '/dashboard/equipment/add',
+      color: 'green'
+    },
+    {
+      title: 'View Equipment',
+      description: 'Manage your equipment listings',
+      icon: Package,
+      href: '/dashboard/equipment',
+      color: 'blue'
+    },
+    {
+      title: 'Settings',
+      description: 'Manage account settings and preferences',
+      icon: Settings,
+      href: '/dashboard/equipment-provider/settings',
+      color: 'purple'
+    },
+    {
+      title: 'Analytics',
+      description: 'View performance and revenue analytics',
+      icon: BarChart3,
+      href: '/dashboard/equipment-provider/analytics',
+      color: 'orange'
+    }
+  ];
+
   return (
-    <RoleBasedRoute allowedRoles={['equipment_provider', 'admin', 'super_admin']} userRole={user.role}>
+    <RoleBasedRoute allowedRoles={['equipment_provider']} userRole={user.role}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              {user.role === 'equipment_provider' ? 'My Equipment' : 'All Equipment'}
-            </h1>
-            <p className="text-gray-600">
-              {user.role === 'equipment_provider' 
-                ? 'Manage your equipment inventory and availability'
-                : 'Overview of all equipment in the system'
-              }
-            </p>
+            <h1 className="text-3xl font-bold text-gray-900">Equipment Provider Dashboard</h1>
+            <p className="text-gray-600">Welcome back, {user.firstName}!</p>
           </div>
           
-          {user.role === 'equipment_provider' && (
-            <Link
-              href="/dashboard/equipment/add"
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Add Equipment
-            </Link>
-          )}
+          {/* User Badge */}
+          <div className="flex items-center space-x-2 bg-green-100 px-4 py-2 rounded-full">
+            <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
+              <span className="text-white font-medium text-sm">
+                {user.firstName.charAt(0)}
+              </span>
+            </div>
+            <span className="font-medium text-green-800">Equipment Provider</span>
+          </div>
         </div>
 
-        {/* Messages */}
-        {error && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
-            <AlertCircle className="w-5 h-5" />
-            {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2 text-green-700">
-            <CheckCircle className="w-5 h-5" />
-            {success}
-          </div>
-        )}
-
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Items</p>
-                <p className="text-2xl font-bold text-gray-900">{equipment.length}</p>
+                <p className="text-sm font-medium text-gray-600">Total Equipment</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalEquipment}</p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                 <Package className="w-6 h-6 text-blue-600" />
               </div>
             </div>
+            <div className="mt-4 flex items-center text-sm">
+              <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
+              <span className="text-green-600">+2 this month</span>
+            </div>
           </div>
 
           <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Available</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {equipment.filter(item => item.quantity > 0).length}
-                </p>
+                <p className="text-sm font-medium text-gray-600">Available Items</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.availableEquipment}</p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                 <CheckCircle className="w-6 h-6 text-green-600" />
               </div>
             </div>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Categories</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {new Set(equipment.map(item => item.category)).size}
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Filter className="w-6 h-6 text-purple-600" />
-              </div>
+            <div className="mt-4 flex items-center text-sm">
+              <span className="text-gray-500">Ready for rental</span>
             </div>
           </div>
 
           <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Avg. Price/Day</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  ${equipment.length > 0 ? Math.round(equipment.reduce((sum, item) => sum + item.pricePerDay, 0) / equipment.length) : 0}
-                </p>
+                <p className="text-sm font-medium text-gray-600">Total Bookings</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalBookings}</p>
+              </div>
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <Calendar className="w-6 h-6 text-purple-600" />
+              </div>
+            </div>
+            <div className="mt-4 flex items-center text-sm">
+              <span className="text-gray-500">All time</span>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Monthly Revenue</p>
+                <p className="text-2xl font-bold text-gray-900">${stats.monthlyRevenue}</p>
               </div>
               <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
                 <DollarSign className="w-6 h-6 text-yellow-600" />
               </div>
             </div>
+            <div className="mt-4 flex items-center text-sm">
+              <span className="text-gray-500">This month</span>
+            </div>
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search equipment..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-            />
+        {/* Quick Actions */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {quickActions.map((action) => {
+              const Icon = action.icon;
+              const colorClasses = {
+                green: 'hover:border-green-300 hover:bg-green-50',
+                blue: 'hover:border-blue-300 hover:bg-blue-50',
+                purple: 'hover:border-purple-300 hover:bg-purple-50',
+                orange: 'hover:border-orange-300 hover:bg-orange-50'
+              };
+
+              const iconClasses = {
+                green: 'text-green-600',
+                blue: 'text-blue-600',
+                purple: 'text-purple-600',
+                orange: 'text-orange-600'
+              };
+
+              return (
+                <Link
+                  key={action.title}
+                  href={action.href}
+                  className={`p-4 border border-gray-200 rounded-lg ${colorClasses[action.color as keyof typeof colorClasses]} transition-colors text-left block`}
+                >
+                  <Icon className={`w-8 h-8 ${iconClasses[action.color as keyof typeof iconClasses]} mb-2`} />
+                  <h4 className="font-medium text-gray-900">{action.title}</h4>
+                  <p className="text-sm text-gray-500">{action.description}</p>
+                </Link>
+              );
+            })}
           </div>
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-          >
-            <option value="all">All Categories</option>
-            <option value="SOUND">Sound</option>
-            <option value="DISPLAY">Display</option>
-            <option value="LIGHT">Light</option>
-            <option value="OTHER">Other</option>
-          </select>
         </div>
 
-        {/* Equipment Grid */}
-        {isLoadingData ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-          </div>
-        ) : filteredEquipment.length === 0 ? (
-          <div className="text-center py-12">
-            <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {equipment.length === 0 ? 'No equipment yet' : 'No equipment found'}
-            </h3>
-            <p className="text-gray-600 mb-4">
-              {equipment.length === 0 
-                ? 'Start by adding your first equipment item'
-                : 'Try adjusting your search or filters'
-              }
-            </p>
-            {user.role === 'equipment_provider' && equipment.length === 0 && (
-              <Link
-                href="/dashboard/equipment/add"
-                className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Equipment
-              </Link>
-            )}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredEquipment.map((item) => (
-              <div key={item._id} className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="relative h-48 bg-gray-100">
-                  {item.imageUrl ? (
-                    <img 
-                      src={item.imageUrl} 
-                      alt={item.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <Package className="w-16 h-16" />
-                    </div>
-                  )}
-                  
-                  <div className="absolute top-4 right-4">
-                    {getCategoryBadge(item.category)}
-                  </div>
-
-                  <div className="absolute bottom-4 left-4">
-                    {getAvailabilityBadge(item.quantity)}
-                  </div>
-                </div>
-
-                <div className="p-6">
-                  <h3 className="font-semibold text-gray-900 mb-2 text-lg">{item.name}</h3>
-                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">{item.description}</p>
-                  
-                  <div className="space-y-2 text-sm text-gray-600 mb-4">
-                    <div className="flex items-center justify-between">
-                      <span>Hourly Rate:</span>
-                      <span className="font-medium text-gray-900">${item.pricePerHour}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Daily Rate:</span>
-                      <span className="font-medium text-gray-900">${item.pricePerDay}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        setSelectedEquipment(item);
-                        setShowViewModal(true);
-                      }}
-                      className="flex-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center justify-center gap-1"
-                    >
-                      <Eye className="w-4 h-4" />
-                      View
-                    </button>
-                    {user.role === 'equipment_provider' && (
-                      <button className="flex-1 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-1">
-                        <Edit className="w-4 h-4" />
-                        Edit
-                      </button>
-                    )}
-                  </div>
-                </div>
+        {/* Recent Equipment */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Recent Equipment List */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">Recent Equipment</h3>
+                <Link href="/dashboard/equipment" className="text-green-600 hover:text-green-700 text-sm font-medium">
+                  View All
+                </Link>
               </div>
-            ))}
-          </div>
-        )}
-
-        {/* View Equipment Modal */}
-        {showViewModal && selectedEquipment && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-gray-900">Equipment Details</h2>
-                  <button
-                    onClick={() => setShowViewModal(false)}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    ×
-                  </button>
+            </div>
+            <div className="p-6">
+              {isLoadingData ? (
+                <div className="flex items-center justify-center h-32">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
                 </div>
-
-                <div className="space-y-6">
-                  {/* Equipment Image */}
-                  <div className="relative h-64 bg-gray-100 rounded-lg overflow-hidden">
-                    {selectedEquipment.imageUrl ? (
-                      <img 
-                        src={selectedEquipment.imageUrl} 
-                        alt={selectedEquipment.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
-                        <Package className="w-20 h-20" />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Equipment Info */}
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="col-span-2">
-                      <label className="block font-medium text-gray-700">Equipment Name</label>
-                      <p className="text-gray-900 text-lg font-semibold">{selectedEquipment.name}</p>
-                    </div>
-                    
-                    <div>
-                      <label className="block font-medium text-gray-700">Category</label>
-                      <div className="mt-1">{getCategoryBadge(selectedEquipment.category)}</div>
-                    </div>
-                    
-                    <div>
-                      <label className="block font-medium text-gray-700">Availability</label>
-                      <div className="mt-1">{getAvailabilityBadge(selectedEquipment.quantity)}</div>
-                    </div>
-
-                    <div>
-                      <label className="block font-medium text-gray-700">Price per Hour</label>
-                      <p className="text-gray-900 font-semibold">${selectedEquipment.pricePerHour}</p>
-                    </div>
-                    
-                    <div>
-                      <label className="block font-medium text-gray-700">Price per Day</label>
-                      <p className="text-gray-900 font-semibold">${selectedEquipment.pricePerDay}</p>
-                    </div>
-
-                    <div className="col-span-2">
-                      <label className="block font-medium text-gray-700">Description</label>
-                      <p className="text-gray-900">{selectedEquipment.description}</p>
-                    </div>
-
-                  {selectedEquipment.provider && (
-                      <div className="col-span-2">
-                        <label className="block font-medium text-gray-700">Provider Information</label>
-                        <div className="bg-gray-50 p-4 rounded-lg mt-1">
-                          <p className="font-medium text-gray-900">{selectedEquipment.provider.fullName}</p>
-                          <p className="text-gray-600">{selectedEquipment.provider.email}</p>
-                          <p className="text-gray-600">{selectedEquipment.provider.phoneNumber}</p>
+              ) : recentEquipment.length === 0 ? (
+                <div className="text-center py-8">
+                  <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h4 className="text-lg font-medium text-gray-900 mb-2">No equipment yet</h4>
+                  <p className="text-gray-600 mb-4">Start by adding your first equipment item</p>
+                  <Link
+                    href="/dashboard/equipment/add"
+                    className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Equipment
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {recentEquipment.map((item) => (
+                    <div key={item._id} className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
+                          <Package className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">{item.name}</p>
+                          <p className="text-sm text-gray-500">{item.category}</p>
                         </div>
                       </div>
-                    )}
+                      <div className="text-right">
+                        <p className="font-medium text-gray-900">${item.pricePerDay}/day</p>
+                        <p className="text-sm text-gray-500">{item.quantity} available</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
 
+          {/* Performance Overview */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">Performance Overview</h3>
+            </div>
+            <div className="p-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <Eye className="w-5 h-5 text-blue-600" />
+                    </div>
                     <div>
-                      <label className="block font-medium text-gray-700">Created At</label>
-                      <p className="text-gray-900">{new Date(selectedEquipment.createdAt).toLocaleString()}</p>
+                      <p className="font-medium text-gray-900">Equipment Views</p>
+                      <p className="text-sm text-gray-500">Total profile views</p>
                     </div>
-                    
-                    <div>
-                      <label className="block font-medium text-gray-700">Updated At</label>
-                      <p className="text-gray-900">{new Date(selectedEquipment.updatedAt).toLocaleString()}</p>
-                    </div>
-
-                    <div className="col-span-2">
-                      <label className="block font-medium text-gray-700">Equipment ID</label>
-                      <p className="text-gray-900 font-mono text-xs">{selectedEquipment._id}</p>
-                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium text-gray-900">0</p>
+                    <p className="text-sm text-green-600">+0% this week</p>
                   </div>
                 </div>
 
-                <div className="pt-6">
-                  <button
-                    onClick={() => setShowViewModal(false)}
-                    className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    Close
-                  </button>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">Booking Rate</p>
+                      <p className="text-sm text-gray-500">Conversion rate</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium text-gray-900">0%</p>
+                    <p className="text-sm text-gray-500">No data yet</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                      <Clock className="w-5 h-5 text-yellow-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">Response Time</p>
+                      <p className="text-sm text-gray-500">Avg. response to inquiries</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium text-gray-900">-</p>
+                    <p className="text-sm text-gray-500">No data yet</p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        )}
+        </div>
+
+        {/* Tips for Success */}
+        <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl border border-gray-200 p-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <TrendingUp className="w-6 h-6 text-green-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Tips for Success</h3>
+              <div className="space-y-2 text-sm text-gray-600">
+                <p>• <strong>Add detailed descriptions:</strong> Include specifications, features, and what's included with your equipment</p>
+                <p>• <strong>Upload high-quality images:</strong> Clear photos help customers make booking decisions</p>
+                <p>• <strong>Set competitive prices:</strong> Research market rates to price your equipment competitively</p>
+                <p>• <strong>Keep availability updated:</strong> Regularly update quantities to avoid overbooking</p>
+                <p>• <strong>Respond quickly:</strong> Fast responses to inquiries lead to more bookings</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* System Status */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Account Status</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span className="font-medium text-gray-900">Account</span>
+              </div>
+              <span className="text-green-600 text-sm">Active</span>
+            </div>
+            <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span className="font-medium text-gray-900">Verification</span>
+              </div>
+              <span className="text-green-600 text-sm">Verified</span>
+            </div>
+            <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span className="font-medium text-gray-900">Equipment</span>
+              </div>
+              <span className="text-green-600 text-sm">{stats.totalEquipment} Listed</span>
+            </div>
+          </div>
+        </div>
       </div>
     </RoleBasedRoute>
   );

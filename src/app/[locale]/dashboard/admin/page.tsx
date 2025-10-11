@@ -279,7 +279,7 @@ export default function AdminDashboard() {
                       </div>
                       <div>
                         <p className="font-medium text-gray-900">{user.firstName} {user.lastName}</p>
-                        <p className="text-sm text-gray-500">{user.email}</p>
+                        <p className="text-sm text-gray-500">Contact hidden</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -314,17 +314,17 @@ export default function AdminDashboard() {
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-orange-600 rounded-full flex items-center justify-center">
                         <span className="text-white font-medium text-sm">
-                          {artist.user.firstName.charAt(0)}{artist.user.lastName.charAt(0)}
+                          {artist.user?.firstName?.charAt(0) || 'A'}{artist.user?.lastName?.charAt(0) || 'R'}
                         </span>
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">{artist.stageName}</p>
-                        <p className="text-sm text-gray-500">{artist.category}</p>
+                        <p className="font-medium text-gray-900">{artist.stageName || 'Unknown Artist'}</p>
+                        <p className="text-sm text-gray-500">{artist.category || 'No category'}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium text-gray-900">${artist.pricePerHour}/hr</p>
-                      <p className="text-sm text-gray-500">{artist.yearsOfExperience} years exp</p>
+                      <p className="font-medium text-gray-900">${artist.pricePerHour || 0}/hr</p>
+                      <p className="text-sm text-gray-500">{artist.yearsOfExperience || 0} years exp</p>
                     </div>
                   </div>
                 ))}
