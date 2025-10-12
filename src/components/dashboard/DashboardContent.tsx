@@ -12,7 +12,15 @@ import {
   DollarSign,
   Star,
   Download,
-  Heart
+  Heart,
+  BarChart3,
+  Clock,
+  Activity,
+  Award,
+  Eye,
+  ArrowUpRight,
+  ArrowDownRight,
+  ChevronRight
 } from 'lucide-react';
 
 interface DashboardContentProps {
@@ -210,56 +218,77 @@ export function DashboardContent({ user }: DashboardContentProps) {
     const statusConfig = {
       past: {
         label: locale === 'ar' ? 'منتهي' : 'Past',
-        classes: 'bg-gray-100 text-gray-800'
+        classes: 'bg-slate-100 text-slate-700 border border-slate-200'
       },
       upcoming: {
         label: locale === 'ar' ? 'قادم' : 'Upcoming',
-        classes: 'bg-blue-100 text-blue-800'
+        classes: 'bg-emerald-100 text-emerald-700 border border-emerald-200'
       },
       cancelled: {
         label: locale === 'ar' ? 'ملغي' : 'Cancelled',
-        classes: 'bg-red-100 text-red-800'
+        classes: 'bg-red-100 text-red-700 border border-red-200'
       },
       pending: {
         label: locale === 'ar' ? 'معلق' : 'Pending',
-        classes: 'bg-yellow-100 text-yellow-800'
+        classes: 'bg-amber-100 text-amber-700 border border-amber-200'
       }
     };
 
     const config = statusConfig[status as keyof typeof statusConfig];
     return (
-      <span className={`px-2 py-1 text-xs font-medium rounded-full ${config.classes}`}>
+      <span className={`px-3 py-1 text-xs font-semibold rounded-lg ${config.classes}`}>
         {config.label}
       </span>
     );
   };
 
   return (
-    <div className="space-y-6">
-      {/* Welcome Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-6 text-white">
-        <h1 className="text-2xl font-bold mb-2">
-          {locale === 'ar' ? 'لوحة تحكم المستخدم' : 'User Dashboard'}
-        </h1>
-        <p className="text-purple-100 text-lg">
-          {getWelcomeMessage()}
-        </p>
+    <div className="space-y-8">
+      {/* Header with Welcome Message and Quick Actions */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">
+            {getWelcomeMessage()}
+          </h1>
+          <p className="text-slate-600">
+            {locale === 'ar' 
+              ? `مرحباً بك في لوحة التحكم. لديك ${stats.totalBookings || 0} حجز نشط.`
+              : `Welcome to your dashboard. You have ${stats.totalBookings || 0} active bookings.`
+            }
+          </p>
+        </div>
+        
+        <div className="flex space-x-3 rtl:space-x-reverse">
+          <button className="bg-white border border-slate-200 px-4 py-2 rounded-xl text-slate-700 hover:bg-slate-50 transition-colors flex items-center space-x-2 rtl:space-x-reverse">
+            <Download className="w-4 h-4" />
+            <span>{locale === 'ar' ? 'تصدير' : 'Export'}</span>
+          </button>
+          <button className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-2 rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg flex items-center space-x-2 rtl:space-x-reverse">
+            <Calendar className="w-4 h-4" />
+            <span>{locale === 'ar' ? 'حجز جديد' : 'New Booking'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {getStatsCards().map((card, index) => (
-          <div key={index} className={`${card.bgColor} rounded-2xl p-6 border border-gray-100`}>
+          <div key={index} className="bg-white rounded-2xl p-6 border border-slate-200 hover:shadow-lg transition-all duration-200 group">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">
+                <h3 className="text-sm font-medium text-slate-600 mb-2">
                   {card.title}
                 </h3>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-3xl font-bold text-slate-900 mb-1">
                   {card.value}
                 </p>
+                <div className="flex items-center space-x-1 text-sm">
+                  <ArrowUpRight className="w-4 h-4 text-emerald-500" />
+                  <span className="text-emerald-600 font-medium">+12%</span>
+                  <span className="text-slate-500">{locale === 'ar' ? 'هذا الشهر' : 'this month'}</span>
+                </div>
               </div>
-              <div className={`${card.color} p-3 rounded-xl`}>
+              <div className={`${card.color} p-4 rounded-2xl group-hover:scale-110 transition-transform duration-200`}>
                 <card.icon className="w-6 h-6 text-white" />
               </div>
             </div>
@@ -267,68 +296,153 @@ export function DashboardContent({ user }: DashboardContentProps) {
         ))}
       </div>
 
-      {/* Booking History */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-900">
-            {locale === 'ar' ? 'تاريخ الحجوزات' : 'Booking History'}
-          </h2>
-          <button className="text-purple-600 hover:text-purple-700 text-sm font-medium">
-            {locale === 'ar' ? 'عرض الكل' : 'View All'}
-          </button>
-        </div>
-
-        {/* Filter Tabs */}
-        <div className="flex space-x-1 rtl:space-x-reverse mb-6 bg-gray-100 rounded-lg p-1">
-          {['All', 'Upcoming', 'Past', 'Cancelled'].map((filter) => (
-            <button
-              key={filter}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                filter === 'All'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              {locale === 'ar' 
-                ? { All: 'الكل', Upcoming: 'قادم', Past: 'منتهي', Cancelled: 'ملغي' }[filter]
-                : filter
-              }
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* Booking History */}
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-slate-900">
+              {locale === 'ar' ? 'النشاط الأخير' : 'Recent Activity'}
+            </h2>
+            <button className="text-indigo-600 hover:text-indigo-700 text-sm font-medium flex items-center space-x-1 rtl:space-x-reverse">
+              <span>{locale === 'ar' ? 'عرض الكل' : 'View All'}</span>
+              <ChevronRight className="w-4 h-4" />
             </button>
-          ))}
-        </div>
+          </div>
 
-        {/* Booking List */}
-        <div className="space-y-4">
-          {recentBookings.map((booking) => (
-            <div key={booking.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-              <div className="flex items-center space-x-4 rtl:space-x-reverse">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
-                  <Calendar className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-medium text-gray-900">{booking.title}</h3>
-                  <p className="text-sm text-gray-500">{booking.date}</p>
-                  <p className="text-xs text-gray-400">Ref: {booking.reference}</p>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-4 rtl:space-x-reverse">
-                <div className="text-right rtl:text-left">
-                  <p className="font-bold text-gray-900">${booking.amount}</p>
-                  {getStatusBadge(booking.status)}
+          {/* Filter Tabs */}
+          <div className="flex space-x-1 rtl:space-x-reverse mb-6 bg-slate-100 rounded-xl p-1">
+            {['All', 'Upcoming', 'Past', 'Cancelled'].map((filter) => (
+              <button
+                key={filter}
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  filter === 'All'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {locale === 'ar' 
+                  ? { All: 'الكل', Upcoming: 'قادم', Past: 'منتهي', Cancelled: 'ملغي' }[filter]
+                  : filter
+                }
+              </button>
+            ))}
+          </div>
+
+          {/* Booking List */}
+          <div className="space-y-4">
+            {recentBookings.map((booking) => (
+              <div key={booking.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors group">
+                <div className="flex items-center space-x-4 rtl:space-x-reverse">
+                  <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Calendar className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-slate-900">{booking.title}</h3>
+                    <p className="text-sm text-slate-500">{booking.date}</p>
+                    <p className="text-xs text-slate-400">Ref: {booking.reference}</p>
+                  </div>
                 </div>
                 
-                <div className="flex space-x-2 rtl:space-x-reverse">
-                  <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-white transition-colors">
-                    <Download className="w-4 h-4" />
-                  </button>
-                  <button className="p-2 text-gray-400 hover:text-red-500 rounded-lg hover:bg-white transition-colors">
-                    <Heart className="w-4 h-4" />
-                  </button>
+                <div className="flex items-center space-x-4 rtl:space-x-reverse">
+                  <div className="text-right rtl:text-left">
+                    <p className="font-bold text-slate-900">${booking.amount}</p>
+                    {getStatusBadge(booking.status)}
+                  </div>
+                  
+                  <div className="flex space-x-2 rtl:space-x-reverse opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button className="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-white transition-colors">
+                      <Eye className="w-4 h-4" />
+                    </button>
+                    <button className="p-2 text-slate-400 hover:text-indigo-600 rounded-lg hover:bg-white transition-colors">
+                      <Download className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right Sidebar - Quick Stats & Actions */}
+        <div className="space-y-6">
+          
+          {/* Performance Chart */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-slate-900">
+                {locale === 'ar' ? 'الأداء' : 'Performance'}
+              </h3>
+              <BarChart3 className="w-5 h-5 text-slate-400" />
             </div>
-          ))}
+            
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-slate-600">{locale === 'ar' ? 'هذا الشهر' : 'This Month'}</span>
+                <span className="text-sm font-semibold text-slate-900">+24%</span>
+              </div>
+              <div className="w-full bg-slate-100 rounded-full h-2">
+                <div className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full" style={{width: '75%'}}></div>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-slate-600">{locale === 'ar' ? 'هذا الأسبوع' : 'This Week'}</span>
+                <span className="text-sm font-semibold text-slate-900">+18%</span>
+              </div>
+              <div className="w-full bg-slate-100 rounded-full h-2">
+                <div className="bg-gradient-to-r from-emerald-500 to-teal-500 h-2 rounded-full" style={{width: '60%'}}></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-6">
+            <h3 className="text-lg font-semibold text-slate-900 mb-4">
+              {locale === 'ar' ? 'إجراءات سريعة' : 'Quick Actions'}
+            </h3>
+            
+            <div className="space-y-3">
+              <button className="w-full flex items-center space-x-3 rtl:space-x-reverse p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors text-left rtl:text-right">
+                <Calendar className="w-5 h-5 text-indigo-600" />
+                <span className="text-sm font-medium text-slate-900">
+                  {locale === 'ar' ? 'إنشاء حدث جديد' : 'Create New Event'}
+                </span>
+              </button>
+              
+              <button className="w-full flex items-center space-x-3 rtl:space-x-reverse p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors text-left rtl:text-right">
+                <Users className="w-5 h-5 text-purple-600" />
+                <span className="text-sm font-medium text-slate-900">
+                  {locale === 'ar' ? 'إدارة الفريق' : 'Manage Team'}
+                </span>
+              </button>
+              
+              <button className="w-full flex items-center space-x-3 rtl:space-x-reverse p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors text-left rtl:text-right">
+                <BarChart3 className="w-5 h-5 text-emerald-600" />
+                <span className="text-sm font-medium text-slate-900">
+                  {locale === 'ar' ? 'عرض التقارير' : 'View Reports'}
+                </span>
+              </button>
+            </div>
+          </div>
+
+          {/* Achievement Badge */}
+          <div className="bg-gradient-to-br from-amber-50 to-orange-100 border border-amber-200 rounded-2xl p-6">
+            <div className="flex items-center space-x-3 rtl:space-x-reverse mb-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl flex items-center justify-center">
+                <Award className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-amber-900">
+                  {locale === 'ar' ? 'إنجاز جديد!' : 'New Achievement!'}
+                </h3>
+                <p className="text-xs text-amber-700">
+                  {locale === 'ar' ? 'وصلت إلى 100 حجز' : 'Reached 100 bookings'}
+                </p>
+              </div>
+            </div>
+          </div>
+          
         </div>
       </div>
     </div>

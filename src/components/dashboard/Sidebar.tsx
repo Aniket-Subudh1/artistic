@@ -125,22 +125,26 @@ export function Sidebar({ user, isCollapsed, onToggleCollapse, onLogout }: Sideb
     const itemIsActive = isActive(item.href);
     const hasActiveChild = hasChildren && item.children.some((child: any) => isActive(child.href));
 
-    const iconSize = isCollapsed && level === 0 ? "w-8 h-8" : "w-5 h-5";
+    const iconSize = isCollapsed && level === 0 ? "w-6 h-6" : level > 0 ? "w-4 h-4" : "w-4 h-4";
 
     const itemClasses = `
       flex items-center w-full rounded-lg transition-all duration-200
       ${isCollapsed && level === 0 
-        ? 'justify-center px-2 py-4' 
+        ? 'justify-center px-2 py-2.5' 
         : level > 0 
-        ? 'ml-6 pl-6 border-l border-gray-200 px-3 py-2.5' 
-        : 'px-3 py-2.5'
+        ? 'ml-4 pl-3 border-l border-slate-200 px-2 py-1.5 text-xs max-w-full' 
+        : 'px-3 py-2 text-sm'
       }
-      text-sm
+      ${level > 0 ? 'text-xs' : 'text-sm'}
       ${itemIsActive 
-        ? 'bg-purple-100 text-purple-700 font-medium shadow-sm' 
+        ? level > 0 
+          ? 'bg-indigo-50 text-indigo-700 font-medium border-l-indigo-300' 
+          : 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold'
         : hasActiveChild
-        ? 'bg-purple-50 text-purple-600'
-        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+        ? 'bg-indigo-50 text-indigo-700 font-medium'
+        : level > 0 
+        ? 'text-slate-600 hover:bg-slate-50 hover:text-slate-800 font-normal'
+        : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 font-medium'
       }
     `;
 
@@ -154,11 +158,11 @@ export function Sidebar({ user, isCollapsed, onToggleCollapse, onLogout }: Sideb
           {getIcon(item.icon, iconSize)}
           {!isCollapsed && (
             <>
-              <span className="ml-3 flex-1 text-left rtl:text-right">
+              <span className="ml-2 flex-1 text-left rtl:text-right">
                 {locale === 'ar' ? item.labelAr : item.label}
               </span>
               {item.badge && (
-                <span className="ml-2 px-2 py-0.5 text-xs bg-red-500 text-white rounded-full">
+                <span className="ml-2 px-2.5 py-1 text-xs bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg font-semibold shadow-sm">
                   {item.badge === 'new' ? (locale === 'ar' ? 'جديد' : 'New') : item.badge}
                 </span>
               )}
@@ -177,11 +181,11 @@ export function Sidebar({ user, isCollapsed, onToggleCollapse, onLogout }: Sideb
           {getIcon(item.icon, iconSize)}
           {!isCollapsed && (
             <>
-              <span className="ml-3 flex-1 text-left rtl:text-right">
+              <span className="ml-2 flex-1 text-left rtl:text-right">
                 {locale === 'ar' ? item.labelAr : item.label}
               </span>
               {item.badge && (
-                <span className="ml-2 px-2 py-0.5 text-xs bg-red-500 text-white rounded-full">
+                <span className="ml-2 px-2.5 py-1 text-xs bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg font-semibold shadow-sm">
                   {item.badge === 'new' ? (locale === 'ar' ? 'جديد' : 'New') : item.badge}
                 </span>
               )}
@@ -199,7 +203,7 @@ export function Sidebar({ user, isCollapsed, onToggleCollapse, onLogout }: Sideb
         </button>
 
         {hasChildren && (isExpanded || isCollapsed) && !isCollapsed && (
-          <div className="mt-1 space-y-1">
+          <div className="mt-1 space-y-1 overflow-hidden">
             {item.children.map((child: any) => renderSidebarItem(child, level + 1))}
           </div>
         )}
@@ -208,56 +212,44 @@ export function Sidebar({ user, isCollapsed, onToggleCollapse, onLogout }: Sideb
   };
 
   return (
-    <div className="flex flex-col  h-full">
-      <div className="hidden lg:flex justify-end  border-b border-gray-200">
-        <button
-          onClick={onToggleCollapse}
-          className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-        >
-          {isCollapsed ? (
-            <ChevronRight className="w-4 h-4 text-gray-500" />
-          ) : (
-            <ChevronLeft className="w-4 h-4 text-gray-500" />
-          )}
-        </button>
-      </div>
-
-      <div className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
+    <div className="flex flex-col h-full">
+      <div className="flex-1 px-3 py-3 space-y-1 overflow-y-auto">
         {sidebarItems.map(item => renderSidebarItem(item))}
       </div>
 
-      <div className="p-1  border-t border-gray-200">
-        <button 
-          onClick={onLogout}
-          className={`w-full flex items-center space-x-3 rtl:space-x-reverse px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors ${
-            isCollapsed ? 'justify-center' : ''
-          }`}
-        >
-          <LogOut className="w-4 h-4" />
-          {!isCollapsed && <span>{locale === 'ar' ? 'تسجيل الخروج' : 'Logout'}</span>}
-        </button>
+      <div className="p-2 border-t border-slate-100">
+        <div className="flex justify-center">
+          <button 
+            onClick={onLogout}
+            className={`flex items-center space-x-2 rtl:space-x-reverse px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium ${
+              isCollapsed ? 'justify-center px-2' : ''
+            }`}
+          >
+            <LogOut className="w-4 h-4" />
+            {!isCollapsed && <span>{locale === 'ar' ? 'تسجيل الخروج' : 'Logout'}</span>}
+          </button>
+        </div>
       </div>
 
-      <div className="p-2 border-t border-gray-200">
+      <div className="p-2 border-t border-slate-100 bg-slate-50">
         {!isCollapsed ? (
-          <div className="flex items-center justify-center text-xs text-gray-500">
-  <Image
-    src="/logo-main.webp"
-    alt="Fima Logo"
-    height={24}
-    width={80}
-  />
-</div>
-
+          <div className="flex items-center justify-center text-xs text-slate-500">
+            <Image
+              src="/logo-main.webp"
+              alt="Fima Logo"
+              height={20}
+              width={70}
+            />
+          </div>
         ) : (
-          <div className="flex items-center justify-center text-xs text-gray-500">
-  <Image
-    src="/Logo.svg"
-    alt="Fima Logo"
-    height={24}
-    width={20}
-  />
-</div>
+          <div className="flex items-center justify-center text-xs text-slate-500">
+            <Image
+              src="/Logo.svg"
+              alt="Fima Logo"
+              height={20}
+              width={20}
+            />
+          </div>
         )}
       </div>
     </div>

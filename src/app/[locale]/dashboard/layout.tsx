@@ -15,11 +15,13 @@ export default function DashboardLayoutPage({
   const router = useRouter();
   const { user, isLoading, logout } = useAuthLogic();
 
- 
-
   const handleLogout = () => {
     logout();
     router.push('/');
+  };
+
+  const handleEditProfilePicture = () => {
+    router.push('/dashboard/settings/profile');
   };
 
   if (isLoading) {
@@ -33,7 +35,11 @@ export default function DashboardLayoutPage({
   return (
     <>
      
-      <DashboardLayout user={user} onLogout={handleLogout}>
+      <DashboardLayout 
+        user={user} 
+        onLogout={handleLogout}
+        onEditProfilePicture={handleEditProfilePicture}
+      >
         {children}
       </DashboardLayout>
     </>

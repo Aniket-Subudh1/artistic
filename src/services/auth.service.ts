@@ -9,6 +9,16 @@ export interface LoginResponse {
   message: string;
   role: string;
   access_token: string;
+  user: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: string;
+    isActive: boolean;
+    avatar?: string;
+    profilePicture?: string;
+  };
 }
 
 export interface SignupRequest {

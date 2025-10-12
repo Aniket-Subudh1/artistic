@@ -12,6 +12,9 @@ export const API_CONFIG = {
       UPDATE: (id: string) => `/user/${id}`,
       DELETE: (id: string) => `/user/${id}`,
       TOGGLE_STATUS: (id: string) => `/user/${id}/toggle-status`,
+      PROFILE_ME: '/user/profile/me',
+      UPDATE_PROFILE_PICTURE: '/user/profile/picture',
+      REMOVE_PROFILE_PICTURE: '/user/profile/picture',
     },
     ADMIN: {
       ADD_ARTIST_TYPE: '/admin/add-artist-type',

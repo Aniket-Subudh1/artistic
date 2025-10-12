@@ -4,12 +4,14 @@ import React, { useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import Image from 'next/image';
 import { User, UserRole } from '@/types/dashboard';
-import { Crown, Shield, Mic, Package, MapPin, User as UserIcon, LogOut, Settings, ChevronDown } from 'lucide-react';
+import { Crown, Shield, Mic, Package, MapPin, User as UserIcon, LogOut, Settings, ChevronDown, ChevronLeft, ChevronRight, Edit3 } from 'lucide-react';
 
 interface UserProfileProps {
   user: User;
   onLogout: () => void;
   isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
+  onEditProfilePicture?: () => void;
 }
 
 const getRoleIcon = (role: UserRole) => {
@@ -69,95 +71,130 @@ const getRoleBadgeColor = (role: UserRole) => {
   }
 };
 
-export function UserProfile({ user, onLogout, isCollapsed = false }: UserProfileProps) {
+export function UserProfile({ user, onLogout, isCollapsed = false, onToggleCollapse, onEditProfilePicture }: UserProfileProps) {
   const locale = useLocale();
   const t = useTranslations('dashboard');
   const [showDropdown, setShowDropdown] = useState(false);
+  
+  // Support both avatar and profilePicture properties
+  const userImage = (user.avatar && user.avatar.trim()) || ((user as any).profilePicture && (user as any).profilePicture.trim()) || null;
   
   if (isCollapsed) {
     return (
       <div className="flex flex-col items-center space-y-2">
         {/* Collapsed Avatar */}
-        <div className="relative group">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center overflow-hidden ring-2 ring-white shadow-lg">
-            {user.avatar ? (
+        <div className="relative">
+          <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-indigo-100 to-purple-200 flex items-center justify-center overflow-hidden shadow-sm">
+            {userImage ? (
               <Image
-                src={user.avatar}
+                src={userImage}
                 alt={`${user.firstName} ${user.lastName}`}
-                width={40}
-                height={40}
+                width={56}
+                height={56}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const fallback = target.nextElementSibling as HTMLElement;
+                  if (fallback) fallback.classList.remove('hidden');
+                }}
               />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center">
-                <span className="text-white font-bold text-sm">
-                  {user.firstName.charAt(0)}{user.lastName.charAt(0)}
-                </span>
-              </div>
-            )}
+            ) : null}
+            <div className={`w-full h-full bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center ${userImage ? 'hidden' : ''}`}>
+              <span className="text-white font-semibold text-base">
+                {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+              </span>
+            </div>
           </div>
           
-          {/* Online status indicator */}
-          <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
         </div>
-
-        {/* Role Icon */}
-        <div className="p-1">
-          {getRoleIcon(user.role)}
-        </div>
+        
+        {/* Collapse button for collapsed state */}
+        {onToggleCollapse && (
+          <button
+            onClick={onToggleCollapse}
+            className="p-1 rounded-md hover:bg-slate-100 transition-colors"
+          >
+            <ChevronRight className="w-3 h-3 text-slate-500" />
+          </button>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
+      {/* Header with collapse button */}
+      <div className="flex items-center justify-between">
+        <div className="flex-1" />
+        {onToggleCollapse && (
+          <button
+            onClick={onToggleCollapse}
+            className="p-0.5 rounded-md hover:bg-slate-100 transition-colors"
+          >
+            <ChevronLeft className="w-3 h-3 text-slate-500" />
+          </button>
+        )}
+      </div>
+      
       {/* User Info */}
-      <div className="flex items-center space-x-4 rtl:space-x-reverse">
+      <div className="flex items-center space-x-3 rtl:space-x-reverse">
         {/* Avatar */}
-        <div className="relative group">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center overflow-hidden ring-4 ring-white shadow-lg">
-            {user.avatar ? (
+        <div className="relative">
+          <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-200 flex items-center justify-center overflow-hidden shadow-lg ring-2 ring-white">
+            {userImage ? (
               <Image
-                src={user.avatar}
+                src={userImage}
                 alt={`${user.firstName} ${user.lastName}`}
-                width={64}
-                height={64}
+                width={80}
+                height={80}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  // Fallback to initials if image fails to load
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const fallback = target.nextElementSibling as HTMLElement;
+                  if (fallback) fallback.classList.remove('hidden');
+                }}
               />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center">
-                <span className="text-white font-bold text-xl">
-                  {user.firstName.charAt(0)}{user.lastName.charAt(0)}
-                </span>
-              </div>
-            )}
+            ) : null}
+            <div className={`w-full h-full bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center ${userImage ? 'hidden' : ''}`}>
+              <span className="text-white font-bold text-2xl">
+                {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+              </span>
+            </div>
           </div>
           
-          {/* Online status indicator */}
-          <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
+         
+          
+          {/* Edit button */}
+          {onEditProfilePicture && (
+            <button
+              onClick={onEditProfilePicture}
+              className="absolute bottom-0 right-0 w-7 h-7 bg-indigo-600 rounded-full flex items-center justify-center shadow-lg hover:bg-indigo-700 transition-colors border-2 border-white"
+              title="Edit profile picture"
+            >
+              <Edit3 className="w-3 h-3 text-white" />
+            </button>
+          )}
         </div>
 
         {/* User Details */}
         <div className="flex-1 min-w-0">
-          <h2 className="text-lg font-bold text-gray-900 truncate">
+          <h2 className="text-base font-bold text-slate-900 truncate">
             {user.firstName} {user.lastName}
           </h2>
-          <p className="text-sm text-gray-600 truncate">
+          <p className="text-sm text-slate-600 truncate">
             {user.email}
-          </p>
-          <p className="text-xs text-gray-500">
-            {locale === 'ar' ? `عضو منذ ${user.memberSince}` : `Member since ${user.memberSince}`}
           </p>
         </div>
       </div>
 
       {/* Role Badge */}
-      <div className={`inline-flex items-center space-x-2 rtl:space-x-reverse px-3 py-2 rounded-lg text-sm font-medium ${getRoleBadgeColor(user.role)} shadow-sm w-full justify-center`}>
+      <div className={`inline-flex items-center space-x-2 rtl:space-x-reverse px-3 py-2 rounded-lg text-xs font-semibold ${getRoleBadgeColor(user.role)} shadow-sm w-full justify-center`}>
         {getRoleIcon(user.role)}
         <span>{getRoleLabel(user.role, locale)}</span>
       </div>
-
-
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from '@/i18n/routing';
 import { AuthService, LoginRequest, SignupRequest } from '@/services/auth.service';
+import { UserService } from '@/services/user.service';
 import { User, UserRole } from '@/types/dashboard';
 
 const mapBackendRole = (backendRole: string): UserRole => {
@@ -47,13 +48,37 @@ export const useAuthLogic = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const initializeAuth = () => {
+    const initializeAuth = async () => {
       try {
         const storedUser = AuthService.getStoredUser();
         const isAuthenticated = AuthService.isAuthenticated();
         
         if (storedUser && isAuthenticated) {
-          setUser(storedUser);
+          try {
+            // Try to fetch updated user profile from backend
+            const userProfile = await UserService.getCurrentUserProfile();
+            
+            // Map backend user to frontend user format
+            const updatedUser: User = {
+              id: userProfile._id,
+              firstName: userProfile.firstName,
+              lastName: userProfile.lastName,
+              email: userProfile.email,
+              role: mapBackendRole(userProfile.role),
+              avatar: userProfile.profilePicture,
+              memberSince: new Date(userProfile.createdAt).getFullYear().toString(),
+              isActive: userProfile.isActive,
+              permissions: []
+            };
+            
+            // Update stored user with fresh data
+            AuthService.storeAuthData(localStorage.getItem('authToken') || '', updatedUser);
+            setUser(updatedUser);
+          } catch (error) {
+            console.error('Error fetching user profile:', error);
+            // Fallback to stored user if profile fetch fails
+            setUser(storedUser);
+          }
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
@@ -71,15 +96,16 @@ export const useAuthLogic = () => {
     try {
       const response = await AuthService.login({ email, password });
       
-      // Create user object compatible with dashboard types
+      // Use user data from login response
       const userObj: User = {
-        id: Date.now().toString(), // Since backend doesn't return user ID in login
-        firstName: email.split('@')[0], // Temporary - should be updated when user profile is fetched
-        lastName: '',
-        email,
-        role: mapBackendRole(response.role),
+        id: response.user.id,
+        firstName: response.user.firstName,
+        lastName: response.user.lastName,
+        email: response.user.email,
+        role: mapBackendRole(response.user.role),
+        avatar: response.user.avatar || response.user.profilePicture,
         memberSince: new Date().getFullYear().toString(),
-        isActive: true,
+        isActive: response.user.isActive,
         permissions: []
       };
 
@@ -137,6 +163,54 @@ export const useAuthLogic = () => {
     }
   };
 
+  const updateProfilePicture = async (file: File) => {
+    setIsLoading(true);
+    try {
+      const response = await UserService.updateProfilePicture(file);
+      
+      // Update user with new profile picture
+      if (user) {
+        const updatedUser = { ...user, avatar: response.profilePicture };
+        setUser(updatedUser);
+        AuthService.storeAuthData(
+          localStorage.getItem('authToken') || '',
+          updatedUser
+        );
+      }
+      
+      return response;
+    } catch (error) {
+      console.error('Error updating profile picture:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const removeProfilePicture = async () => {
+    setIsLoading(true);
+    try {
+      const response = await UserService.removeProfilePicture();
+      
+      // Update user to remove profile picture
+      if (user) {
+        const updatedUser = { ...user, avatar: '' };
+        setUser(updatedUser);
+        AuthService.storeAuthData(
+          localStorage.getItem('authToken') || '',
+          updatedUser
+        );
+      }
+      
+      return response;
+    } catch (error) {
+      console.error('Error removing profile picture:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     user,
     isLoading,
@@ -145,5 +219,7 @@ export const useAuthLogic = () => {
     signup,
     logout,
     updateUser,
+    updateProfilePicture,
+    removeProfilePicture,
   };
 };

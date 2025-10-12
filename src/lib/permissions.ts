@@ -22,7 +22,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     'manage_artists',
     'manage_equipment',
     'manage_venues',
-    'manage_equipment_providers'
+    'manage_equipment_providers',
+    'update_profile_picture'
   ],
   admin: [
     'manage_users',
@@ -34,14 +35,16 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     'moderate_content',
     'manage_applications',
     'manage_venues',
-    'manage_equipment_providers'
+    'manage_equipment_providers',
+    'update_profile_picture'
   ],
   venue_owner: [
     'manage_own_venues',
     'view_venue_bookings',
     'manage_venue_events',
     'view_venue_analytics',
-    'approve_venue_bookings'
+    'approve_venue_bookings',
+    'update_profile_picture'
   ],
   equipment_provider: [
     'manage_own_equipment',
@@ -49,21 +52,24 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     'manage_equipment_listings',
     'view_equipment_analytics',
     'change_own_password',
-    'manage_own_profile'
+    'manage_own_profile',
+    'update_profile_picture'
   ],
   artist: [
     'manage_own_profile',
     'view_own_bookings',
     'manage_portfolio',
     'apply_to_events',
-    'view_artist_analytics'
+    'view_artist_analytics',
+    'update_profile_picture'
   ],
   user: [
     'book_events',
     'book_artists',
     'book_equipment',
     'view_own_bookings',
-    'manage_own_profile'
+    'manage_own_profile',
+    'update_profile_picture'
   ],
 };
 
