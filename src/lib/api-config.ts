@@ -166,9 +166,19 @@ export class APIError extends Error {
 
 const handleUnauthorized = () => {
   if (typeof window !== 'undefined') {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
-    window.location.href = '/auth/signin';
+    // Only handle unauthorized if there's actually no token or it's invalid
+    const token = localStorage.getItem('authToken');
+    const user = localStorage.getItem('user');
+    
+    if (!token || !user) {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+      window.location.href = '/auth/signin';
+    } else {
+      // Token exists but server rejected it - this might be a temporary issue
+      // Log the error but don't automatically logout
+      console.warn('API returned 401 but token exists - might be temporary server issue');
+    }
   }
 };
 
@@ -208,6 +218,12 @@ export const apiRequest = async <T>(
     
     return response as unknown as T;
   } catch (error) {
+    // Don't propagate 401 errors as they might cause unwanted logouts
+    if (error instanceof APIError && error.status === 401) {
+      console.warn('API 401 error caught:', error.message);
+      throw new APIError(401, 'Authentication required');
+    }
+    
     if (error instanceof APIError) {
       throw error;
     }

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { DashboardContent } from '@/components/dashboard/DashboardContent';
+import { UnifiedDashboard } from '@/components/dashboard/UnifiedDashboard';
 import { useAuthLogic } from '@/hooks/useAuth';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
@@ -18,7 +18,7 @@ export default function DashboardPage() {
 
   return (
     <>
-      <DashboardContent user={user} />
+      <UnifiedDashboard user={user} />
     </>
   );
 }

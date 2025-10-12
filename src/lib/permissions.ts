@@ -92,14 +92,6 @@ export const getSidebarItems = (): SidebarItem[] => [
     roles: ['super_admin', 'admin'],
     children: [
       {
-        id: 'admin-overview',
-        label: 'Admin Overview',
-        labelAr: 'نظرة عامة للإدارة',
-        icon: 'LayoutDashboard',
-        href: '/dashboard/admin',
-        roles: ['super_admin', 'admin'],
-      },
-      {
         id: 'system-settings',
         label: 'System Settings',
         labelAr: 'إعدادات النظام',
@@ -227,14 +219,6 @@ export const getSidebarItems = (): SidebarItem[] => [
       },
       
       // Equipment Provider specific
-      {
-        id: 'my-equipment',
-        label: 'My Equipment',
-        labelAr: 'معداتي',
-        icon: 'Package',
-        href: '/dashboard/equipment-provider',
-        roles: ['equipment_provider'],
-      },
       {
         id: 'add-equipment',
         label: 'Add Equipment',

@@ -17,19 +17,20 @@ interface UserProfileProps {
 const getRoleIcon = (role: UserRole) => {
   switch (role) {
     case 'super_admin':
-      return <Crown className="w-4 h-4 text-yellow-500" />;
+      return <Crown className="w-4 h-4 text-white" />;
     case 'admin':
-      return <Shield className="w-4 h-4 text-blue-500" />;
+      return <Shield className="w-4 h-4 text-white" />;
     case 'artist':
-      return <Mic className="w-4 h-4 text-purple-500" />;
+      return <Mic className="w-4 h-4 text-white" />;
     case 'equipment_provider':
-      return <Package className="w-4 h-4 text-green-500" />;
+      return <Package className="w-4 h-4 text-white" />;
     case 'venue_owner':
-      return <MapPin className="w-4 h-4 text-orange-500" />;
+      return <MapPin className="w-4 h-4 text-white" />;
     default:
-      return <UserIcon className="w-4 h-4 text-gray-500" />;
+      return <UserIcon className="w-4 h-4 text-white" />;
   }
 };
+
 
 const getRoleLabel = (role: UserRole, locale: string) => {
   const labels = {
@@ -76,13 +77,11 @@ export function UserProfile({ user, onLogout, isCollapsed = false, onToggleColla
   const t = useTranslations('dashboard');
   const [showDropdown, setShowDropdown] = useState(false);
   
-  // Support both avatar and profilePicture properties
   const userImage = (user.avatar && user.avatar.trim()) || ((user as any).profilePicture && (user as any).profilePicture.trim()) || null;
   
   if (isCollapsed) {
     return (
       <div className="flex flex-col items-center space-y-2">
-        {/* Collapsed Avatar */}
         <div className="relative">
           <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-indigo-100 to-purple-200 flex items-center justify-center overflow-hidden shadow-sm">
             {userImage ? (
@@ -109,7 +108,6 @@ export function UserProfile({ user, onLogout, isCollapsed = false, onToggleColla
           
         </div>
         
-        {/* Collapse button for collapsed state */}
         {onToggleCollapse && (
           <button
             onClick={onToggleCollapse}
@@ -124,7 +122,6 @@ export function UserProfile({ user, onLogout, isCollapsed = false, onToggleColla
 
   return (
     <div className="space-y-3">
-      {/* Header with collapse button */}
       <div className="flex items-center justify-between">
         <div className="flex-1" />
         {onToggleCollapse && (
@@ -137,9 +134,7 @@ export function UserProfile({ user, onLogout, isCollapsed = false, onToggleColla
         )}
       </div>
       
-      {/* User Info */}
       <div className="flex items-center space-x-3 rtl:space-x-reverse">
-        {/* Avatar */}
         <div className="relative">
           <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-200 flex items-center justify-center overflow-hidden shadow-lg ring-2 ring-white">
             {userImage ? (
@@ -150,7 +145,6 @@ export function UserProfile({ user, onLogout, isCollapsed = false, onToggleColla
                 height={80}
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  // Fallback to initials if image fails to load
                   const target = e.target as HTMLImageElement;
                   target.style.display = 'none';
                   const fallback = target.nextElementSibling as HTMLElement;
@@ -165,9 +159,6 @@ export function UserProfile({ user, onLogout, isCollapsed = false, onToggleColla
             </div>
           </div>
           
-         
-          
-          {/* Edit button */}
           {onEditProfilePicture && (
             <button
               onClick={onEditProfilePicture}
@@ -179,18 +170,16 @@ export function UserProfile({ user, onLogout, isCollapsed = false, onToggleColla
           )}
         </div>
 
-        {/* User Details */}
         <div className="flex-1 min-w-0">
           <h2 className="text-base font-bold text-slate-900 truncate">
             {user.firstName} {user.lastName}
           </h2>
-          <p className="text-sm text-slate-600 truncate">
+          <p className="text-xs text-slate-600 truncate">
             {user.email}
           </p>
         </div>
       </div>
 
-      {/* Role Badge */}
       <div className={`inline-flex items-center space-x-2 rtl:space-x-reverse px-3 py-2 rounded-lg text-xs font-semibold ${getRoleBadgeColor(user.role)} shadow-sm w-full justify-center`}>
         {getRoleIcon(user.role)}
         <span>{getRoleLabel(user.role, locale)}</span>

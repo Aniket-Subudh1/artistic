@@ -39,6 +39,56 @@ export interface DashboardStats {
   totalUsers?: number;
   totalVenues?: number;
   pendingApprovals?: number;
+  totalApplications?: number;
+  pendingApplications?: number;
+  approvedApplications?: number;
+  rejectedApplications?: number;
+  likeCount?: number;
+  viewCount?: number;
+  profileViews?: number;
+  portfolioItems?: number;
+  equipmentProviders?: number;
+  activeBookings?: number;
+  completedBookings?: number;
+  totalEarnings?: number;
+  monthlyEarnings?: number;
+}
+
+export interface DashboardActivity {
+  id: string;
+  type: 'booking' | 'application' | 'profile_update' | 'equipment_rental' | 'payment' | 'review';
+  title: string;
+  description: string;
+  date: string;
+  status: 'pending' | 'completed' | 'cancelled' | 'approved' | 'rejected';
+  amount?: number;
+  user?: {
+    name: string;
+    avatar?: string;
+  };
+}
+
+export interface QuickAction {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  href: string;
+  color: string;
+  roles: UserRole[];
+}
+
+export interface DashboardCard {
+  title: string;
+  value: string | number;
+  icon: any;
+  color: string;
+  bgColor: string;
+  change?: {
+    value: number;
+    type: 'increase' | 'decrease';
+    period: string;
+  };
 }
 
 export interface BookingHistory {
