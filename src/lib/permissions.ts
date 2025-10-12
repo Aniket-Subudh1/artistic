@@ -156,6 +156,14 @@ export const getSidebarItems = (): SidebarItem[] => [
         href: '/dashboard/artist/portfolio',
         roles: ['artist'],
       },
+      {
+        id: 'profile-update-requests',
+        label: 'Update Requests',
+        labelAr: 'طلبات التحديث',
+        icon: 'Edit',
+        href: '/dashboard/artist/update-requests',
+        roles: ['artist'],
+      },
       
       // Admin Artist Management
       {
@@ -184,11 +192,11 @@ export const getSidebarItems = (): SidebarItem[] => [
         roles: ['super_admin', 'admin'],
       },
       {
-        id: 'artist-verification',
-        label: 'Artist Verification',
-        labelAr: 'التحقق من الفنانين',
+        id: 'profile-updates',
+        label: 'Profile Updates',
+        labelAr: 'تحديثات الملفات',
         icon: 'UserCheck',
-        href: '/dashboard/admin/artist-verification',
+        href: '/dashboard/admin/profile-updates',
         roles: ['super_admin', 'admin'],
       },
     ],
@@ -218,7 +226,7 @@ export const getSidebarItems = (): SidebarItem[] => [
         label: 'My Equipment',
         labelAr: 'معداتي',
         icon: 'Package',
-        href: '/dashboard/equipment',
+        href: '/dashboard/equipment-provider',
         roles: ['equipment_provider'],
       },
       {
@@ -226,7 +234,7 @@ export const getSidebarItems = (): SidebarItem[] => [
         label: 'Add Equipment',
         labelAr: 'إضافة معدات',
         icon: 'Plus',
-        href: '/dashboard/equipment/add',
+        href: '/dashboard/equipment-provider/add',
         roles: ['equipment_provider'],
       },
       {
@@ -235,14 +243,6 @@ export const getSidebarItems = (): SidebarItem[] => [
         labelAr: 'الإعدادات',
         icon: 'Settings',
         href: '/dashboard/equipment-provider/settings',
-        roles: ['equipment_provider'],
-      },
-      {
-        id: 'equipment-bookings',
-        label: 'Equipment Bookings',
-        labelAr: 'حجوزات المعدات',
-        icon: 'Calendar',
-        href: '/dashboard/equipment/bookings',
         roles: ['equipment_provider'],
       },
       

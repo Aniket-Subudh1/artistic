@@ -108,11 +108,29 @@ export default function AdminDashboard() {
       badge: stats.pendingApplications > 0
     },
     {
+      title: 'Profile Updates',
+      description: 'Review artist profile update requests',
+      icon: UserCheck,
+      href: '/dashboard/admin/profile-updates',
+      color: 'orange',
+      count: 0, // This should be fetched from backend
+      badge: true
+    },
+    {
+      title: 'Portfolio Review',
+      description: 'Review pending portfolio submissions',
+      icon: TrendingUp,
+      href: '/dashboard/admin/portfolio-review',
+      color: 'green',
+      count: 0, // This should be fetched from backend
+      badge: true
+    },
+    {
       title: 'Equipment Management',
       description: 'Manage equipment and providers',
       icon: Package,
       href: '/dashboard/admin/equipment',
-      color: 'green',
+      color: 'indigo',
       count: stats.totalEquipment
     }
   ];

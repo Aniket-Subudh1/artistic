@@ -19,6 +19,7 @@ export interface CreateUserRequest {
   phoneNumber: string;
   password: string;
   role: string;
+  isActive?: boolean;
 }
 
 export interface CreateUserResponse {

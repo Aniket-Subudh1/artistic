@@ -67,14 +67,14 @@ export default function EquipmentProviderDashboard() {
       title: 'Add Equipment',
       description: 'Add new equipment to your inventory',
       icon: Plus,
-      href: '/dashboard/equipment/add',
+      href: '/dashboard/equipment-provider/add',
       color: 'green'
     },
     {
       title: 'View Equipment',
       description: 'Manage your equipment listings',
       icon: Package,
-      href: '/dashboard/equipment',
+      href: '/dashboard/equipment-provider',
       color: 'blue'
     },
     {

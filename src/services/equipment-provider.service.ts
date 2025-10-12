@@ -1,19 +1,28 @@
 import { API_CONFIG, apiRequest, getMultipartAuthHeaders } from '@/lib/api-config';
+import { AuthService } from './auth.service';
 
 export interface EquipmentProvider {
   _id: string;
-  fullName: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phoneNumber: string;
   role: string;
   createdAt: string;
   updatedAt: string;
+  roleProfile?: {
+    companyName: string;
+    businessDescription: string;
+  };
 }
 
 export interface CreateEquipmentProviderRequest {
-  fullName: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phoneNumber: string;
+  companyName?: string;
+  businessDescription?: string;
 }
 
 export interface LoginEquipmentProviderRequest {
@@ -39,27 +48,32 @@ export interface ChangePasswordResponse {
 
 export class EquipmentProviderService {
   static async createEquipmentProvider(data: CreateEquipmentProviderRequest): Promise<{ message: string }> {
-    return apiRequest<{ message: string }>('/equipment-provider/signup', {
+    return apiRequest<{ message: string }>(API_CONFIG.ENDPOINTS.EQUIPMENT_PROVIDER.CREATE, {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
+  // Use unified auth login instead of separate endpoint
   static async login(credentials: LoginEquipmentProviderRequest): Promise<LoginEquipmentProviderResponse> {
-    return apiRequest<LoginEquipmentProviderResponse>('/equipment-provider/login', {
-      method: 'POST',
-      body: JSON.stringify(credentials),
-    });
+    const response = await AuthService.login(credentials);
+    return {
+      message: response.message,
+      access_token: response.access_token,
+      name: credentials.email.split('@')[0], // Use email prefix as fallback name
+      email: credentials.email,
+      role: response.role
+    };
   }
 
   static async getAllProviders(): Promise<EquipmentProvider[]> {
-    return apiRequest<EquipmentProvider[]>('/equipment-provider/listall', {
+    return apiRequest<EquipmentProvider[]>(API_CONFIG.ENDPOINTS.EQUIPMENT_PROVIDER.LIST_ALL, {
       method: 'GET',
     });
   }
 
   static async changePassword(newPassword: string): Promise<ChangePasswordResponse> {
-    return apiRequest<ChangePasswordResponse>('/equipment-provider/changePass', {
+    return apiRequest<ChangePasswordResponse>(API_CONFIG.ENDPOINTS.EQUIPMENT_PROVIDER.CHANGE_PASSWORD, {
       method: 'POST',
       body: JSON.stringify({ newPassword }),
     });

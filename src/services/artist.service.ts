@@ -8,6 +8,42 @@ export interface ArtistType {
   updatedAt: string;
 }
 
+export interface CreatePortfolioItemRequest {
+  title: string;
+  description: string;
+  type: 'image' | 'video' | 'audio';
+}
+
+export interface PortfolioItem {
+  _id: string;
+  title: string;
+  description: string;
+  type: 'image' | 'video' | 'audio';
+  fileUrl: string;
+  thumbnailUrl?: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  artistProfile: {
+    _id: string;
+    stageName: string;
+  };
+  artistUser?: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+  };
+  reviewedBy?: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+  };
+  reviewComment?: string;
+  reviewedAt?: string;
+  views: number;
+  likes: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface CreateArtistRequest {
   firstName: string;
   lastName: string;
@@ -25,6 +61,12 @@ export interface CreateArtistRequest {
   category: string;
   country: string;
   performPreference: string[];
+}
+
+export interface UpdateArtistProfileRequest {
+  genres?: string[];
+  skills?: string[];
+  category?: string;
 }
 
 export interface Artist {
@@ -120,9 +162,171 @@ export class ArtistService {
     });
   }
 
+  static async getMyProfile(): Promise<Artist> {
+    return apiRequest<Artist>(API_CONFIG.ENDPOINTS.ARTIST.MY_PROFILE, {
+      method: 'GET',
+    });
+  }
+
   static async getPrivateArtists(): Promise<Artist[]> {
     return apiRequest<Artist[]>(API_CONFIG.ENDPOINTS.ARTIST.LIST_PRIVATE, {
       method: 'GET',
+    });
+  }
+
+  static async verifyArtist(artistId: string, isVerified: boolean): Promise<{ message: string; artistId: string; isVerified: boolean; }> {
+    return apiRequest(API_CONFIG.ENDPOINTS.ARTIST.VERIFY(artistId), {
+      method: 'PATCH',
+      body: JSON.stringify({ isVerified }),
+    });
+  }
+
+  static async requestProfileUpdate(
+    updateData: UpdateArtistProfileRequest,
+    files?: {
+      profileImage?: File;
+      profileCoverImage?: File;
+      demoVideo?: File;
+    }
+  ): Promise<{ message: string }> {
+    const formData = new FormData();
+
+    // Add text fields
+    if (updateData.genres) {
+      formData.append('genres', JSON.stringify(updateData.genres));
+    }
+    if (updateData.skills) {
+      formData.append('skills', JSON.stringify(updateData.skills));
+    }
+    if (updateData.category) {
+      formData.append('category', updateData.category);
+    }
+
+    // Add files if provided
+    if (files?.profileImage) {
+      formData.append('profileImage', files.profileImage);
+    }
+    if (files?.profileCoverImage) {
+      formData.append('profileCoverImage', files.profileCoverImage);
+    }
+    if (files?.demoVideo) {
+      formData.append('demoVideo', files.demoVideo);
+    }
+
+    const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ARTIST.UPDATE_REQUEST}`, {
+      method: 'POST',
+      headers: getMultipartAuthHeaders(),
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to submit update request');
+    }
+
+    return response.json();
+  }
+
+  static async getPendingUpdateRequests(): Promise<any[]> {
+    return apiRequest<any[]>(API_CONFIG.ENDPOINTS.ARTIST.PENDING_REQUESTS, {
+      method: 'GET',
+    });
+  }
+
+  static async getMyUpdateRequests(): Promise<any[]> {
+    return apiRequest<any[]>(API_CONFIG.ENDPOINTS.ARTIST.MY_REQUESTS, {
+      method: 'GET',
+    });
+  }
+
+  static async reviewUpdateRequest(
+    requestId: string, 
+    approve: boolean, 
+    comment?: string
+  ): Promise<{ message: string }> {
+    const url = `${API_CONFIG.ENDPOINTS.ARTIST.REVIEW_UPDATE(requestId)}?approve=${approve}`;
+    return apiRequest(url, {
+      method: 'POST',
+      body: JSON.stringify({ comment }),
+    });
+  }
+
+  // Portfolio Management Methods
+  static async createPortfolioItem(
+    itemData: CreatePortfolioItemRequest,
+    file: File
+  ): Promise<{ message: string; portfolioItem: PortfolioItem }> {
+    const formData = new FormData();
+    formData.append('title', itemData.title);
+    formData.append('description', itemData.description);
+    formData.append('type', itemData.type);
+    formData.append('file', file);
+
+    const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ARTIST.PORTFOLIO.CREATE}`, {
+      method: 'POST',
+      headers: getMultipartAuthHeaders(),
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to create portfolio item');
+    }
+
+    return response.json();
+  }
+
+  static async getMyPortfolioItems(status?: 'PENDING' | 'APPROVED' | 'REJECTED'): Promise<PortfolioItem[]> {
+    const url = status 
+      ? `${API_CONFIG.ENDPOINTS.ARTIST.PORTFOLIO.MY_ITEMS}?status=${status}`
+      : API_CONFIG.ENDPOINTS.ARTIST.PORTFOLIO.MY_ITEMS;
+    
+    return apiRequest<PortfolioItem[]>(url, {
+      method: 'GET',
+    });
+  }
+
+  static async getPublicPortfolioItems(artistProfileId: string): Promise<PortfolioItem[]> {
+    return apiRequest<PortfolioItem[]>(API_CONFIG.ENDPOINTS.ARTIST.PORTFOLIO.PUBLIC(artistProfileId), {
+      method: 'GET',
+    });
+  }
+
+  static async deletePortfolioItem(portfolioItemId: string): Promise<{ message: string }> {
+    return apiRequest(API_CONFIG.ENDPOINTS.ARTIST.PORTFOLIO.DELETE(portfolioItemId), {
+      method: 'DELETE',
+    });
+  }
+
+  static async incrementPortfolioViews(portfolioItemId: string): Promise<void> {
+    return apiRequest(API_CONFIG.ENDPOINTS.ARTIST.PORTFOLIO.VIEW(portfolioItemId), {
+      method: 'POST',
+    });
+  }
+
+  static async togglePortfolioLike(portfolioItemId: string, increment: boolean): Promise<void> {
+    return apiRequest(API_CONFIG.ENDPOINTS.ARTIST.PORTFOLIO.LIKE(portfolioItemId), {
+      method: 'POST',
+      body: JSON.stringify({ increment }),
+    });
+  }
+
+  // Admin Portfolio Methods
+  static async getPendingPortfolioItems(): Promise<PortfolioItem[]> {
+    return apiRequest<PortfolioItem[]>(API_CONFIG.ENDPOINTS.ARTIST.PORTFOLIO.PENDING_REVIEW, {
+      method: 'GET',
+    });
+  }
+
+  static async reviewPortfolioItem(
+    portfolioItemId: string, 
+    approve: boolean, 
+    reviewComment?: string
+  ): Promise<{ message: string; portfolioItem: PortfolioItem }> {
+    const url = `${API_CONFIG.ENDPOINTS.ARTIST.PORTFOLIO.REVIEW(portfolioItemId)}?approve=${approve}`;
+    return apiRequest(url, {
+      method: 'POST',
+      body: JSON.stringify({ reviewComment }),
     });
   }
 }

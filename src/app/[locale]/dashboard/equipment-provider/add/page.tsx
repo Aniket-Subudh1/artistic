@@ -95,13 +95,23 @@ export default function AddEquipmentPage() {
       return;
     }
 
-    if (parseFloat(formData.pricePerHour) <= 0 || parseFloat(formData.pricePerDay) <= 0) {
-      setError('Prices must be greater than 0');
+    // Convert strings to numbers and validate
+    const pricePerHour = parseFloat(formData.pricePerHour);
+    const pricePerDay = parseFloat(formData.pricePerDay);
+    const quantity = parseInt(formData.quantity);
+
+    if (isNaN(pricePerHour) || pricePerHour <= 0) {
+      setError('Price per hour must be a valid number greater than 0');
       return;
     }
 
-    if (parseInt(formData.quantity) <= 0) {
-      setError('Quantity must be greater than 0');
+    if (isNaN(pricePerDay) || pricePerDay <= 0) {
+      setError('Price per day must be a valid number greater than 0');
+      return;
+    }
+
+    if (isNaN(quantity) || quantity <= 0) {
+      setError('Quantity must be a valid number greater than 0');
       return;
     }
 
@@ -112,14 +122,15 @@ export default function AddEquipmentPage() {
       submitFormData.append('name', formData.name);
       submitFormData.append('category', formData.category);
       submitFormData.append('description', formData.description);
-      submitFormData.append('pricePerHour', formData.pricePerHour);
-      submitFormData.append('pricePerDay', formData.pricePerDay);
-      submitFormData.append('quantity', formData.quantity);
+      // Convert to numbers before appending
+      submitFormData.append('pricePerHour', pricePerHour.toString());
+      submitFormData.append('pricePerDay', pricePerDay.toString());
+      submitFormData.append('quantity', quantity.toString());
       submitFormData.append('image', imageFile);
 
       await EquipmentService.createEquipment(submitFormData);
       
-      setSuccess('Equipment added successfully!');
+      setSuccess('Equipment added successfully! Redirecting...');
       
       // Reset form
       setFormData({
@@ -135,11 +146,19 @@ export default function AddEquipmentPage() {
 
       // Redirect after 2 seconds
       setTimeout(() => {
-        router.push('/dashboard/equipment');
+        router.push('/dashboard/equipment-provider');
       }, 2000);
       
     } catch (error: any) {
-      setError('Failed to add equipment: ' + (error.message || 'Unknown error'));
+      console.error('Equipment creation error:', error);
+      const errorMessage = error.message || 'Unknown error occurred';
+      
+      // Parse validation errors if they exist
+      if (errorMessage.includes('must not be less than') || errorMessage.includes('must be a number')) {
+        setError('Please check your price and quantity values. Make sure they are valid numbers greater than 0.');
+      } else {
+        setError('Failed to add equipment: ' + errorMessage);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -151,255 +170,240 @@ export default function AddEquipmentPage() {
 
   return (
     <RoleBasedRoute allowedRoles={['equipment_provider']} userRole={user.role}>
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Link
-            href="/dashboard/equipment"
-            className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5 text-gray-600" />
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Add New Equipment</h1>
-            <p className="text-gray-600">Add equipment to your rental inventory</p>
-          </div>
-        </div>
-
-        {/* Messages */}
-        {error && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
-            <AlertCircle className="w-5 h-5" />
-            {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2 text-green-700">
-            <CheckCircle className="w-5 h-5" />
-            {success}
-          </div>
-        )}
-
-        {/* Form */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-green-50 to-blue-50">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                <Package className="w-6 h-6 text-green-600" />
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900">Equipment Details</h2>
-                <p className="text-sm text-gray-600">Provide accurate information about your equipment</p>
-              </div>
-            </div>
-          </div>
-
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
-            {/* Basic Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Equipment Name *
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  placeholder="e.g., Professional Sound System"
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Category *
-                </label>
-                <select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
-                >
-                  <option value="">Select Category</option>
-                  {EQUIPMENT_CATEGORIES.map((category) => (
-                    <option key={category.value} value={category.value}>
-                      {category.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Description */}
+      <div className="min-h-screen bg-gray-50 py-4 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto space-y-4">
+          {/* Header */}
+          <div className="flex items-center gap-4">
+            <Link
+              href="/dashboard/equipment-provider"
+              className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors bg-white"
+            >
+              <ArrowLeft className="w-5 h-5 text-gray-600" />
+            </Link>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description *
-              </label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                rows={4}
-                placeholder="Describe your equipment, its features, specifications, and what makes it special..."
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
-              />
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Add New Equipment</h1>
+              <p className="text-sm text-gray-600">Add equipment to your rental inventory</p>
             </div>
+          </div>
 
-            {/* Pricing and Quantity */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Price per Hour ($) *
-                </label>
-                <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input
-                    type="number"
-                    name="pricePerHour"
-                    value={formData.pricePerHour}
-                    onChange={handleInputChange}
-                    placeholder="50"
-                    min="0"
-                    step="0.01"
-                    required
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
-                  />
+          {/* Messages */}
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2 text-red-700 text-sm">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {success && (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2 text-green-700 text-sm">
+              <CheckCircle className="w-5 h-5" />
+              {success}
+            </div>
+          )}
+
+          {/* Form */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-green-50 to-blue-50">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                  <Package className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">Equipment Details</h2>
+                  <p className="text-sm text-gray-600">Provide accurate information</p>
                 </div>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Price per Day ($) *
-                </label>
-                <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input
-                    type="number"
-                    name="pricePerDay"
-                    value={formData.pricePerDay}
-                    onChange={handleInputChange}
-                    placeholder="300"
-                    min="0"
-                    step="0.01"
-                    required
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Available Quantity *
-                </label>
-                <input
-                  type="number"
-                  name="quantity"
-                  value={formData.quantity}
-                  onChange={handleInputChange}
-                  placeholder="1"
-                  min="1"
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
-                />
-              </div>
             </div>
 
-            {/* Image Upload */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Equipment Image *
-              </label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-green-400 transition-colors">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="hidden"
-                  id="image-upload"
-                />
-                
-                {imagePreview ? (
-                  <div className="space-y-4">
-                    <img
-                      src={imagePreview}
-                      alt="Equipment preview"
-                      className="mx-auto max-h-48 rounded-lg object-contain"
-                    />
-                    <div>
-                      <p className="text-green-600 font-medium">Image selected successfully!</p>
-                      <label
-                        htmlFor="image-upload"
-                        className="text-sm text-blue-600 hover:text-blue-700 cursor-pointer"
-                      >
-                        Click to change image
-                      </label>
-                    </div>
-                  </div>
-                ) : (
-                  <label htmlFor="image-upload" className="cursor-pointer">
-                    <div className="space-y-4">
-                      <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto">
-                        <ImageIcon className="w-8 h-8 text-gray-400" />
-                      </div>
-                      <div>
-                        <p className="text-gray-600 font-medium">Upload equipment image</p>
-                        <p className="text-gray-500 text-sm mt-1">
-                          Click to browse or drag and drop
-                        </p>
-                        <p className="text-gray-400 text-xs mt-1">
-                          PNG, JPG, JPEG up to 5MB
-                        </p>
-                      </div>
-                    </div>
+            <form onSubmit={handleSubmit} className="p-4 space-y-4">
+              {/* Basic Information */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Equipment Name *
                   </label>
-                )}
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    placeholder="e.g., Professional Sound System"
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Category *
+                  </label>
+                  <select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm"
+                  >
+                    <option value="">Select Category</option>
+                    {EQUIPMENT_CATEGORIES.map((category) => (
+                      <option key={category.value} value={category.value}>
+                        {category.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
-            </div>
 
-            {/* Tips */}
-            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-              <h4 className="font-medium text-blue-900 mb-2">Tips for better listings:</h4>
-              <ul className="text-blue-800 text-sm space-y-1">
-                <li>• Use a clear, high-quality image showing the equipment</li>
-                <li>• Include detailed specifications and features</li>
-                <li>• Set competitive prices based on market rates</li>
-                <li>• Mention any additional accessories included</li>
-                <li>• Keep quantity updated based on availability</li>
-              </ul>
-            </div>
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description *
+                </label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  rows={3}
+                  placeholder="Describe your equipment features and specifications..."
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm"
+                />
+              </div>
 
-            {/* Submit Buttons */}
-            <div className="flex gap-4 pt-6 border-t border-gray-200">
-              <Link
-                href="/dashboard/equipment"
-                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-center font-medium"
-              >
-                Cancel
-              </Link>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2"
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    Adding Equipment...
-                  </>
-                ) : (
-                  <>
-                    <Package className="w-5 h-5" />
-                    Add Equipment
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
+              {/* Pricing and Quantity */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Price per Hour ($) *
+                  </label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="number"
+                      name="pricePerHour"
+                      value={formData.pricePerHour}
+                      onChange={handleInputChange}
+                      placeholder="50"
+                      min="0"
+                      step="0.01"
+                      required
+                      className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Price per Day ($) *
+                  </label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="number"
+                      name="pricePerDay"
+                      value={formData.pricePerDay}
+                      onChange={handleInputChange}
+                      placeholder="300"
+                      min="0"
+                      step="0.01"
+                      required
+                      className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Available Quantity *
+                  </label>
+                  <input
+                    type="number"
+                    name="quantity"
+                    value={formData.quantity}
+                    onChange={handleInputChange}
+                    placeholder="1"
+                    min="1"
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm"
+                  />
+                </div>
+              </div>
+
+              {/* Image Upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Equipment Image *
+                </label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-green-400 transition-colors">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                    id="image-upload"
+                  />
+                  
+                  {imagePreview ? (
+                    <div className="space-y-2">
+                      <img
+                        src={imagePreview}
+                        alt="Equipment preview"
+                        className="mx-auto max-h-32 rounded-lg object-contain"
+                      />
+                      <div>
+                        <p className="text-green-600 font-medium text-sm">Image selected!</p>
+                        <label
+                          htmlFor="image-upload"
+                          className="text-xs text-blue-600 hover:text-blue-700 cursor-pointer"
+                        >
+                          Click to change
+                        </label>
+                      </div>
+                    </div>
+                  ) : (
+                    <label htmlFor="image-upload" className="cursor-pointer">
+                      <div className="space-y-2">
+                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto">
+                          <ImageIcon className="w-6 h-6 text-gray-400" />
+                        </div>
+                        <div>
+                          <p className="text-gray-600 font-medium text-sm">Upload equipment image</p>
+                          <p className="text-gray-500 text-xs">PNG, JPG, JPEG up to 5MB</p>
+                        </div>
+                      </div>
+                    </label>
+                  )}
+                </div>
+              </div>
+
+              {/* Submit Buttons */}
+              <div className="flex gap-3 pt-4 border-t border-gray-200">
+                <Link
+                  href="/dashboard/equipment-provider"
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-center font-medium text-sm"
+                >
+                  Cancel
+                </Link>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2 text-sm"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      Adding...
+                    </>
+                  ) : (
+                    <>
+                      <Package className="w-4 h-4" />
+                      Add Equipment
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </RoleBasedRoute>

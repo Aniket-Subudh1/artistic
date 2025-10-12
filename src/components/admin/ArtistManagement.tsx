@@ -13,10 +13,14 @@ import {
   CheckCircle,
   Mail,
   Phone,
-  User
+  User,
+  UserCheck,
+  UserX,
+  X
 } from 'lucide-react';
 import { ArtistService, Artist, ArtistType } from '@/services/artist.service';
 import { AdminService } from '@/services/admin.service';
+import { UserService } from '@/services/user.service';
 
 export function ArtistManagement() {
   const [artists, setArtists] = useState<Artist[]>([]);
@@ -29,6 +33,30 @@ export function ArtistManagement() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedArtist, setSelectedArtist] = useState<Artist | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
+
+  const [createArtistForm, setCreateArtistForm] = useState({
+    firstName: '',
+    lastName: '',
+    phoneNumber: '',
+    email: '',
+    stageName: '',
+    about: '',
+    yearsOfExperience: 0,
+    skills: [] as string[],
+    musicLanguages: [] as string[],
+    awards: [] as string[],
+    pricePerHour: 0,
+    gender: '',
+    artistType: '',
+    category: '',
+    country: '',
+    performPreference: [] as string[]
+  });
+
+  const [newSkill, setNewSkill] = useState('');
+  const [newLanguage, setNewLanguage] = useState('');
+  const [newAward, setNewAward] = useState('');
+  const [newPerformPreference, setNewPerformPreference] = useState('');
 
   useEffect(() => {
     loadData();
@@ -48,6 +76,133 @@ export function ArtistManagement() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleToggleArtistStatus = async (userId: string) => {
+    setError('');
+    setSuccess('');
+
+    try {
+      await UserService.toggleUserStatus(userId);
+      setSuccess('Artist status updated successfully!');
+      loadData();
+    } catch (error: any) {
+      setError('Failed to update artist status: ' + (error.message || 'Unknown error'));
+    }
+  };
+
+  const handleCreateArtist = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+
+    // Validate required fields
+    if (!createArtistForm.firstName || !createArtistForm.lastName || !createArtistForm.email || 
+        !createArtistForm.phoneNumber || !createArtistForm.stageName || !createArtistForm.artistType ||
+        !createArtistForm.category || !createArtistForm.country || !createArtistForm.gender) {
+      setError('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      await ArtistService.createArtist(createArtistForm);
+      setSuccess('Artist created successfully!');
+      setShowCreateModal(false);
+      // Reset form
+      setCreateArtistForm({
+        firstName: '',
+        lastName: '',
+        phoneNumber: '',
+        email: '',
+        stageName: '',
+        about: '',
+        yearsOfExperience: 0,
+        skills: [],
+        musicLanguages: [],
+        awards: [],
+        pricePerHour: 0,
+        gender: '',
+        artistType: '',
+        category: '',
+        country: '',
+        performPreference: []
+      });
+      setNewSkill('');
+      setNewLanguage('');
+      setNewAward('');
+      setNewPerformPreference('');
+      loadData();
+    } catch (error: any) {
+      setError('Failed to create artist: ' + (error.message || 'Unknown error'));
+    }
+  };
+
+  const addSkill = () => {
+    if (newSkill.trim() && !createArtistForm.skills.includes(newSkill.trim())) {
+      setCreateArtistForm(prev => ({ 
+        ...prev, 
+        skills: [...prev.skills, newSkill.trim()] 
+      }));
+      setNewSkill('');
+    }
+  };
+
+  const removeSkill = (skill: string) => {
+    setCreateArtistForm(prev => ({ 
+      ...prev, 
+      skills: prev.skills.filter(s => s !== skill) 
+    }));
+  };
+
+  const addLanguage = () => {
+    if (newLanguage.trim() && !createArtistForm.musicLanguages.includes(newLanguage.trim())) {
+      setCreateArtistForm(prev => ({ 
+        ...prev, 
+        musicLanguages: [...prev.musicLanguages, newLanguage.trim()] 
+      }));
+      setNewLanguage('');
+    }
+  };
+
+  const removeLanguage = (language: string) => {
+    setCreateArtistForm(prev => ({ 
+      ...prev, 
+      musicLanguages: prev.musicLanguages.filter(l => l !== language) 
+    }));
+  };
+
+  const addAward = () => {
+    if (newAward.trim() && !createArtistForm.awards.includes(newAward.trim())) {
+      setCreateArtistForm(prev => ({ 
+        ...prev, 
+        awards: [...prev.awards, newAward.trim()] 
+      }));
+      setNewAward('');
+    }
+  };
+
+  const removeAward = (award: string) => {
+    setCreateArtistForm(prev => ({ 
+      ...prev, 
+      awards: prev.awards.filter(a => a !== award) 
+    }));
+  };
+
+  const addPerformPreference = () => {
+    if (newPerformPreference.trim() && !createArtistForm.performPreference.includes(newPerformPreference.trim())) {
+      setCreateArtistForm(prev => ({ 
+        ...prev, 
+        performPreference: [...prev.performPreference, newPerformPreference.trim()] 
+      }));
+      setNewPerformPreference('');
+    }
+  };
+
+  const removePerformPreference = (preference: string) => {
+    setCreateArtistForm(prev => ({ 
+      ...prev, 
+      performPreference: prev.performPreference.filter(p => p !== preference) 
+    }));
   };
 
   const filteredArtists = artists.filter(artist => {
@@ -257,9 +412,38 @@ export function ArtistManagement() {
                   <Eye className="w-4 h-4" />
                   View
                 </button>
-                <button className="flex-1 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-1">
-                  <Edit className="w-4 h-4" />
-                  Edit
+                <button 
+                  onClick={() => artist.user && handleToggleArtistStatus(artist.user._id)}
+                  disabled={!artist.user}
+                  className={`flex-1 px-3 py-2 rounded-lg transition-colors flex items-center justify-center gap-1 ${
+                    !artist.user 
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : artist.user?.isActive 
+                        ? 'bg-orange-100 text-orange-700 hover:bg-orange-200' 
+                        : 'bg-green-100 text-green-700 hover:bg-green-200'
+                  }`}
+                  title={
+                    !artist.user 
+                      ? 'No user account linked' 
+                      : artist.user?.isActive ? 'Deactivate Artist' : 'Activate Artist'
+                  }
+                >
+                  {!artist.user ? (
+                    <>
+                      <User className="w-4 h-4" />
+                      No User
+                    </>
+                  ) : artist.user?.isActive ? (
+                    <>
+                      <UserX className="w-4 h-4" />
+                      Deactivate
+                    </>
+                  ) : (
+                    <>
+                      <UserCheck className="w-4 h-4" />
+                      Activate
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -381,10 +565,10 @@ export function ArtistManagement() {
         </div>
       )}
 
-      {/* Create Artist Modal Placeholder */}
+      {/* Create Artist Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-md w-full">
+          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-gray-900">Add New Artist</h2>
@@ -392,23 +576,279 @@ export function ArtistManagement() {
                   onClick={() => setShowCreateModal(false)}
                   className="text-gray-400 hover:text-gray-600"
                 >
-                  ×
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="text-center py-8">
-                <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Feature Coming Soon</h3>
-                <p className="text-gray-600 mb-4">
-                  Artist creation form will be available once the backend endpoints are ready.
-                </p>
-                <button
-                  onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                >
-                  Got it
-                </button>
-              </div>
+              <form onSubmit={handleCreateArtist} className="space-y-6">
+                {/* Personal Information */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Personal Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        First Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={createArtistForm.firstName}
+                        onChange={(e) => setCreateArtistForm(prev => ({ ...prev, firstName: e.target.value }))}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Last Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={createArtistForm.lastName}
+                        onChange={(e) => setCreateArtistForm(prev => ({ ...prev, lastName: e.target.value }))}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Email *
+                      </label>
+                      <input
+                        type="email"
+                        value={createArtistForm.email}
+                        onChange={(e) => setCreateArtistForm(prev => ({ ...prev, email: e.target.value }))}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Phone Number *
+                      </label>
+                      <input
+                        type="tel"
+                        value={createArtistForm.phoneNumber}
+                        onChange={(e) => setCreateArtistForm(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Artist Information */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Artist Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Stage Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={createArtistForm.stageName}
+                        onChange={(e) => setCreateArtistForm(prev => ({ ...prev, stageName: e.target.value }))}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Category *
+                      </label>
+                      <select
+                        value={createArtistForm.category}
+                        onChange={(e) => setCreateArtistForm(prev => ({ ...prev, category: e.target.value }))}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      >
+                        <option value="">Select Category</option>
+                        <option value="VOCALIST">Vocalist</option>
+                        <option value="INSTRUMENTALIST">Instrumentalist</option>
+                        <option value="BAND">Band</option>
+                        <option value="DJ">DJ</option>
+                        <option value="DANCER">Dancer</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Artist Type *
+                      </label>
+                      <select
+                        value={createArtistForm.artistType}
+                        onChange={(e) => setCreateArtistForm(prev => ({ ...prev, artistType: e.target.value }))}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      >
+                        <option value="">Select Type</option>
+                        {artistTypes.map((type) => (
+                          <option key={type._id} value={type._id}>
+                            {type.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Gender *
+                      </label>
+                      <select
+                        value={createArtistForm.gender}
+                        onChange={(e) => setCreateArtistForm(prev => ({ ...prev, gender: e.target.value }))}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      >
+                        <option value="">Select Gender</option>
+                        <option value="MALE">Male</option>
+                        <option value="FEMALE">Female</option>
+                        <option value="OTHER">Other</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Country *
+                      </label>
+                      <input
+                        type="text"
+                        value={createArtistForm.country}
+                        onChange={(e) => setCreateArtistForm(prev => ({ ...prev, country: e.target.value }))}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Years of Experience
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={createArtistForm.yearsOfExperience}
+                        onChange={(e) => setCreateArtistForm(prev => ({ ...prev, yearsOfExperience: parseInt(e.target.value) || 0 }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Price per Hour ($)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={createArtistForm.pricePerHour}
+                        onChange={(e) => setCreateArtistForm(prev => ({ ...prev, pricePerHour: parseFloat(e.target.value) || 0 }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      About
+                    </label>
+                    <textarea
+                      value={createArtistForm.about}
+                      onChange={(e) => setCreateArtistForm(prev => ({ ...prev, about: e.target.value }))}
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      placeholder="Tell us about yourself..."
+                    />
+                  </div>
+                </div>
+
+                {/* Skills */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Skills</h3>
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newSkill}
+                        onChange={(e) => setNewSkill(e.target.value)}
+                        placeholder="Add a skill"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
+                      />
+                      <button
+                        type="button"
+                        onClick={addSkill}
+                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                      >
+                        Add
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {createArtistForm.skills.map((skill, index) => (
+                        <span key={index} className="inline-flex items-center px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-full">
+                          {skill}
+                          <button
+                            type="button"
+                            onClick={() => removeSkill(skill)}
+                            className="ml-2 text-purple-600 hover:text-purple-800"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Music Languages */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Music Languages</h3>
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newLanguage}
+                        onChange={(e) => setNewLanguage(e.target.value)}
+                        placeholder="Add a language"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addLanguage())}
+                      />
+                      <button
+                        type="button"
+                        onClick={addLanguage}
+                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                      >
+                        Add
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {createArtistForm.musicLanguages.map((language, index) => (
+                        <span key={index} className="inline-flex items-center px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
+                          {language}
+                          <button
+                            type="button"
+                            onClick={() => removeLanguage(language)}
+                            className="ml-2 text-green-600 hover:text-green-800"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Form Actions */}
+                <div className="flex gap-4 pt-6 border-t border-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateModal(false)}
+                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    Create Artist
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>

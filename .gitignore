@@ -16,7 +16,7 @@
 # next.js
 /.next/
 /out/
-
+/artistic_backend/
 # production
 /build
 

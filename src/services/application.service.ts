@@ -132,7 +132,7 @@ export class ApplicationService {
         reject: 'REJECTED'
       };
 
-      return await apiRequest<{ message: string }>(API_CONFIG.ENDPOINTS.APPLICATIONS.REVIEW(applicationId), {
+      return await apiRequest<{ message: string }>(API_CONFIG.ENDPOINTS.APPLICATIONS.UPDATE_STATUS(applicationId), {
         method: 'PATCH',
         body: JSON.stringify({
           status: statusMap[action],
@@ -146,7 +146,7 @@ export class ApplicationService {
 
   static async getApplicationById(id: string): Promise<Application> {
     try {
-      return await apiRequest<Application>(`${API_CONFIG.ENDPOINTS.APPLICATIONS.LIST_ALL}/${id}`, {
+      return await apiRequest<Application>(API_CONFIG.ENDPOINTS.APPLICATIONS.GET_BY_ID(id), {
         method: 'GET',
       });
     } catch (error) {
@@ -156,7 +156,7 @@ export class ApplicationService {
 
   static async deleteApplication(id: string): Promise<{ message: string }> {
     try {
-      return await apiRequest<{ message: string }>(`${API_CONFIG.ENDPOINTS.APPLICATIONS.LIST_ALL}/${id}`, {
+      return await apiRequest<{ message: string }>(API_CONFIG.ENDPOINTS.APPLICATIONS.DELETE(id), {
         method: 'DELETE',
       });
     } catch (error) {

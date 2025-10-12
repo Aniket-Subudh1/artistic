@@ -101,8 +101,7 @@ export default function ArtistVerificationPage() {
 
   const handleVerifyArtist = async (artistId: string, verify: boolean) => {
     try {
-      // This would be the actual API call for verification
-      // await ArtistService.verifyArtist(artistId, verify);
+      await ArtistService.verifyArtist(artistId, verify);
       setSuccess(`Artist ${verify ? 'verified' : 'unverified'} successfully!`);
       loadArtists();
     } catch (error: any) {

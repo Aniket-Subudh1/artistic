@@ -17,7 +17,8 @@ import {
   Shield,
   Settings
 } from 'lucide-react';
-import { EquipmentProviderService, EquipmentProvider, CreateEquipmentProviderRequest } from '@/services/equipment-provider.service';
+import { EquipmentProviderService, EquipmentProvider } from '@/services/equipment-provider.service';
+import { AdminService, CreateEquipmentProviderRequest } from '@/services/admin.service';
 
 export function EquipmentProviderManagement() {
   const [providers, setProviders] = useState<EquipmentProvider[]>([]);
@@ -32,9 +33,12 @@ export function EquipmentProviderManagement() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [createFormData, setCreateFormData] = useState<CreateEquipmentProviderRequest>({
-    fullName: '',
+    firstName: '',
+    lastName: '',
     email: '',
-    phoneNumber: ''
+    phoneNumber: '',
+    companyName: '',
+    businessDescription: ''
   });
 
   useEffect(() => {
@@ -62,7 +66,7 @@ export function EquipmentProviderManagement() {
 
     if (searchTerm) {
       filtered = filtered.filter(provider => 
-        provider.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        `${provider.firstName} ${provider.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
         provider.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         provider.phoneNumber.toLowerCase().includes(searchTerm.toLowerCase())
       );
@@ -78,10 +82,17 @@ export function EquipmentProviderManagement() {
     setSuccess('');
 
     try {
-      const response = await EquipmentProviderService.createEquipmentProvider(createFormData);
+      const response = await AdminService.createEquipmentProvider(createFormData);
       setSuccess(response.message || 'Equipment provider created successfully!');
       setShowCreateModal(false);
-      setCreateFormData({ fullName: '', email: '', phoneNumber: '' });
+      setCreateFormData({ 
+        firstName: '', 
+        lastName: '', 
+        email: '', 
+        phoneNumber: '', 
+        companyName: '', 
+        businessDescription: '' 
+      });
       loadProviders();
     } catch (error: any) {
       setError('Failed to create equipment provider: ' + (error.message || 'Unknown error'));
@@ -90,7 +101,7 @@ export function EquipmentProviderManagement() {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setCreateFormData(prev => ({
       ...prev,
@@ -264,19 +275,19 @@ export function EquipmentProviderManagement() {
                   <tr key={provider._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center">
-                          <span className="text-white font-medium text-sm">
-                            {provider.fullName.split(' ').map(n => n.charAt(0)).join('').substring(0, 2)}
-                          </span>
+                      <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center">
+                        <span className="text-white font-medium text-sm">
+                          {provider.firstName.charAt(0)}{provider.lastName.charAt(0)}
+                        </span>
+                      </div>
+                      <div className="ml-4">
+                        <div className="text-sm font-medium text-gray-900">
+                          {provider.firstName} {provider.lastName}
                         </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {provider.fullName}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            ID: {provider._id.substring(0, 8)}...
-                          </div>
+                        <div className="text-sm text-gray-500">
+                          ID: {provider._id.substring(0, 8)}...
                         </div>
+                      </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -349,19 +360,36 @@ export function EquipmentProviderManagement() {
               </div>
 
               <form onSubmit={handleCreateProvider} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="fullName"
-                    value={createFormData.fullName}
-                    onChange={handleInputChange}
-                    required
-                    placeholder="Enter full name"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      First Name *
+                    </label>
+                    <input
+                      type="text"
+                      name="firstName"
+                      value={createFormData.firstName}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="Enter first name"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Last Name *
+                    </label>
+                    <input
+                      type="text"
+                      name="lastName"
+                      value={createFormData.lastName}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="Enter last name"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -390,6 +418,34 @@ export function EquipmentProviderManagement() {
                     onChange={handleInputChange}
                     required
                     placeholder="Enter phone number"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Company Name (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    name="companyName"
+                    value={createFormData.companyName || ''}
+                    onChange={handleInputChange}
+                    placeholder="Enter company name"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Business Description (Optional)
+                  </label>
+                  <textarea
+                    name="businessDescription"
+                    value={createFormData.businessDescription || ''}
+                    onChange={handleInputChange}
+                    placeholder="Describe the business and services offered"
+                    rows={3}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   />
                 </div>
@@ -446,10 +502,10 @@ export function EquipmentProviderManagement() {
                 <div className="text-center">
                   <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
                     <span className="text-white font-bold text-2xl">
-                      {selectedProvider.fullName.split(' ').map(n => n.charAt(0)).join('').substring(0, 2)}
+                      {selectedProvider.firstName.charAt(0)}{selectedProvider.lastName.charAt(0)}
                     </span>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900">{selectedProvider.fullName}</h3>
+                  <h3 className="text-xl font-bold text-gray-900">{selectedProvider.firstName} {selectedProvider.lastName}</h3>
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 mt-2">
                     <Shield className="w-3 h-3 mr-1" />
                     Equipment Provider

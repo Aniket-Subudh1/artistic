@@ -52,7 +52,8 @@ export function UserManagement() {
     email: '',
     phoneNumber: '',
     password: '',
-    role: 'USER'
+    role: 'USER',
+    isActive: true
   });
 
   useEffect(() => {
@@ -123,11 +124,25 @@ export function UserManagement() {
         email: '',
         phoneNumber: '',
         password: '',
-        role: 'USER'
+        role: 'USER',
+        isActive: true
       });
       loadUsers();
     } catch (error: any) {
       setError('Failed to create user: ' + (error.message || 'Unknown error'));
+    }
+  };
+
+  const handleToggleUserStatus = async (userId: string) => {
+    setError('');
+    setSuccess('');
+
+    try {
+      await UserService.toggleUserStatus(userId);
+      setSuccess('User status updated successfully!');
+      loadUsers();
+    } catch (error: any) {
+      setError('Failed to update user status: ' + (error.message || 'Unknown error'));
     }
   };
 
@@ -416,9 +431,26 @@ export function UserManagement() {
                           <Eye className="w-4 h-4 mr-1" />
                           View
                         </button>
-                        <button className="text-indigo-600 hover:text-indigo-900 flex items-center">
-                          <Edit className="w-4 h-4 mr-1" />
-                          Edit
+                        <button 
+                          onClick={() => handleToggleUserStatus(user._id)}
+                          className={`flex items-center ${
+                            user.isActive 
+                              ? 'text-orange-600 hover:text-orange-900' 
+                              : 'text-green-600 hover:text-green-900'
+                          }`}
+                          title={user.isActive ? 'Deactivate User' : 'Activate User'}
+                        >
+                          {user.isActive ? (
+                            <>
+                              <UserX className="w-4 h-4 mr-1" />
+                              Deactivate
+                            </>
+                          ) : (
+                            <>
+                              <UserCheck className="w-4 h-4 mr-1" />
+                              Activate
+                            </>
+                          )}
                         </button>
                         <button className="text-red-600 hover:text-red-900 flex items-center">
                           <Trash2 className="w-4 h-4 mr-1" />
@@ -533,6 +565,23 @@ export function UserManagement() {
                     <option value="VENUE_OWNER">Venue Owner</option>
                     <option value="ADMIN">Admin</option>
                   </select>
+                </div>
+
+                <div>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={createUserForm.isActive}
+                      onChange={(e) => setCreateUserForm(prev => ({ ...prev, isActive: e.target.checked }))}
+                      className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-2"
+                    />
+                    <span className="text-sm font-medium text-gray-700">
+                      Active User (can login)
+                    </span>
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Uncheck to create an inactive user that cannot login
+                  </p>
                 </div>
 
                 <div className="flex gap-4 pt-4">
