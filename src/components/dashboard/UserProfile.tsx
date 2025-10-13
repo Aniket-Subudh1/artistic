@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
-import Image from 'next/image';
 import { User, UserRole } from '@/types/dashboard';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 import { Crown, Shield, Mic, Package, MapPin, User as UserIcon, LogOut, Settings, ChevronDown, ChevronLeft, ChevronRight, Edit3 } from 'lucide-react';
 
 interface UserProfileProps {
@@ -77,35 +77,18 @@ export function UserProfile({ user, onLogout, isCollapsed = false, onToggleColla
   const t = useTranslations('dashboard');
   const [showDropdown, setShowDropdown] = useState(false);
   
-  const userImage = (user.avatar && user.avatar.trim()) || ((user as any).profilePicture && (user as any).profilePicture.trim()) || null;
-  
   if (isCollapsed) {
     return (
       <div className="flex flex-col items-center space-y-2">
         <div className="relative">
-          <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-indigo-100 to-purple-200 flex items-center justify-center overflow-hidden shadow-sm">
-            {userImage ? (
-              <Image
-                src={userImage}
-                alt={`${user.firstName} ${user.lastName}`}
-                width={56}
-                height={56}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  const fallback = target.nextElementSibling as HTMLElement;
-                  if (fallback) fallback.classList.remove('hidden');
-                }}
-              />
-            ) : null}
-            <div className={`w-full h-full bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center ${userImage ? 'hidden' : ''}`}>
-              <span className="text-white font-semibold text-base">
-                {user.firstName.charAt(0)}{user.lastName.charAt(0)}
-              </span>
-            </div>
-          </div>
-          
+          <UserAvatar
+            firstName={user.firstName}
+            lastName={user.lastName}
+            profilePicture={(user as any).profilePicture}
+            avatar={user.avatar}
+            size="lg"
+            className="shadow-sm"
+          />
         </div>
         
         {onToggleCollapse && (
@@ -136,28 +119,14 @@ export function UserProfile({ user, onLogout, isCollapsed = false, onToggleColla
       
       <div className="flex items-center space-x-3 rtl:space-x-reverse">
         <div className="relative">
-          <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-200 flex items-center justify-center overflow-hidden shadow-lg ring-2 ring-white">
-            {userImage ? (
-              <Image
-                src={userImage}
-                alt={`${user.firstName} ${user.lastName}`}
-                width={80}
-                height={80}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  const fallback = target.nextElementSibling as HTMLElement;
-                  if (fallback) fallback.classList.remove('hidden');
-                }}
-              />
-            ) : null}
-            <div className={`w-full h-full bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center ${userImage ? 'hidden' : ''}`}>
-              <span className="text-white font-bold text-2xl">
-                {user.firstName.charAt(0)}{user.lastName.charAt(0)}
-              </span>
-            </div>
-          </div>
+          <UserAvatar
+            firstName={user.firstName}
+            lastName={user.lastName}
+            profilePicture={(user as any).profilePicture}
+            avatar={user.avatar}
+            size="xl"
+            className="shadow-lg"
+          />
           
           {onEditProfilePicture && (
             <button

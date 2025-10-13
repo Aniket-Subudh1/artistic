@@ -30,11 +30,15 @@ interface ApiResponse<T = any> {
   artists?: T[];
   equipment?: T[];
   applications?: T[];
+  profileUpdateRequests?: T[];
+  portfolioUpdateRequests?: T[];
+  portfolioItems?: T[];
   likeCount?: number;
   viewCount?: number;
-  portfolioItems?: T[];
   bookings?: T[];
   monthlyEarnings?: number;
+  // Handle direct array responses
+  [key: string]: any;
 }
 
 export interface DashboardActivity {
@@ -113,7 +117,7 @@ export class DashboardService {
         return {};
       }
 
-      const [usersResponse, artistsResponse, equipmentResponse, applicationsResponse] = await Promise.all([
+      const [usersResponse, artistsResponse, applicationsResponse, equipmentResponse, updateRequestsResponse] = await Promise.all([
         apiRequest<ApiResponse>(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.USER.LIST_ALL}`, {
           method: 'GET',
           headers: { 'Authorization': `Bearer ${token}` },
@@ -122,24 +126,42 @@ export class DashboardService {
           method: 'GET',
           headers: { 'Authorization': `Bearer ${token}` },
         }),
-        apiRequest<ApiResponse>(`${API_CONFIG.BASE_URL}/admin/equipment`, {
+        apiRequest<ApiResponse>(`${API_CONFIG.BASE_URL}/artist/application`, {
           method: 'GET',
           headers: { 'Authorization': `Bearer ${token}` },
         }),
-        apiRequest<ApiResponse>(`${API_CONFIG.BASE_URL}/admin/applications`, {
+        apiRequest<ApiResponse>(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.EQUIPMENT.LIST_ALL}`, {
           method: 'GET',
           headers: { 'Authorization': `Bearer ${token}` },
         }),
+        apiRequest<ApiResponse>(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ADMIN.PROFILE_UPDATE_REQUESTS}`, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${token}` },
+        }).catch(() => ({ profileUpdateRequests: [], portfolioUpdateRequests: [] })), // Fallback if endpoint doesn't exist
       ]);
 
+      // Calculate statistics from real API responses
+      const users = usersResponse || [];
+      const artists = artistsResponse || [];
+      const applications = applicationsResponse || [];
+      const equipment = equipmentResponse || [];
+      const updateRequests = updateRequestsResponse || { profileUpdateRequests: [], portfolioUpdateRequests: [] };
+
       return {
-        totalUsers: usersResponse?.users?.length || 0,
-        totalArtists: artistsResponse?.artists?.length || 0,
-        totalEquipment: equipmentResponse?.equipment?.length || 0,
-        totalApplications: applicationsResponse?.applications?.length || 0,
-        pendingApplications: applicationsResponse?.applications?.filter((app: any) => app.status === 'pending')?.length || 0,
-        approvedApplications: applicationsResponse?.applications?.filter((app: any) => app.status === 'approved')?.length || 0,
-        rejectedApplications: applicationsResponse?.applications?.filter((app: any) => app.status === 'rejected')?.length || 0,
+        totalUsers: Array.isArray(users) ? users.length : (users.users ? users.users.length : 0),
+        totalArtists: Array.isArray(artists) ? artists.length : (artists.artists ? artists.artists.length : 0),
+        totalEquipment: Array.isArray(equipment) ? equipment.length : (equipment.equipment ? equipment.equipment.length : 0),
+        totalApplications: Array.isArray(applications) ? applications.length : (applications.applications ? applications.applications.length : 0),
+        pendingApplications: Array.isArray(applications) 
+          ? applications.filter((app: any) => app.status === 'PENDING' || app.status === 'pending').length
+          : (applications.applications ? applications.applications.filter((app: any) => app.status === 'PENDING' || app.status === 'pending').length : 0),
+        approvedApplications: Array.isArray(applications)
+          ? applications.filter((app: any) => app.status === 'APPROVED' || app.status === 'approved').length  
+          : (applications.applications ? applications.applications.filter((app: any) => app.status === 'APPROVED' || app.status === 'approved').length : 0),
+        rejectedApplications: Array.isArray(applications)
+          ? applications.filter((app: any) => app.status === 'REJECTED' || app.status === 'rejected').length
+          : (applications.applications ? applications.applications.filter((app: any) => app.status === 'REJECTED' || app.status === 'rejected').length : 0),
+        pendingApprovals: (updateRequests.profileUpdateRequests?.length || 0) + (updateRequests.portfolioUpdateRequests?.length || 0),
       };
     } catch (error) {
       console.error('Error fetching admin stats:', error);
@@ -189,23 +211,27 @@ export class DashboardService {
         return {};
       }
 
-      const [profileResponse, equipmentResponse] = await Promise.all([
-        apiRequest<ApiResponse>(`${API_CONFIG.BASE_URL}/equipment-provider/profile`, {
+      const [myEquipmentResponse, profileResponse] = await Promise.all([
+        apiRequest<ApiResponse>(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.EQUIPMENT.MY_EQUIPMENT}`, {
           method: 'GET',
           headers: { 'Authorization': `Bearer ${token}` },
         }),
-        apiRequest<ApiResponse>(`${API_CONFIG.BASE_URL}/equipment`, {
+        apiRequest<ApiResponse>(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.EQUIPMENT_PROVIDER.PROFILE}`, {
           method: 'GET',
           headers: { 'Authorization': `Bearer ${token}` },
-        }),
+        }).catch(() => ({})), // Fallback if profile endpoint doesn't exist
       ]);
 
+      const myEquipment = myEquipmentResponse || [];
+      const profile = profileResponse as any;
+      const bookings = profile?.bookings || [];
+
       return {
-        totalEquipment: equipmentResponse?.equipment?.length || 0,
-        totalBookings: profileResponse?.bookings?.length || 0,
-        activeBookings: profileResponse?.bookings?.filter((booking: any) => booking.status === 'active')?.length || 0,
-        totalRevenue: profileResponse?.bookings?.reduce((sum: number, booking: any) => sum + (booking.amount || 0), 0) || 0,
-        monthlyEarnings: profileResponse?.monthlyEarnings || 0,
+        totalEquipment: Array.isArray(myEquipment) ? myEquipment.length : (myEquipment.equipment ? myEquipment.equipment.length : 0),
+        totalBookings: Array.isArray(bookings) ? bookings.length : 0,
+        activeBookings: Array.isArray(bookings) ? bookings.filter((booking: any) => booking.status === 'active' || booking.status === 'ACTIVE').length : 0,
+        totalRevenue: Array.isArray(bookings) ? bookings.reduce((sum: number, booking: any) => sum + (booking.amount || booking.totalAmount || 0), 0) : 0,
+        monthlyEarnings: profile?.monthlyEarnings || 0,
       };
     } catch (error) {
       console.error('Error fetching equipment provider stats:', error);
@@ -224,14 +250,127 @@ export class DashboardService {
         return [];
       }
 
-      const endpoint = this.getActivityEndpoint(role);
-      const response = await apiRequest<{ activities: DashboardActivity[] }>(`${API_CONFIG.BASE_URL}${endpoint}`, {
-        method: 'GET',
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      return response.activities || [];
+      // Since there's no activity endpoint yet, let's create mock recent activity from real data
+      switch (role) {
+        case 'super_admin':
+        case 'admin':
+          return this.getAdminRecentActivity(token);
+        case 'artist':
+          return this.getArtistRecentActivity(token);
+        case 'equipment_provider':
+          return this.getEquipmentProviderRecentActivity(token);
+        default:
+          return [];
+      }
     } catch (error) {
       console.error('Error fetching recent activity:', error);
+      return [];
+    }
+  }
+
+  private static async getAdminRecentActivity(token: string): Promise<DashboardActivity[]> {
+    try {
+      // Get recent data from real endpoints
+      const [applications, updateRequests] = await Promise.all([
+        apiRequest<any>(`${API_CONFIG.BASE_URL}/artist/application`, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${token}` },
+        }).catch(() => ({ applications: [] })),
+        apiRequest<any>(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ADMIN.PROFILE_UPDATE_REQUESTS}`, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${token}` },
+        }).catch(() => ({ profileUpdateRequests: [], portfolioUpdateRequests: [] })),
+      ]);
+
+      const activities: DashboardActivity[] = [];
+
+      // Add recent applications
+      const recentApplications = (applications.applications || applications || []).slice(0, 3);
+      recentApplications.forEach((app: any) => {
+        activities.push({
+          id: app._id || app.id,
+          type: 'application',
+          title: 'New Artist Application',
+          description: `${app.stageName || 'Artist'} submitted an application`,
+          date: app.createdAt || app.submittedAt || new Date().toISOString(),
+          status: app.status?.toLowerCase() === 'pending' ? 'pending' : 'completed',
+        });
+      });
+
+      // Add recent profile update requests
+      const recentUpdates = (updateRequests.profileUpdateRequests || []).slice(0, 2);
+      recentUpdates.forEach((update: any) => {
+        activities.push({
+          id: update._id || update.id,
+          type: 'profile_update',
+          title: 'Profile Update Request',
+          description: `Artist requested profile update`,
+          date: update.createdAt || new Date().toISOString(),
+          status: 'pending',
+        });
+      });
+
+      return activities.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5);
+    } catch (error) {
+      console.error('Error fetching admin recent activity:', error);
+      return [];
+    }
+  }
+
+  private static async getArtistRecentActivity(token: string): Promise<DashboardActivity[]> {
+    try {
+      // Get artist's recent portfolio items
+      const portfolioItems = await apiRequest<any>(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ARTIST.PORTFOLIO.MY_ITEMS}`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` },
+      }).catch(() => []);
+
+      const activities: DashboardActivity[] = [];
+      const recentItems = (portfolioItems.portfolioItems || portfolioItems || []).slice(0, 5);
+      
+      recentItems.forEach((item: any) => {
+        activities.push({
+          id: item._id || item.id,
+          type: 'review',
+          title: 'Portfolio Item',
+          description: `Added "${item.title || 'New item'}" to portfolio`,
+          date: item.createdAt || new Date().toISOString(),
+          status: item.status?.toLowerCase() || 'completed',
+        });
+      });
+
+      return activities.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    } catch (error) {
+      console.error('Error fetching artist recent activity:', error);
+      return [];
+    }
+  }
+
+  private static async getEquipmentProviderRecentActivity(token: string): Promise<DashboardActivity[]> {
+    try {
+      // Get equipment provider's recent equipment
+      const myEquipment = await apiRequest<any>(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.EQUIPMENT.MY_EQUIPMENT}`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` },
+      }).catch(() => []);
+
+      const activities: DashboardActivity[] = [];
+      const recentEquipment = (myEquipment.equipment || myEquipment || []).slice(0, 5);
+      
+      recentEquipment.forEach((equipment: any) => {
+        activities.push({
+          id: equipment._id || equipment.id,
+          type: 'equipment_rental',
+          title: 'Equipment Listed',
+          description: `Listed "${equipment.name || equipment.title}" for rent`,
+          date: equipment.createdAt || new Date().toISOString(),
+          status: 'completed',
+        });
+      });
+
+      return activities.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    } catch (error) {
+      console.error('Error fetching equipment provider recent activity:', error);
       return [];
     }
   }
@@ -331,20 +470,6 @@ export class DashboardService {
         return '/venue-owner/dashboard';
       default:
         return '/user/dashboard';
-    }
-  }
-
-  private static getActivityEndpoint(role: UserRole): string {
-    switch (role) {
-      case 'super_admin':
-      case 'admin':
-        return '/admin/activity';
-      case 'artist':
-        return '/artist/activity';
-      case 'equipment_provider':
-        return '/equipment-provider/activity';
-      default:
-        return '/user/activity';
     }
   }
 

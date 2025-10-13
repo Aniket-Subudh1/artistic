@@ -2,8 +2,11 @@
 
 import React from 'react';
 import { RoleBasedRoute } from '@/components/dashboard/RoleBasedRoute';
+import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
+import { QuickActions } from '@/components/dashboard/QuickActions';
 import { useAuthLogic } from '@/hooks/useAuth';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { Calendar, Heart, Star } from 'lucide-react';
 
 export default function UserDashboard() {
   const { user, isLoading } = useAuthLogic();
@@ -12,25 +15,42 @@ export default function UserDashboard() {
     return <LoadingSpinner text="Loading user dashboard..." />;
   }
 
+  const quickActions = [
+    {
+      title: 'My Bookings',
+      description: 'View your event bookings',
+      icon: Calendar,
+      href: '/dashboard/user/bookings',
+      color: 'blue' as const
+    },
+    {
+      title: 'Favorites',
+      description: 'Your saved events and artists',
+      icon: Heart,
+      href: '/dashboard/user/favorites',
+      color: 'red' as const
+    },
+    {
+      title: 'Recommendations',
+      description: 'Personalized recommendations',
+      icon: Star,
+      href: '/dashboard/user/recommendations',
+      color: 'yellow' as const
+    }
+  ];
+
   return (
     <RoleBasedRoute allowedRoles={['user']} userRole={user.role}>
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-6">User Dashboard</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* User-specific content */}
-          <div className="bg-white rounded-lg p-6 border">
-            <h3 className="font-semibold mb-2">My Bookings</h3>
-            <p className="text-gray-600">View your event bookings</p>
-          </div>
-          <div className="bg-white rounded-lg p-6 border">
-            <h3 className="font-semibold mb-2">Favorites</h3>
-            <p className="text-gray-600">Your saved events and artists</p>
-          </div>
-          <div className="bg-white rounded-lg p-6 border">
-            <h3 className="font-semibold mb-2">Recommendations</h3>
-            <p className="text-gray-600">Personalized recommendations</p>
-          </div>
-        </div>
+      <div className="space-y-6">
+        <DashboardHeader
+          title="User Dashboard"
+          subtitle={`Welcome back, ${user.firstName}!`}
+          user={user}
+          userBadgeColor="bg-gray-100"
+          userBadgeText="User"
+        />
+        
+        <QuickActions actions={quickActions} />
       </div>
     </RoleBasedRoute>
   );

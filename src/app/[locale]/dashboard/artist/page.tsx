@@ -2,6 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { RoleBasedRoute } from '@/components/dashboard/RoleBasedRoute';
+import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
+import { DashboardStatsGrid } from '@/components/dashboard/DashboardStatsGrid';
+import { QuickActions } from '@/components/dashboard/QuickActions';
+import { DashboardCard } from '@/components/dashboard/DashboardCard';
 import { useAuthLogic } from '@/hooks/useAuth';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { 
@@ -49,21 +53,55 @@ export default function ArtistDashboard() {
   }, [user?.id, isLoading]);
 
   if (isLoading || loading) {
-    return <LoadingSpinner />;
+    return <LoadingSpinner text="Loading dashboard..." />;
   }
 
   if (!user) {
     return <div className="text-center">Please log in to view your dashboard.</div>;
   }
 
+  const quickActions = [
+    {
+      title: 'View Profile',
+      description: 'See your public profile',
+      icon: User,
+      href: '/dashboard/artist/profile',
+      color: 'blue' as const
+    },
+    {
+      title: 'Update Profile',
+      description: 'Request profile changes',
+      icon: Edit,
+      href: '/dashboard/artist/profile/update',
+      color: 'green' as const
+    },
+    {
+      title: 'Portfolio',
+      description: 'Manage your work',
+      icon: Camera,
+      href: '/dashboard/artist/portfolio',
+      color: 'purple' as const
+    },
+    {
+      title: 'Update Requests',
+      description: 'Track your requests',
+      icon: FileText,
+      href: '/dashboard/artist/update-requests',
+      color: 'orange' as const
+    }
+  ];
+
   return (
     <RoleBasedRoute allowedRoles={['artist']} userRole={user.role}>
       <div className="space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Artist Dashboard</h1>
-          <p className="text-gray-600">Manage your artist profile and track your performance</p>
-        </div>
+        <DashboardHeader
+          title="Artist Dashboard"
+          subtitle="Manage your artist profile and track your performance"
+          user={user}
+          userBadgeColor="bg-purple-100"
+          userBadgeText="Artist"
+        />
 
         {/* Error Message */}
         {error && (
@@ -87,98 +125,36 @@ export default function ArtistDashboard() {
           </div>
         ) : (
           <>
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center">
-                  <div className="p-3 bg-blue-100 rounded-lg">
-                    <Heart className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">Total Likes</p>
-                    <p className="text-2xl font-bold text-gray-900">{artist.likeCount}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center">
-                  <div className="p-3 bg-green-100 rounded-lg">
-                    <Star className="h-6 w-6 text-green-600" />
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">Experience</p>
-                    <p className="text-2xl font-bold text-gray-900">{artist.yearsOfExperience} years</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center">
-                  <div className="p-3 bg-purple-100 rounded-lg">
-                    <TrendingUp className="h-6 w-6 text-purple-600" />
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">Rate/Hour</p>
-                    <p className="text-2xl font-bold text-gray-900">${artist.pricePerHour}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* Stats Cards */}
+            <DashboardStatsGrid stats={[
+              {
+                title: 'Total Likes',
+                value: artist.likeCount,
+                icon: Heart,
+                iconColor: 'text-blue-600',
+                iconBgColor: 'bg-blue-100'
+              },
+              {
+                title: 'Experience',
+                value: `${artist.yearsOfExperience} years`,
+                icon: Star,
+                iconColor: 'text-green-600',
+                iconBgColor: 'bg-green-100'
+              },
+              {
+                title: 'Rate/Hour',
+                value: `$${artist.pricePerHour}`,
+                icon: TrendingUp,
+                iconColor: 'text-purple-600',
+                iconBgColor: 'bg-purple-100'
+              }
+            ]} />
 
             {/* Quick Actions */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Link
-                  href="/dashboard/artist/profile"
-                  className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <User className="h-8 w-8 text-blue-600 mr-3" />
-                  <div>
-                    <p className="font-medium text-gray-900">View Profile</p>
-                    <p className="text-sm text-gray-600">See your public profile</p>
-                  </div>
-                </Link>
-
-                <Link
-                  href="/dashboard/artist/profile/update"
-                  className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <Edit className="h-8 w-8 text-green-600 mr-3" />
-                  <div>
-                    <p className="font-medium text-gray-900">Update Profile</p>
-                    <p className="text-sm text-gray-600">Request profile changes</p>
-                  </div>
-                </Link>
-
-                <Link
-                  href="/dashboard/artist/portfolio"
-                  className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <Camera className="h-8 w-8 text-purple-600 mr-3" />
-                  <div>
-                    <p className="font-medium text-gray-900">Portfolio</p>
-                    <p className="text-sm text-gray-600">Manage your work</p>
-                  </div>
-                </Link>
-
-                <Link
-                  href="/dashboard/artist/update-requests"
-                  className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <FileText className="h-8 w-8 text-orange-600 mr-3" />
-                  <div>
-                    <p className="font-medium text-gray-900">Update Requests</p>
-                    <p className="text-sm text-gray-600">Track your requests</p>
-                  </div>
-                </Link>
-              </div>
-            </div>
+            <QuickActions actions={quickActions} />
 
             {/* Profile Summary */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Profile Summary</h2>
+            <DashboardCard title="Profile Summary">
               <div className="flex items-start space-x-4">
                 <div className="w-16 h-16 rounded-full border-2 border-gray-200 overflow-hidden bg-gray-100">
                   {artist.profileImage ? (
@@ -221,7 +197,7 @@ export default function ArtistDashboard() {
                   )}
                 </div>
               </div>
-            </div>
+            </DashboardCard>
           </>
         )}
       </div>

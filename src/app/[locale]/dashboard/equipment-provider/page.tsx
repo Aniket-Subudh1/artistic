@@ -2,6 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { RoleBasedRoute } from '@/components/dashboard/RoleBasedRoute';
+import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
+import { DashboardStatsGrid } from '@/components/dashboard/DashboardStatsGrid';
+import { QuickActions } from '@/components/dashboard/QuickActions';
+import { DashboardCard } from '@/components/dashboard/DashboardCard';
 import { useAuthLogic } from '@/hooks/useAuth';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { EquipmentService } from '@/services/equipment.service';
@@ -68,28 +72,28 @@ export default function EquipmentProviderDashboard() {
       description: 'Add new equipment to your inventory',
       icon: Plus,
       href: '/dashboard/equipment-provider/add',
-      color: 'green'
+      color: 'green' as const
     },
     {
       title: 'View Equipment',
       description: 'Manage your equipment listings',
       icon: Package,
       href: '/dashboard/equipment-provider',
-      color: 'blue'
+      color: 'blue' as const
     },
     {
       title: 'Settings',
       description: 'Manage account settings and preferences',
       icon: Settings,
       href: '/dashboard/equipment-provider/settings',
-      color: 'purple'
+      color: 'purple' as const
     },
     {
       title: 'Analytics',
       description: 'View performance and revenue analytics',
       icon: BarChart3,
       href: '/dashboard/equipment-provider/analytics',
-      color: 'orange'
+      color: 'orange' as const
     }
   ];
 
@@ -97,233 +101,159 @@ export default function EquipmentProviderDashboard() {
     <RoleBasedRoute allowedRoles={['equipment_provider']} userRole={user.role}>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Equipment Provider Dashboard</h1>
-            <p className="text-gray-600">Welcome back, {user.firstName}!</p>
-          </div>
-          
-          {/* User Badge */}
-          <div className="flex items-center space-x-2 bg-green-100 px-4 py-2 rounded-full">
-            <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
-              <span className="text-white font-medium text-sm">
-                {user.firstName.charAt(0)}
-              </span>
-            </div>
-            <span className="font-medium text-green-800">Equipment Provider</span>
-          </div>
-        </div>
+        <DashboardHeader
+          title="Equipment Provider Dashboard"
+          subtitle={`Welcome back, ${user.firstName}!`}
+          user={user}
+          userBadgeColor="bg-green-100"
+          userBadgeText="Equipment Provider"
+        />
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Equipment</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalEquipment}</p>
-              </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Package className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
-            <div className="mt-4 flex items-center text-sm">
-              <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-              <span className="text-green-600">+2 this month</span>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Available Items</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.availableEquipment}</p>
-              </div>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-green-600" />
-              </div>
-            </div>
-            <div className="mt-4 flex items-center text-sm">
-              <span className="text-gray-500">Ready for rental</span>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Bookings</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalBookings}</p>
-              </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-purple-600" />
-              </div>
-            </div>
-            <div className="mt-4 flex items-center text-sm">
-              <span className="text-gray-500">All time</span>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Monthly Revenue</p>
-                <p className="text-2xl font-bold text-gray-900">${stats.monthlyRevenue}</p>
-              </div>
-              <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                <DollarSign className="w-6 h-6 text-yellow-600" />
-              </div>
-            </div>
-            <div className="mt-4 flex items-center text-sm">
-              <span className="text-gray-500">This month</span>
-            </div>
-          </div>
-        </div>
+        <DashboardStatsGrid stats={[
+          {
+            title: 'Total Equipment',
+            value: stats.totalEquipment,
+            icon: Package,
+            iconColor: 'text-blue-600',
+            iconBgColor: 'bg-blue-100',
+            change: {
+              value: '+2 this month',
+              type: 'increase',
+              icon: TrendingUp
+            }
+          },
+          {
+            title: 'Available Items',
+            value: stats.availableEquipment,
+            icon: CheckCircle,
+            iconColor: 'text-green-600',
+            iconBgColor: 'bg-green-100',
+            subtitle: 'Ready for rental'
+          },
+          {
+            title: 'Total Bookings',
+            value: stats.totalBookings,
+            icon: Calendar,
+            iconColor: 'text-purple-600',
+            iconBgColor: 'bg-purple-100',
+            subtitle: 'All time'
+          },
+          {
+            title: 'Monthly Revenue',
+            value: `$${stats.monthlyRevenue}`,
+            icon: DollarSign,
+            iconColor: 'text-yellow-600',
+            iconBgColor: 'bg-yellow-100',
+            subtitle: 'This month'
+          }
+        ]} />
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {quickActions.map((action) => {
-              const Icon = action.icon;
-              const colorClasses = {
-                green: 'hover:border-green-300 hover:bg-green-50',
-                blue: 'hover:border-blue-300 hover:bg-blue-50',
-                purple: 'hover:border-purple-300 hover:bg-purple-50',
-                orange: 'hover:border-orange-300 hover:bg-orange-50'
-              };
-
-              const iconClasses = {
-                green: 'text-green-600',
-                blue: 'text-blue-600',
-                purple: 'text-purple-600',
-                orange: 'text-orange-600'
-              };
-
-              return (
-                <Link
-                  key={action.title}
-                  href={action.href}
-                  className={`p-4 border border-gray-200 rounded-lg ${colorClasses[action.color as keyof typeof colorClasses]} transition-colors text-left block`}
-                >
-                  <Icon className={`w-8 h-8 ${iconClasses[action.color as keyof typeof iconClasses]} mb-2`} />
-                  <h4 className="font-medium text-gray-900">{action.title}</h4>
-                  <p className="text-sm text-gray-500">{action.description}</p>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
+        <QuickActions actions={quickActions} />
 
         {/* Recent Equipment */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Recent Equipment List */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Recent Equipment</h3>
-                <Link href="/dashboard/equipment" className="text-green-600 hover:text-green-700 text-sm font-medium">
-                  View All
+          <DashboardCard 
+            title="Recent Equipment"
+            headerAction={{
+              text: 'View All',
+              href: '/dashboard/equipment-provider'
+            }}
+          >
+            {isLoadingData ? (
+              <div className="flex items-center justify-center h-32">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
+              </div>
+            ) : recentEquipment.length === 0 ? (
+              <div className="text-center py-8">
+                <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h4 className="text-lg font-medium text-gray-900 mb-2">No equipment yet</h4>
+                <p className="text-gray-600 mb-4">Start by adding your first equipment item</p>
+                <Link
+                  href="/dashboard/equipment-provider/add"
+                  className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Equipment
                 </Link>
               </div>
-            </div>
-            <div className="p-6">
-              {isLoadingData ? (
-                <div className="flex items-center justify-center h-32">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
-                </div>
-              ) : recentEquipment.length === 0 ? (
-                <div className="text-center py-8">
-                  <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h4 className="text-lg font-medium text-gray-900 mb-2">No equipment yet</h4>
-                  <p className="text-gray-600 mb-4">Start by adding your first equipment item</p>
-                  <Link
-                    href="/dashboard/equipment/add"
-                    className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Equipment
-                  </Link>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {recentEquipment.map((item) => (
-                    <div key={item._id} className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
-                          <Package className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900">{item.name}</p>
-                          <p className="text-sm text-gray-500">{item.category}</p>
-                        </div>
+            ) : (
+              <div className="space-y-4">
+                {recentEquipment.map((item) => (
+                  <div key={item._id} className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
+                        <Package className="w-5 h-5 text-white" />
                       </div>
-                      <div className="text-right">
-                        <p className="font-medium text-gray-900">${item.pricePerDay}/day</p>
-                        <p className="text-sm text-gray-500">{item.quantity} available</p>
+                      <div>
+                        <p className="font-medium text-gray-900">{item.name}</p>
+                        <p className="text-sm text-gray-500">{item.category}</p>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+                    <div className="text-right">
+                      <p className="font-medium text-gray-900">${item.pricePerDay}/day</p>
+                      <p className="text-sm text-gray-500">{item.quantity} available</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </DashboardCard>
 
           {/* Performance Overview */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-            <div className="p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Performance Overview</h3>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <Eye className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">Equipment Views</p>
-                      <p className="text-sm text-gray-500">Total profile views</p>
-                    </div>
+          <DashboardCard title="Performance Overview">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Eye className="w-5 h-5 text-blue-600" />
                   </div>
-                  <div className="text-right">
-                    <p className="font-medium text-gray-900">0</p>
-                    <p className="text-sm text-green-600">+0% this week</p>
+                  <div>
+                    <p className="font-medium text-gray-900">Equipment Views</p>
+                    <p className="text-sm text-gray-500">Total profile views</p>
                   </div>
                 </div>
+                <div className="text-right">
+                  <p className="font-medium text-gray-900">0</p>
+                  <p className="text-sm text-green-600">+0% this week</p>
+                </div>
+              </div>
 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                      <CheckCircle className="w-5 h-5 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">Booking Rate</p>
-                      <p className="text-sm text-gray-500">Conversion rate</p>
-                    </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
                   </div>
-                  <div className="text-right">
-                    <p className="font-medium text-gray-900">0%</p>
-                    <p className="text-sm text-gray-500">No data yet</p>
+                  <div>
+                    <p className="font-medium text-gray-900">Booking Rate</p>
+                    <p className="text-sm text-gray-500">Conversion rate</p>
                   </div>
                 </div>
+                <div className="text-right">
+                  <p className="font-medium text-gray-900">0%</p>
+                  <p className="text-sm text-gray-500">No data yet</p>
+                </div>
+              </div>
 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                      <Clock className="w-5 h-5 text-yellow-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">Response Time</p>
-                      <p className="text-sm text-gray-500">Avg. response to inquiries</p>
-                    </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-yellow-600" />
                   </div>
-                  <div className="text-right">
-                    <p className="font-medium text-gray-900">-</p>
-                    <p className="text-sm text-gray-500">No data yet</p>
+                  <div>
+                    <p className="font-medium text-gray-900">Response Time</p>
+                    <p className="text-sm text-gray-500">Avg. response to inquiries</p>
                   </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-medium text-gray-900">-</p>
+                  <p className="text-sm text-gray-500">No data yet</p>
                 </div>
               </div>
             </div>
-          </div>
+          </DashboardCard>
         </div>
 
         {/* Tips for Success */}

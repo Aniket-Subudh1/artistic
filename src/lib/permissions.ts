@@ -74,13 +74,46 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
 };
 
 export const getSidebarItems = (): SidebarItem[] => [
+  // Role-specific dashboard routes
   {
-    id: 'dashboard',
+    id: 'admin-dashboard',
     label: 'Dashboard',
     labelAr: 'لوحة التحكم',
     icon: 'LayoutDashboard',
+    href: '/dashboard/admin',
+    roles: ['super_admin', 'admin'],
+  },
+  {
+    id: 'artist-dashboard',
+    label: 'Dashboard', 
+    labelAr: 'لوحة التحكم',
+    icon: 'LayoutDashboard',
     href: '/dashboard',
-    roles: ['super_admin', 'admin', 'artist', 'equipment_provider', 'venue_owner', 'user'],
+    roles: ['artist'],
+  },
+  {
+    id: 'equipment-provider-dashboard',
+    label: 'Dashboard',
+    labelAr: 'لوحة التحكم', 
+    icon: 'LayoutDashboard',
+    href: '/dashboard',
+    roles: ['equipment_provider'],
+  },
+  {
+    id: 'venue-owner-dashboard',
+    label: 'Dashboard',
+    labelAr: 'لوحة التحكم',
+    icon: 'LayoutDashboard', 
+    href: '/dashboard',
+    roles: ['venue_owner'],
+  },
+  {
+    id: 'user-dashboard',
+    label: 'Dashboard',
+    labelAr: 'لوحة التحكم',
+    icon: 'LayoutDashboard',
+    href: '/dashboard', 
+    roles: ['user'],
   },
 
   // Admin Management Section
@@ -155,6 +188,14 @@ export const getSidebarItems = (): SidebarItem[] => [
         roles: ['artist'],
       },
       {
+        id: 'my-availability',
+        label: 'Availability Calendar',
+        labelAr: 'جدول التوفر',
+        icon: 'Calendar',
+        href: '/dashboard/artist/availability',
+        roles: ['artist'],
+      },
+      {
         id: 'profile-update-requests',
         label: 'Update Requests',
         labelAr: 'طلبات التحديث',
@@ -179,7 +220,6 @@ export const getSidebarItems = (): SidebarItem[] => [
         icon: 'FileText',
         href: '/dashboard/admin/applications',
         roles: ['super_admin', 'admin'],
-        badge: 'new',
       },
       {
         id: 'artist-types',
@@ -208,16 +248,6 @@ export const getSidebarItems = (): SidebarItem[] => [
     icon: 'Package',
     roles: ['super_admin', 'admin', 'equipment_provider'],
     children: [
-      // Equipment Provider Dashboard
-      {
-        id: 'equipment-provider-dashboard',
-        label: 'Provider Dashboard',
-        labelAr: 'لوحة مزود المعدات',
-        icon: 'LayoutDashboard',
-        href: '/dashboard/equipment-provider',
-        roles: ['equipment_provider'],
-      },
-      
       // Equipment Provider specific
       {
         id: 'add-equipment',

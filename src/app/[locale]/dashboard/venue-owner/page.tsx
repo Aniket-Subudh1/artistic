@@ -2,8 +2,11 @@
 
 import React from 'react';
 import { RoleBasedRoute } from '@/components/dashboard/RoleBasedRoute';
+import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
+import { QuickActions } from '@/components/dashboard/QuickActions';
 import { useAuthLogic } from '@/hooks/useAuth';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { MapPin, Calendar, Settings } from 'lucide-react';
 
 export default function VenueOwnerDashboard() {
   const { user, isLoading } = useAuthLogic();
@@ -12,24 +15,42 @@ export default function VenueOwnerDashboard() {
     return <LoadingSpinner text="Loading venue owner dashboard..." />;
   }
 
+  const quickActions = [
+    {
+      title: 'My Venues',
+      description: 'Manage your venue listings',
+      icon: MapPin,
+      href: '/dashboard/venue-owner/venues',
+      color: 'blue' as const
+    },
+    {
+      title: 'Bookings',
+      description: 'View venue bookings',
+      icon: Calendar,
+      href: '/dashboard/venue-owner/bookings',
+      color: 'green' as const
+    },
+    {
+      title: 'Calendar',
+      description: 'Manage availability',
+      icon: Settings,
+      href: '/dashboard/venue-owner/calendar',
+      color: 'orange' as const
+    }
+  ];
+
   return (
     <RoleBasedRoute allowedRoles={['venue_owner']} userRole={user.role}>
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-6">Venue Owner Dashboard</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="bg-white rounded-lg p-6 border">
-            <h3 className="font-semibold mb-2">My Venues</h3>
-            <p className="text-gray-600">Manage your venue listings</p>
-          </div>
-          <div className="bg-white rounded-lg p-6 border">
-            <h3 className="font-semibold mb-2">Bookings</h3>
-            <p className="text-gray-600">View venue bookings</p>
-          </div>
-          <div className="bg-white rounded-lg p-6 border">
-            <h3 className="font-semibold mb-2">Calendar</h3>
-            <p className="text-gray-600">Manage availability</p>
-          </div>
-        </div>
+      <div className="space-y-6">
+        <DashboardHeader
+          title="Venue Owner Dashboard"
+          subtitle={`Welcome back, ${user.firstName}!`}
+          user={user}
+          userBadgeColor="bg-orange-100"
+          userBadgeText="Venue Owner"
+        />
+        
+        <QuickActions actions={quickActions} />
       </div>
     </RoleBasedRoute>
   );
