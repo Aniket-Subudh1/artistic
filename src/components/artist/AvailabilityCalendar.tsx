@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Calendar, Clock, CheckCircle, XCircle, Info } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Clock, CheckCircle, XCircle, Info, RefreshCw } from 'lucide-react';
 import { artistAvailabilityService, UnavailabilitySlot, AvailabilityRecord } from '@/services/artist-availability.service';
 
 interface AvailabilityStatus {
@@ -27,6 +27,7 @@ export const AvailabilityCalendar: React.FC<CalendarProps> = ({ className = '' }
   const [selectedTimeSlots, setSelectedTimeSlots] = useState<number[]>([]);
   const [availabilityStatus, setAvailabilityStatus] = useState<AvailabilityStatus>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(false);
   const [isMarkingAvailable, setIsMarkingAvailable] = useState(false);
   const [isBackendConnected, setIsBackendConnected] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -139,6 +140,65 @@ export const AvailabilityCalendar: React.FC<CalendarProps> = ({ className = '' }
     }
   };
 
+  // Function to load/refresh availability data
+  const loadAvailabilityData = async () => {
+    setIsLoadingData(true);
+    setError(null);
+    
+    try {
+      // Check if user is authenticated
+      const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
+      const user = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+      
+      if (!token || !user) {
+        throw new Error('Not authenticated. Please login again.');
+      }
+      
+      const records = await artistAvailabilityService.getMyUnavailability();
+      
+      if (!Array.isArray(records)) {
+        throw new Error('Invalid response format from server');
+      }
+      
+      const statusMap: AvailabilityStatus = {};
+      
+      records.forEach((record) => {
+        // Convert the date to the correct format (YYYY-MM-DD)
+        const date = new Date(record.date);
+        const dateKey = date.toISOString().split('T')[0];
+        
+        statusMap[dateKey] = {
+          isFullDayUnavailable: record.hours.length === 24,
+          unavailableHours: record.hours
+        };
+      });
+      
+      setAvailabilityStatus(statusMap);
+      setIsBackendConnected(true);
+      
+      return true;
+    } catch (err: any) {
+      // Check if it's a backend connection issue
+      if (err.message?.includes('Cannot GET') || 
+          err.message?.includes('Network error') || 
+          err.message?.includes('server unavailable') ||
+          err.message?.includes('Failed to fetch') ||
+          err.message?.includes('fetch')) {
+        setIsBackendConnected(false);
+        setError('Backend server is not connected. Please ensure the server is running on port 5000.');
+      } else if (err.message?.includes('Not authenticated') || 
+                 err.message?.includes('Unauthorized') ||
+                 err.message?.includes('401')) {
+        setError('Authentication expired. Please login again.');
+      } else {
+        setError(`Failed to load availability data: ${err.message || 'Unknown error'}`);
+      }
+      return false;
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
+
   const handleSaveAvailability = async () => {
     if (!selectedDate) return;
 
@@ -162,14 +222,8 @@ export const AvailabilityCalendar: React.FC<CalendarProps> = ({ className = '' }
         slots: [unavailabilityData]
       });
 
-      // Update local state
-      setAvailabilityStatus(prev => ({
-        ...prev,
-        [dateKey]: {
-          isFullDayUnavailable: selectedTimeSlots.length === 24,
-          unavailableHours: selectedTimeSlots
-        }
-      }));
+      // Refresh data from server instead of just updating local state
+      await loadAvailabilityData();
 
       setSuccess('Availability updated successfully!');
       setSelectedDate(null);
@@ -210,32 +264,8 @@ export const AvailabilityCalendar: React.FC<CalendarProps> = ({ className = '' }
         slots: [unavailabilityData]
       });
 
-      // Update local state
-      if (selectedTimeSlots.length === 24 || selectedTimeSlots.length === 0) {
-        // Remove entire day
-        const newStatus = { ...availabilityStatus };
-        delete newStatus[dateKey];
-        setAvailabilityStatus(newStatus);
-      } else {
-        // Remove specific hours
-        const remainingHours = currentStatus.unavailableHours.filter(
-          hour => !selectedTimeSlots.includes(hour)
-        );
-        
-        if (remainingHours.length === 0) {
-          const newStatus = { ...availabilityStatus };
-          delete newStatus[dateKey];
-          setAvailabilityStatus(newStatus);
-        } else {
-          setAvailabilityStatus(prev => ({
-            ...prev,
-            [dateKey]: {
-              isFullDayUnavailable: false,
-              unavailableHours: remainingHours
-            }
-          }));
-        }
-      }
+      // Refresh data from server instead of manual state management
+      await loadAvailabilityData();
 
       setSuccess('Availability updated successfully!');
       setSelectedDate(null);
@@ -258,54 +288,17 @@ export const AvailabilityCalendar: React.FC<CalendarProps> = ({ className = '' }
     }
   }, [success, error]);
 
-  // Load existing unavailability data
+  // Load existing unavailability data on component mount
   useEffect(() => {
-    const loadAvailabilityData = async () => {
-      try {
-        const records = await artistAvailabilityService.getMyUnavailability();
-        const statusMap: AvailabilityStatus = {};
-        
-        records.forEach(record => {
-          const dateKey = record.date;
-          statusMap[dateKey] = {
-            isFullDayUnavailable: record.hours.length === 24,
-            unavailableHours: record.hours
-          };
-        });
-        
-        setAvailabilityStatus(statusMap);
-      } catch (err: any) {
-        console.error('Failed to load availability data:', err);
-        // Check if it's a backend connection issue
-        if (err.message?.includes('Cannot GET') || err.message?.includes('Network error')) {
-          setIsBackendConnected(false);
-        } else {
-          setError('Failed to load your current availability settings. You can still set new availability.');
-        }
-      }
-    };
-
     loadAvailabilityData();
   }, []);
 
   const retryConnection = async () => {
     setError(null);
-    try {
-      const records = await artistAvailabilityService.getMyUnavailability();
-      const statusMap: AvailabilityStatus = {};
-      
-      records.forEach(record => {
-        const dateKey = record.date;
-        statusMap[dateKey] = {
-          isFullDayUnavailable: record.hours.length === 24,
-          unavailableHours: record.hours
-        };
-      });
-      
-      setAvailabilityStatus(statusMap);
-      setIsBackendConnected(true);
+    const success = await loadAvailabilityData();
+    if (success) {
       setSuccess('Successfully connected to backend server!');
-    } catch (err: any) {
+    } else {
       setError('Still unable to connect to backend server.');
     }
   };
@@ -335,6 +328,14 @@ export const AvailabilityCalendar: React.FC<CalendarProps> = ({ className = '' }
               className="px-6 py-2.5 text-sm font-semibold text-blue-700 bg-blue-50 rounded-xl hover:bg-blue-100 border border-blue-200 transition-all duration-200 shadow-sm"
             >
               Today
+            </button>
+            <button
+              onClick={loadAvailabilityData}
+              disabled={isLoadingData}
+              className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-green-700 bg-green-50 rounded-xl hover:bg-green-100 border border-green-200 transition-all duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <RefreshCw className={`w-4 h-4 ${isLoadingData ? 'animate-spin' : ''}`} />
+              {isLoadingData ? 'Loading...' : 'Refresh'}
             </button>
             <div className="flex items-center bg-white rounded-xl p-1 shadow-sm border border-gray-200">
               <button

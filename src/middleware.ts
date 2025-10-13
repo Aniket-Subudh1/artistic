@@ -5,7 +5,6 @@ import { routing } from './i18n/routing';
 export default function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
-  // Handle redirects for old dashboard routes
   if (pathname.includes('/dashboard/provider-dashboard') || 
       pathname.includes('/dashboard/equipment-provider-dashboard')) {
     const url = request.nextUrl.clone();
@@ -16,7 +15,6 @@ export default function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Continue with next-intl middleware
   return createMiddleware(routing)(request);
 }
 

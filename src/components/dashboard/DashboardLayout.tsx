@@ -35,9 +35,8 @@ export function DashboardLayout({ user, children, onLogout, onEditProfilePicture
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className="min-h-screen bg-gray-50 flex" dir={isRTL ? 'rtl' : 'ltr'}>
     
-      {/* Mobile overlay */}
       {isMobileSidebarOpen && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
@@ -45,7 +44,6 @@ export function DashboardLayout({ user, children, onLogout, onEditProfilePicture
         />
       )}
 
-      {/* Sidebar */}
       <div className={`
         fixed inset-y-0 z-50 h-screen
         transform transition-transform duration-300 ease-in-out
@@ -53,13 +51,15 @@ export function DashboardLayout({ user, children, onLogout, onEditProfilePicture
         ${isRTL ? 'right-0' : 'left-0'}
         ${isSidebarCollapsed ? 'w-20' : 'w-72'}
       `}>
-        <div className="bg-gradient-to-b from-slate-50 to-white h-full flex flex-col shadow-2xl border-r border-slate-200/50" 
-             style={{ 
-               borderRightWidth: isRTL ? '0' : '1px',
-               borderLeftWidth: isRTL ? '1px' : '0'
-             }}>
+        <div className={`
+          bg-gradient-to-b from-slate-50 to-white h-full flex flex-col shadow-lg
+          border-t border-b border-slate-300/40
+          ${isRTL 
+            ? 'border-r border-slate-300/40 rounded-tr-3xl rounded-br-3xl' 
+            : 'border-l border-slate-300/40 rounded-tl-3xl rounded-bl-3xl'
+          }
+        `}>
           
-          {/* User Profile Section */}
           <div className="p-2 border-b border-slate-200/30 flex-shrink-0 bg-gradient-to-r from-slate-50/80 via-white/80 to-slate-50/80 backdrop-blur-sm overflow-hidden">
             <UserProfile 
               user={user} 
@@ -70,9 +70,7 @@ export function DashboardLayout({ user, children, onLogout, onEditProfilePicture
             />
           </div>
 
-          {/* Navigation Section with Fixed Header and Scrollable Content */}
           <div className="flex-1 flex flex-col bg-gradient-to-b from-white/90 to-slate-50/90 backdrop-blur-sm min-h-0">
-            {/* Fixed Navigation Header */}
             {!isSidebarCollapsed && (
               <div className="flex-shrink-0 p-3 border-b border-slate-200/30 bg-white/60 backdrop-blur-sm">
                 <h3 className="text-xs text-center font-bold text-slate-500 uppercase tracking-wider">
@@ -82,7 +80,6 @@ export function DashboardLayout({ user, children, onLogout, onEditProfilePicture
               </div>
             )}
             
-            {/* Scrollable Navigation Content */}
             <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
               <Sidebar 
                 user={user}
@@ -95,7 +92,6 @@ export function DashboardLayout({ user, children, onLogout, onEditProfilePicture
         </div>
       </div>
 
-      {/* Mobile menu button */}
       <button
         onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
         className={`
@@ -121,9 +117,13 @@ export function DashboardLayout({ user, children, onLogout, onEditProfilePicture
           : (isSidebarCollapsed ? 'ml-20 lg:ml-20' : 'ml-0 lg:ml-72')
         }
       `}>
-        <main className="min-h-screen overflow-auto bg-slate-50">
-          <div className="p-8">
-            {children}
+        <main className="min-h-screen overflow-auto bg-gray-50">
+          <div className="p-6 md:p-8">
+            <div className="min-h-[calc(100vh-3rem)] bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="p-6 md:p-8 h-full">
+                {children}
+              </div>
+            </div>
           </div>
         </main>
 

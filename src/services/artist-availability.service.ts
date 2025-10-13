@@ -72,11 +72,10 @@ class ArtistAvailabilityService {
    */
   async getMyUnavailability(): Promise<AvailabilityRecord[]> {
     try {
-      return await apiRequest('/artist-availability/my-unavailability', {
+      return await apiRequest<AvailabilityRecord[]>('/artist-availability/my-unavailability', {
         method: 'GET',
       });
     } catch (error: any) {
-      console.error('Error fetching unavailability data:', error);
       throw new Error(error.message || 'Failed to fetch availability data');
     }
   }

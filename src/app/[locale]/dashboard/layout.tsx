@@ -5,7 +5,6 @@ import { useRouter } from '@/i18n/routing';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useAuthLogic } from '@/hooks/useAuth';
-import { Navbar } from '@/components/main/Navbar';
 
 export default function DashboardLayoutPage({
   children,
