@@ -213,16 +213,13 @@ export default function HomePage() {
             className="select-none opacity-10 max-w-[2000px] relative h-auto"
           />
         </div>
-        {/* Subtle glass overlay effect */}
         <div className="absolute inset-0 bg-gradient-to-br from-white/3 via-transparent to-white/2"></div>
       </div>
       
       <Navbar />
 
-      {/* Extracted carousel */}
       <HeroCarousel slides={carouselSlides} />
       <TitleTag />
-      {/* Featured Events */}
       <section className="py-20 max-w-7xl mx-auto px-6 relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-5xl font-bold text-gray-900 mb-6 relative">
@@ -289,7 +286,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Book Your Artist */}
       <section className="py-20 relative z-10">
         <div className="absolute inset-0 bg-gradient-to-r from-gray-50 to-purple-50" />
         <div className="max-w-7xl mx-auto px-6 relative">
@@ -358,7 +354,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Book Equipment */}
       <section className="py-20 max-w-7xl mx-auto px-6 relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-5xl font-bold text-gray-900 mb-6 relative">
@@ -462,7 +457,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Testimonials */}
       <section className="py-20 relative z-10">
         <div className="absolute inset-0 bg-gradient-to-r from-gray-50 to-purple-50" />
         <div className="max-w-7xl mx-auto px-6 relative">
@@ -536,7 +530,6 @@ export default function HomePage() {
 
       <Footer />
 
-      {/* Enhanced floating animations for watermark */}
       <style jsx>{`
         @keyframes float-slow {
           0%, 100% {

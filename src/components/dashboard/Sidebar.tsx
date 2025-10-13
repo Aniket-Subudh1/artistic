@@ -109,7 +109,16 @@ export function Sidebar({ user, isCollapsed, onToggleCollapse, onLogout }: Sideb
 
   const isActive = (href?: string) => {
     if (!href) return false;
-    return pathname === href || pathname.startsWith(href + '/');
+    
+    if (href === '/dashboard') {
+      return pathname === '/dashboard';
+    }
+    
+    if (href === '/dashboard/admin') {
+      return pathname === '/dashboard/admin';
+    }
+    
+    return pathname === href || (pathname.startsWith(href + '/') && href !== '/dashboard');
   };
 
   const getIcon = (iconName: string, className: string = "w-5 h-5") => {
@@ -128,23 +137,23 @@ export function Sidebar({ user, isCollapsed, onToggleCollapse, onLogout }: Sideb
     const iconSize = isCollapsed && level === 0 ? "w-6 h-6" : level > 0 ? "w-4 h-4" : "w-4 h-4";
 
     const itemClasses = `
-      flex items-center w-full rounded-lg transition-all duration-200
+      flex items-center w-full rounded-2xl transition-all duration-300 transform hover:scale-105 overflow-hidden sidebar-item
       ${isCollapsed && level === 0 
-        ? 'justify-center px-2 py-2.5' 
+        ? 'justify-center px-3 py-3' 
         : level > 0 
-        ? 'ml-4 pl-3 border-l border-slate-200 px-2 py-1.5 text-xs max-w-full' 
-        : 'px-3 py-2 text-sm'
+        ? 'ml-4 pl-4 border-l-2 border-slate-200 px-3 py-2 text-xs max-w-full truncate' 
+        : 'px-4 py-3 text-sm'
       }
       ${level > 0 ? 'text-xs' : 'text-sm'}
       ${itemIsActive 
         ? level > 0 
-          ? 'bg-indigo-50 text-indigo-700 font-medium border-l-indigo-300' 
-          : 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold'
+          ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 font-semibold border-l-indigo-400 shadow-md' 
+          : 'bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 text-white font-bold shadow-xl hover:shadow-2xl'
         : hasActiveChild
-        ? 'bg-indigo-50 text-indigo-700 font-medium'
+        ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 font-semibold shadow-sm'
         : level > 0 
-        ? 'text-slate-600 hover:bg-slate-50 hover:text-slate-800 font-normal'
-        : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 font-medium'
+        ? 'text-slate-600 hover:bg-gradient-to-r hover:from-slate-50 hover:to-slate-100 hover:text-slate-800 font-medium hover:shadow-sm'
+        : 'text-slate-700 hover:bg-gradient-to-r hover:from-slate-100 hover:to-slate-200 hover:text-slate-900 font-medium hover:shadow-md'
       }
     `;
 
@@ -158,11 +167,11 @@ export function Sidebar({ user, isCollapsed, onToggleCollapse, onLogout }: Sideb
           {getIcon(item.icon, iconSize)}
           {!isCollapsed && (
             <>
-              <span className="ml-2 flex-1 text-left rtl:text-right">
+              <span className="ml-2 flex-1 text-left rtl:text-right truncate">
                 {locale === 'ar' ? item.labelAr : item.label}
               </span>
               {item.badge && (
-                <span className="ml-2 px-2.5 py-1 text-xs bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg font-semibold shadow-sm">
+                <span className="ml-2 px-3 py-1.5 text-xs bg-gradient-to-r from-red-500 via-pink-500 to-red-600 text-white rounded-full font-bold shadow-lg animate-pulse flex-shrink-0">
                   {item.badge === 'new' ? (locale === 'ar' ? 'جديد' : 'New') : item.badge}
                 </span>
               )}
@@ -181,16 +190,16 @@ export function Sidebar({ user, isCollapsed, onToggleCollapse, onLogout }: Sideb
           {getIcon(item.icon, iconSize)}
           {!isCollapsed && (
             <>
-              <span className="ml-2 flex-1 text-left rtl:text-right">
+              <span className="ml-2 flex-1 text-left rtl:text-right truncate">
                 {locale === 'ar' ? item.labelAr : item.label}
               </span>
               {item.badge && (
-                <span className="ml-2 px-2.5 py-1 text-xs bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg font-semibold shadow-sm">
+                <span className="ml-2 px-3 py-1.5 text-xs bg-gradient-to-r from-red-500 via-pink-500 to-red-600 text-white rounded-full font-bold shadow-lg animate-pulse flex-shrink-0">
                   {item.badge === 'new' ? (locale === 'ar' ? 'جديد' : 'New') : item.badge}
                 </span>
               )}
               {hasChildren && (
-                <div className="ml-2">
+                <div className="ml-2 flex-shrink-0">
                   {isExpanded ? (
                     <ChevronDown className="w-4 h-4" />
                   ) : (
@@ -203,7 +212,7 @@ export function Sidebar({ user, isCollapsed, onToggleCollapse, onLogout }: Sideb
         </button>
 
         {hasChildren && (isExpanded || isCollapsed) && !isCollapsed && (
-          <div className="mt-1 space-y-1 overflow-hidden">
+          <div className="mt-1 space-y-1 overflow-hidden max-w-full">
             {item.children.map((child: any) => renderSidebarItem(child, level + 1))}
           </div>
         )}
@@ -212,17 +221,17 @@ export function Sidebar({ user, isCollapsed, onToggleCollapse, onLogout }: Sideb
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 px-3 py-3 space-y-1 overflow-y-auto">
+    <div className="h-full sidebar-layout">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 py-2 space-y-1 smooth-scroll">
         {sidebarItems.map(item => renderSidebarItem(item))}
       </div>
 
-      <div className="p-2 border-t border-slate-100">
+      <div className="flex-shrink-0 p-2 border-t border-slate-200/50 bg-gradient-to-r from-white/80 to-slate-50/80 backdrop-blur-sm">
         <div className="flex justify-center">
           <button 
             onClick={onLogout}
-            className={`flex items-center space-x-2 rtl:space-x-reverse px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium ${
-              isCollapsed ? 'justify-center px-2' : ''
+            className={`flex items-center space-x-2 rtl:space-x-reverse px-4 py-3 text-sm text-red-600 hover:bg-red-50 rounded-2xl transition-all duration-300 font-medium shadow-sm hover:shadow-md border border-red-100 hover:border-red-200 ${
+              isCollapsed ? 'justify-center px-3' : ''
             }`}
           >
             <LogOut className="w-4 h-4" />
@@ -231,7 +240,7 @@ export function Sidebar({ user, isCollapsed, onToggleCollapse, onLogout }: Sideb
         </div>
       </div>
 
-      <div className="p-2 border-t border-slate-100 bg-slate-50">
+      <div className="flex-shrink-0 p-3 border-t border-slate-200/50 bg-gradient-to-r from-slate-50/80 to-white/80 backdrop-blur-sm">
         {!isCollapsed ? (
           <div className="flex items-center justify-center text-xs text-slate-500">
             <Image
