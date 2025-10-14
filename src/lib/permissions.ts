@@ -250,21 +250,22 @@ export const getSidebarItems = (): SidebarItem[] => [
     children: [
       // Equipment Provider specific
       {
-        id: 'add-equipment',
-        label: 'Add Equipment',
-        labelAr: 'إضافة معدات',
-        icon: 'Plus',
-        href: '/dashboard/equipment-provider/add',
+        id: 'equipment-management',
+        label: 'Equipment Management',
+        labelAr: 'إدارة المعدات',
+        icon: 'Package',
+        href: '/dashboard/equipment-provider/equipment-management',
         roles: ['equipment_provider'],
       },
       {
-        id: 'equipment-settings',
-        label: 'Settings',
-        labelAr: 'الإعدادات',
-        icon: 'Settings',
-        href: '/dashboard/equipment-provider/settings',
+        id: 'equipment-packages',
+        label: 'Equipment Packages',
+        labelAr: 'حزم المعدات',
+        icon: 'Package2',
+        href: '/dashboard/equipment-provider/packages',
         roles: ['equipment_provider'],
       },
+     
       
       // Admin Equipment Management
       {
@@ -273,6 +274,14 @@ export const getSidebarItems = (): SidebarItem[] => [
         labelAr: 'جميع المعدات',
         icon: 'Package2',
         href: '/dashboard/admin/equipment',
+        roles: ['super_admin', 'admin'],
+      },
+      {
+        id: 'manage-packages',
+        label: 'Manage Packages',
+        labelAr: 'إدارة الحزم',
+        icon: 'Package',
+        href: '/dashboard/admin/packages',
         roles: ['super_admin', 'admin'],
       },
       {

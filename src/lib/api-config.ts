@@ -65,6 +65,21 @@ export const API_CONFIG = {
       MY_EQUIPMENT: '/equipment/my-equipment',
       BOOKINGS: '/equipment/bookings',
     },
+    EQUIPMENT_PACKAGES: {
+      CREATE: '/equipment-packages/create',
+      MY_PACKAGES: '/equipment-packages/equipment-provider/list',
+      PUBLIC: '/equipment-packages/public',
+      PENDING_REVIEW: '/equipment-packages/pending-review',
+      ADMIN_ALL: '/equipment-packages/admin/all',
+      SUBMIT_FOR_REVIEW: (id: string) => `/equipment-packages/submit-for-review/${id}`,
+      UPDATE: (id: string) => `/equipment-packages/update/${id}`,
+      DELETE: (id: string) => `/equipment-packages/delete/${id}`,
+      APPROVE: (id: string) => `/equipment-packages/approve/${id}`,
+      REJECT: (id: string) => `/equipment-packages/reject/${id}`,
+      TOGGLE_VISIBILITY: (id: string) => `/equipment-packages/visibility/${id}`,
+      UPLOAD_IMAGES: (id: string) => `/equipment-packages/upload-images/${id}`,
+      UPLOAD_COVER_IMAGE: (id: string) => `/equipment-packages/upload-cover-image/${id}`,
+    },
     EQUIPMENT_PROVIDER: {
       SIGNUP: '/equipment-provider',
       CREATE: '/equipment-provider', // Admin creation endpoint

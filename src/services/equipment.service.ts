@@ -1,4 +1,5 @@
 import { API_CONFIG, apiRequest } from '@/lib/api-config';
+import { equipmentPackagesService } from './equipment-packages.service';
 
 export interface Equipment {
   _id: string;
@@ -15,10 +16,14 @@ export interface Equipment {
 }
 
 export const EQUIPMENT_CATEGORIES = [
-  { value: 'SOUND', label: 'Sound Equipment' },
-  { value: 'DISPLAY', label: 'Display Equipment' },
-  { value: 'LIGHT', label: 'Lighting Equipment' },
-  { value: 'OTHER', label: 'Other Equipment' }
+  { value: 'SOUND', label: 'Sound Equipment', description: 'Speakers, microphones, mixers, amplifiers' },
+  { value: 'DISPLAY', label: 'Display Equipment', description: 'Projectors, screens, monitors, LED walls' },
+  { value: 'LIGHT', label: 'Lighting Equipment', description: 'Stage lights, spotlights, LED strips, controllers' },
+  { value: 'CAMERA', label: 'Camera Equipment', description: 'Cameras, lenses, tripods, stabilizers' },
+  { value: 'STAGING', label: 'Staging Equipment', description: 'Platforms, trusses, barriers, backdrops' },
+  { value: 'POWER', label: 'Power Equipment', description: 'Generators, power distributors, cables' },
+  { value: 'TRANSPORT', label: 'Transport Equipment', description: 'Dollies, carts, cases, rigging' },
+  { value: 'OTHER', label: 'Other Equipment', description: 'Custom category for specialized equipment' }
 ];
 
 export class EquipmentService {
@@ -75,10 +80,40 @@ export class EquipmentService {
     return response.json();
   }
 
-  static async deleteEquipment(id: string): Promise<{ message: string }> {
-    return apiRequest<{ message: string }>(API_CONFIG.ENDPOINTS.EQUIPMENT.DELETE(id), {
+  static async deleteEquipment(equipmentId: string): Promise<{ message: string }> {
+    return apiRequest<{ message: string }>(API_CONFIG.ENDPOINTS.EQUIPMENT.DELETE(equipmentId), {
       method: 'DELETE',
     });
+  }
+
+  static async checkEquipmentInPackages(equipmentId: string): Promise<{ isUsedInPackages: boolean; packages: any[] }> {
+    try {
+      // Get all packages for the current user
+      const packages = await equipmentPackagesService.getMyPackages();
+      
+      // Check if any package contains this equipment
+      const packagesUsingEquipment = packages.filter(pkg => 
+        pkg.items.some(item => {
+          // Handle both populated and non-populated equipment references
+          const itemEquipmentId = typeof item.equipmentId === 'string' 
+            ? item.equipmentId 
+            : item.equipmentId._id;
+          return itemEquipmentId === equipmentId;
+        })
+      );
+      
+      return {
+        isUsedInPackages: packagesUsingEquipment.length > 0,
+        packages: packagesUsingEquipment.map(pkg => ({
+          _id: pkg._id,
+          name: pkg.name,
+          status: pkg.status
+        }))
+      };
+    } catch (error) {
+      console.error('Error checking equipment in packages:', error);
+      return { isUsedInPackages: false, packages: [] };
+    }
   }
 
   static async getEquipmentById(id: string): Promise<Equipment> {

@@ -1,8 +1,8 @@
 import { apiRequest, authenticatedFetch } from '@/lib/api-config';
 
 export interface UnavailabilitySlot {
-  date: string; // "2025-10-21"
-  hours?: number[]; // [18,19,20] or undefined for full day
+  date: string; 
+  hours?: number[]; 
 }
 
 export interface BulkUnavailabilityDto {
@@ -19,19 +19,17 @@ export interface AvailableArtist {
   _id: string;
   name: string;
   email: string;
-  // Add other artist profile fields as needed
 }
 
 export interface AvailabilitySearchParams {
-  date: string; // "2025-10-21"
+  date: string; 
   startHour: number;
   endHour: number;
 }
 
+
 class ArtistAvailabilityService {
-  /**
-   * Search for available artists on a specific date and time range
-   */
+ 
   async searchAvailableArtists(params: AvailabilitySearchParams): Promise<AvailableArtist[]> {
     try {
       const queryParams = new URLSearchParams({
@@ -49,9 +47,7 @@ class ArtistAvailabilityService {
     }
   }
 
-  /**
-   * Mark specific dates/hours as unavailable for the current artist (bulk operation)
-   */
+
   async markUnavailableBulk(unavailabilityData: BulkUnavailabilityDto): Promise<{ message: string }> {
     try {
       return await apiRequest('/artist-availability/bulk', {
@@ -67,9 +63,7 @@ class ArtistAvailabilityService {
     }
   }
 
-  /**
-   * Get current artist's unavailability records
-   */
+ 
   async getMyUnavailability(): Promise<AvailabilityRecord[]> {
     try {
       return await apiRequest<AvailabilityRecord[]>('/artist-availability/my-unavailability', {
@@ -80,9 +74,7 @@ class ArtistAvailabilityService {
     }
   }
 
-  /**
-   * Remove unavailability (mark as available again) for specific dates/hours
-   */
+ 
   async removeUnavailability(unavailabilityData: BulkUnavailabilityDto): Promise<{ message: string }> {
     try {
       return await apiRequest('/artist-availability/remove', {
@@ -98,26 +90,19 @@ class ArtistAvailabilityService {
     }
   }
 
-  /**
-   * Helper method to mark a single date as unavailable
-   */
+ 
   async markDateUnavailable(date: string, hours?: number[]): Promise<{ message: string }> {
     return this.markUnavailableBulk({
       slots: [{ date, hours }]
     });
   }
 
-  /**
-   * Helper method to mark multiple dates as unavailable
-   */
+
   async markDatesUnavailable(dates: string[], hours?: number[]): Promise<{ message: string }> {
     const slots = dates.map(date => ({ date, hours }));
     return this.markUnavailableBulk({ slots });
   }
 
-  /**
-   * Helper method to mark time range as unavailable for a specific date
-   */
   async markTimeRangeUnavailable(date: string, startHour: number, endHour: number): Promise<{ message: string }> {
     const hours: number[] = [];
     for (let i = startHour; i < endHour; i++) {

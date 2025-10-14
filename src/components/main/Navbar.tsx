@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useTranslations, useLocale } from 'next-intl'
 import { Link, useRouter, usePathname } from '@/i18n/routing'
 import Image from "next/image"
-import { Users, Music, Calendar, Languages, Mic, Piano } from "lucide-react"
+import { Users, Music, Calendar, Languages, Mic, Package } from "lucide-react"
 
 export function Navbar() {
   const t = useTranslations('nav')
@@ -85,10 +85,10 @@ export function Navbar() {
           description: t('bookArtistDesc')
         },
         {
-          href: "/book-equipment",
-          label: t('bookEquipment'),
-          icon: Piano,
-          description: t('bookEquipmentDesc')
+          href: "/packages",
+          label: t('bookEquipmentPackages'),
+          icon: Package,
+          description: t('bookEquipmentPackagesDesc')
         }
       ]
     },

@@ -13,6 +13,8 @@
     "bookArtistDesc": "Find and book artists",
     "bookEquipment": "Book Equipment",
     "bookEquipmentDesc": "Rent professional equipment",
+    "bookEquipmentPackages": "Book Equipment Packages",
+    "bookEquipmentPackagesDesc": "Rent curated equipment packages",
     "signIn": "Sign In",
     "joinUs": "Join Us"
   },
