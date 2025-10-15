@@ -5,6 +5,7 @@ import {
   Package, Users, Clock, Calendar, 
   ShoppingCart, Eye, ArrowRight, CheckCircle, User
 } from 'lucide-react';
+import { Link } from '@/i18n/routing';
 import { equipmentPackagesService, EquipmentPackage } from '@/services/equipment-packages.service';
 
 interface PublicPackagesProps {
@@ -37,16 +38,6 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleBookPackage = (packageId: string) => {
-    // TODO: Implement booking functionality
-    console.log('Booking package:', packageId);
-  };
-
-  const handleViewPackage = (packageId: string) => {
-    // TODO: Implement view package details
-    console.log('Viewing package:', packageId);
   };
 
   if (loading) {
@@ -118,8 +109,9 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {packages.map((pkg, index) => (
-          <div 
+          <Link 
             key={pkg._id} 
+            href={`/package-details/${pkg._id}`}
             className="block group"
           >
             <div
@@ -204,18 +196,15 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({
                 {/* Price and Action */}
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-gray-900 text-lg">
-                    KD {pkg.totalPrice}/day
+                    {pkg.totalPrice} KWD/day
                   </span>
-                  <button
-                    onClick={() => handleBookPackage(pkg._id)}
-                    className="text-sm text-[#391C71] hover:text-[#5B2C87] font-semibold transition-colors duration-300"
-                  >
-                    Book Now →
-                  </button>
+                  <span className="bg-[#391C71] text-white px-5 py-2 rounded-full text-sm font-medium group-hover:bg-[#5B2C87] transition-all duration-300 shadow-lg">
+                    Details
+                  </span>
                 </div>
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 

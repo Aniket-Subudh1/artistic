@@ -1,98 +1,107 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { equipmentPackagesService, EquipmentPackage } from '@/services/equipment-packages.service';
+import { ArtistService, Artist } from '@/services/artist.service';
 import { Link } from '@/i18n/routing';
 import Image from 'next/image';
 import { 
   Search, 
   Filter, 
-  Package, 
+  MapPin, 
+  Star, 
+  Calendar,
+  Music,
   User,
   SlidersHorizontal,
-  X,
-  Tag
+  X
 } from 'lucide-react';
 import { Navbar } from '@/components/main/Navbar';
 import { Footer } from '@/components/main/Footer';
 
-export default function PackagesPage() {
-  const [packages, setPackages] = useState<EquipmentPackage[]>([]);
-  const [filteredPackages, setFilteredPackages] = useState<EquipmentPackage[]>([]);
+export default function ArtistsPage() {
+  const [artists, setArtists] = useState<Artist[]>([]);
+  const [filteredArtists, setFilteredArtists] = useState<Artist[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [priceRange, setPriceRange] = useState({ min: 0, max: 5000 });
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 1000 });
+  const [selectedDate, setSelectedDate] = useState('');
   const [showFilters, setShowFilters] = useState(false);
 
   // Get unique categories for filter
   const [categories, setCategories] = useState<string[]>([]);
 
   useEffect(() => {
-    fetchPackages();
+    fetchArtists();
   }, []);
 
   useEffect(() => {
     applyFilters();
-  }, [packages, searchTerm, selectedCategory, priceRange]);
+  }, [artists, searchTerm, selectedCategory, priceRange, selectedDate]);
 
-  const fetchPackages = async () => {
+  const fetchArtists = async () => {
     try {
       setLoading(true);
-      const data = await equipmentPackagesService.getPublicPackages();
-      setPackages(data);
+      const data = await ArtistService.getPublicArtists();
+      const visibleArtists = data.filter(artist => artist.user.isActive);
+      setArtists(visibleArtists);
       
-      // Extract unique categories from equipment items
-      const allCategories = data.flatMap(pkg => 
-        pkg.items.map(item => item.equipmentId.category)
-      );
-      const uniqueCategories = [...new Set(allCategories)].filter(Boolean);
+      // Extract unique categories
+      const uniqueCategories = [...new Set(visibleArtists.map(artist => artist.category).filter(Boolean))];
       setCategories(uniqueCategories);
-    } catch (error: any) {
-      setError('Failed to load equipment packages');
-      console.error('Error fetching packages:', error);
-    } finally {
+      
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching artists:', err);
+      setError('Failed to load artists');
       setLoading(false);
     }
   };
 
   const applyFilters = () => {
-    let filtered = packages;
+    let filtered = artists;
 
     // Search filter
     if (searchTerm) {
-      filtered = filtered.filter(pkg =>
-        pkg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pkg.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pkg.items.some(item => 
-          item.equipmentId.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.equipmentId.category.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+      filtered = filtered.filter(artist =>
+        artist.stageName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (artist.about && artist.about.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (artist.skills && artist.skills.some(skill => 
+          skill.toLowerCase().includes(searchTerm.toLowerCase())
+        ))
       );
     }
 
     // Category filter
     if (selectedCategory) {
-      filtered = filtered.filter(pkg =>
-        pkg.items.some(item => item.equipmentId.category === selectedCategory)
-      );
+      filtered = filtered.filter(artist => artist.category === selectedCategory);
     }
 
     // Price range filter
-    filtered = filtered.filter(pkg => 
-      pkg.totalPrice >= priceRange.min && pkg.totalPrice <= priceRange.max
-    );
+    if (priceRange.min > 0 || priceRange.max < 1000) {
+      filtered = filtered.filter(artist => {
+        const price = artist.pricePerHour;
+        return price >= priceRange.min && price <= priceRange.max;
+      });
+    }
 
-    setFilteredPackages(filtered);
+    // Date availability filter (placeholder - would need actual availability data)
+    if (selectedDate) {
+      // This would integrate with the availability system
+      // For now, we'll just show all artists
+    }
+
+    setFilteredArtists(filtered);
   };
 
   const clearFilters = () => {
     setSearchTerm('');
     setSelectedCategory('');
-    setPriceRange({ min: 0, max: 5000 });
+    setPriceRange({ min: 0, max: 1000 });
+    setSelectedDate('');
   };
 
   if (loading) {
@@ -112,7 +121,7 @@ export default function PackagesPage() {
         <div className="relative z-10 flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#391C71] mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading equipment packages...</p>
+            <p className="text-gray-600">Loading artists...</p>
           </div>
         </div>
       </div>
@@ -135,8 +144,8 @@ export default function PackagesPage() {
         <Navbar />
         <div className="relative z-10 flex items-center justify-center min-h-screen">
           <div className="text-center">
-            <Package className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Unable to load packages</h3>
+            <Music className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Unable to load artists</h3>
             <p className="text-gray-500">{error}</p>
           </div>
         </div>
@@ -170,15 +179,15 @@ export default function PackagesPage() {
               <div className="relative z-10">
                 <h1 className="text-4xl font-bold text-gray-900 mb-4 flex items-center justify-center gap-3">
                   <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-3">
-                    <Package className="w-8 h-8 text-white" />
+                    <Music className="w-8 h-8 text-white" />
                   </div>
-                  Equipment Packages
+                  All Artists
                 </h1>
                 <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                  Complete equipment solutions for your events. Browse professionally curated packages at competitive rates.
+                  Discover talented artists for your next event. Browse by category, price, and availability.
                 </p>
                 <div className="mt-4 text-sm text-[#391C71] font-semibold">
-                  {filteredPackages.length} of {packages.length} packages
+                  {filteredArtists.length} of {artists.length} artists
                 </div>
               </div>
             </div>
@@ -196,7 +205,7 @@ export default function PackagesPage() {
                     <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                       type="text"
-                      placeholder="Search packages by name, description, or equipment..."
+                      placeholder="Search artists by name, skills, or description..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="w-full pl-12 pr-4 py-3 bg-white/80 border border-[#391C71]/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#391C71]/50 focus:border-transparent"
@@ -214,11 +223,11 @@ export default function PackagesPage() {
                 {/* Filter Panel */}
                 {showFilters && (
                   <div className="bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-2xl p-6 border border-[#391C71]/20">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                       
                       {/* Category Filter */}
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Equipment Category</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
                         <select
                           value={selectedCategory}
                           onChange={(e) => setSelectedCategory(e.target.value)}
@@ -234,7 +243,7 @@ export default function PackagesPage() {
                       {/* Price Range */}
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Price Range (KWD/day)
+                          Price Range (KWD/hour)
                         </label>
                         <div className="flex gap-2">
                           <input
@@ -254,6 +263,18 @@ export default function PackagesPage() {
                         </div>
                       </div>
 
+                      {/* Date Filter */}
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Available Date</label>
+                        <input
+                          type="date"
+                          value={selectedDate}
+                          onChange={(e) => setSelectedDate(e.target.value)}
+                          min={new Date().toISOString().split('T')[0]}
+                          className="w-full px-4 py-2 bg-white/80 border border-[#391C71]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#391C71]/50"
+                        />
+                      </div>
+
                       {/* Clear Filters */}
                       <div className="flex items-end">
                         <button
@@ -271,49 +292,48 @@ export default function PackagesPage() {
             </div>
           </div>
 
-          {/* Packages Grid */}
-          {filteredPackages.length === 0 ? (
+          {/* Artists Grid */}
+          {filteredArtists.length === 0 ? (
             <div className="text-center py-12">
               <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-12">
-                <Package className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No packages found</h3>
+                <Music className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No artists found</h3>
                 <p className="text-gray-500">Try adjusting your search criteria or filters</p>
               </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {filteredPackages.map((pkg, index) => (
+              {filteredArtists.map((artist, index) => (
                 <Link 
-                  key={pkg._id} 
-                  href={`/package-details/${pkg._id}`}
+                  key={artist._id} 
+                  href={`/artist-profile/${artist._id}`}
                   className="block group"
                 >
                   <div
                     className="bg-white/70 backdrop-blur-xl rounded-3xl border border-white/30 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-[#391C71]/10 cursor-pointer transform hover:-translate-y-2 hover:scale-105"
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
-                    {/* Package Image */}
-                    <div className="relative h-56 overflow-hidden">
-                      {pkg.coverImage || pkg.imageUrl ? (
+                    {/* Artist Image */}
+                    <div className="relative h-64 overflow-hidden">
+                      {artist.profileImage ? (
                         <Image
-                          src={pkg.coverImage || pkg.imageUrl || ''}
-                          alt={pkg.name}
+                          src={artist.profileImage}
+                          alt={artist.stageName}
                           fill
                           className="object-cover group-hover:scale-110 transition-transform duration-500"
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-[#391C71] to-[#5B2C87] flex items-center justify-center">
-                          <Package className="w-16 h-16 text-white" />
+                          <User className="w-16 h-16 text-white" />
                         </div>
                       )}
                       
                       {/* Overlay effects */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                       
-                      {/* Items count overlay */}
-                      <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full flex items-center shadow-lg border border-white/20">
-                        <Package className="w-4 h-4 text-[#391C71] mr-1" />
-                        <span className="text-sm font-semibold text-gray-700">{pkg.items.length} items</span>
+                      {/* Category badge */}
+                      <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full border border-white/20">
+                        <span className="text-xs font-semibold text-[#391C71]">{artist.category}</span>
                       </div>
                       
                       {/* Hover shimmer effect */}
@@ -322,55 +342,59 @@ export default function PackagesPage() {
                       </div>
                     </div>
 
-                    {/* Package Content */}
+                    {/* Artist Content */}
                     <div className="p-6">
-                      {/* Category */}
-                      <div className="text-xs text-[#391C71] font-bold mb-3 uppercase tracking-wider">
-                        Equipment Package
-                      </div>
-                      
-                      {/* Title */}
-                      <h3 className="font-bold text-gray-900 mb-3 text-xl group-hover:text-[#391C71] transition-colors duration-300">
-                        {pkg.name}
+                      {/* Stage Name */}
+                      <h3 className="font-bold text-gray-900 mb-2 text-xl group-hover:text-[#391C71] transition-colors duration-300">
+                        {artist.stageName}
                       </h3>
                       
-                      {/* Description */}
-                      <p className="text-sm text-gray-600 mb-4 line-clamp-2 leading-relaxed">
-                        {pkg.description}
-                      </p>
+                      {/* About */}
+                      {artist.about && (
+                        <p className="text-sm text-gray-600 mb-4 line-clamp-2 leading-relaxed">
+                          {artist.about}
+                        </p>
+                      )}
                       
-                      {/* Equipment Categories Summary */}
-                      <div className="mb-4">
-                        <div className="flex flex-wrap gap-1">
-                          {[...new Set(pkg.items.slice(0, 3).map(item => item.equipmentId.category))].map((category, index) => (
-                            <span 
-                              key={index} 
-                              className="inline-block px-2 py-1 bg-gradient-to-r from-[#391C71]/10 to-purple-100 text-[#391C71] text-xs rounded-lg border border-[#391C71]/20"
-                            >
-                              {category}
-                            </span>
-                          ))}
-                          {pkg.items.length > 3 && (
-                            <span className="inline-block px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-lg">
-                              +{pkg.items.length - 3} more
-                            </span>
-                          )}
+                      {/* Skills */}
+                      {artist.skills && artist.skills.length > 0 && (
+                        <div className="mb-4">
+                          <div className="flex flex-wrap gap-1">
+                            {artist.skills.slice(0, 2).map((skill, index) => (
+                              <span 
+                                key={index} 
+                                className="inline-block px-2 py-1 bg-gradient-to-r from-[#391C71]/10 to-purple-100 text-[#391C71] text-xs rounded-lg border border-[#391C71]/20"
+                              >
+                                {skill}
+                              </span>
+                            ))}
+                            {artist.skills.length > 2 && (
+                              <span className="inline-block px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-lg">
+                                +{artist.skills.length - 2} more
+                              </span>
+                            )}
+                          </div>
                         </div>
+                      )}
+                      
+                      {/* Location */}
+                      <div className="flex items-center text-sm text-gray-500 mb-4">
+                        <MapPin className="w-4 h-4 mr-2 text-[#391C71]" />
+                        <span>{artist.country || 'Kuwait'}</span>
                       </div>
                       
-                      {/* Provider Info */}
-                      <div className="flex items-center text-sm text-gray-500 mb-5">
-                        <User className="w-4 h-4 mr-2 text-[#391C71]" />
-                        <span>By {pkg.createdBy.firstName} {pkg.createdBy.lastName}</span>
-                      </div>
-                      
-                      {/* Price and Action */}
+                      {/* Price and Experience */}
                       <div className="flex justify-between items-center">
-                        <span className="font-bold text-gray-900 text-lg">
-                          {pkg.totalPrice} KWD/day
-                        </span>
-                        <span className="bg-[#391C71] text-white px-5 py-2 rounded-full text-sm font-medium group-hover:bg-[#5B2C87] transition-all duration-300 shadow-lg">
-                          Details
+                        <div>
+                          <span className="font-bold text-gray-900 text-lg">
+                            {artist.pricePerHour} KWD/hour
+                          </span>
+                          <div className="text-xs text-gray-500">
+                            {artist.yearsOfExperience} years exp.
+                          </div>
+                        </div>
+                        <span className="bg-[#391C71] text-white px-4 py-2 rounded-full text-sm font-medium group-hover:bg-[#5B2C87] transition-all duration-300 shadow-lg">
+                       Book Now
                         </span>
                       </div>
                     </div>

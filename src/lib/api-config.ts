@@ -30,12 +30,14 @@ export const API_CONFIG = {
       ONBOARD: '/artist/onboard',
       LIST_PUBLIC: '/artist/list/public',
       LIST_PRIVATE: '/artist/list/private',
+      GET_BY_ID: (id: string) => `/artist/profile/${id}`,
       MY_PROFILE: '/artist/profile/me',
       UPDATE_REQUEST: '/artist/profile/update-request',
       PENDING_REQUESTS: '/artist/profile/update/pending-request',
       MY_REQUESTS: '/artist/profile/update/my-requests',
       REVIEW_UPDATE: (id: string) => `/artist/profile/review-update/${id}`,
       VERIFY: (id: string) => `/artist/${id}/verify`,
+      TOGGLE_VISIBILITY: (id: string) => `/artist/${id}/visibility`,
       // Portfolio endpoints
       PORTFOLIO: {
         CREATE: '/artist/portfolio/create',

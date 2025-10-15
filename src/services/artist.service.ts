@@ -101,6 +101,7 @@ export interface Artist {
   country: string;
   genres: string[];
   performPreference: string[];
+  isVisible: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -168,6 +169,12 @@ export class ArtistService {
     });
   }
 
+  static async getArtistById(artistId: string): Promise<Artist> {
+    return apiRequest<Artist>(API_CONFIG.ENDPOINTS.ARTIST.GET_BY_ID(artistId), {
+      method: 'GET',
+    });
+  }
+
   static async getMyProfile(): Promise<Artist> {
     return apiRequest<Artist>(API_CONFIG.ENDPOINTS.ARTIST.MY_PROFILE, {
       method: 'GET',
@@ -184,6 +191,13 @@ export class ArtistService {
     return apiRequest(API_CONFIG.ENDPOINTS.ARTIST.VERIFY(artistId), {
       method: 'PATCH',
       body: JSON.stringify({ isVerified }),
+    });
+  }
+
+  static async toggleArtistVisibility(artistId: string, isVisible: boolean): Promise<{ message: string; artistId: string; isVisible: boolean; }> {
+    return apiRequest(API_CONFIG.ENDPOINTS.ARTIST.TOGGLE_VISIBILITY(artistId), {
+      method: 'PATCH',
+      body: JSON.stringify({ isVisible }),
     });
   }
 

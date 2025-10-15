@@ -16,7 +16,8 @@ import {
   User,
   UserCheck,
   UserX,
-  X
+  X,
+  EyeOff
 } from 'lucide-react';
 import { ArtistService, Artist, ArtistType } from '@/services/artist.service';
 import { AdminService } from '@/services/admin.service';
@@ -88,6 +89,19 @@ export function ArtistManagement() {
       loadData();
     } catch (error: any) {
       setError('Failed to update artist status: ' + (error.message || 'Unknown error'));
+    }
+  };
+
+  const handleToggleArtistVisibility = async (artistId: string, currentVisibility: boolean) => {
+    setError('');
+    setSuccess('');
+
+    try {
+      await ArtistService.toggleArtistVisibility(artistId, !currentVisibility);
+      setSuccess(`Artist ${!currentVisibility ? 'shown' : 'hidden'} on homepage successfully!`);
+      loadData();
+    } catch (error: any) {
+      setError('Failed to update artist visibility: ' + (error.message || 'Unknown error'));
     }
   };
 
@@ -366,11 +380,16 @@ export function ArtistManagement() {
                 {artist.category}
               </div>
 
-              <div className="absolute top-4 left-4">
+              <div className="absolute top-4 left-4 flex flex-col gap-1">
                 <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                   artist.user?.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                 }`}>
                   {artist.user?.isActive ? 'Active' : 'Inactive'}
+                </span>
+                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                  artist.isVisible !== false ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+                }`}>
+                  {artist.isVisible !== false ? 'Visible' : 'Hidden'}
                 </span>
               </div>
             </div>
@@ -442,6 +461,27 @@ export function ArtistManagement() {
                     <>
                       <UserCheck className="w-4 h-4" />
                       Activate
+                    </>
+                  )}
+                </button>
+                <button 
+                  onClick={() => handleToggleArtistVisibility(artist._id, artist.isVisible !== false)}
+                  className={`flex-1 px-3 py-2 rounded-lg transition-colors flex items-center justify-center gap-1 ${
+                    artist.isVisible !== false
+                      ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' 
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                  title={artist.isVisible !== false ? 'Hide from Homepage' : 'Show on Homepage'}
+                >
+                  {artist.isVisible !== false ? (
+                    <>
+                      <EyeOff className="w-4 h-4" />
+                      Hide
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="w-4 h-4" />
+                      Show
                     </>
                   )}
                 </button>

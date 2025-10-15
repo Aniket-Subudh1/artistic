@@ -8,6 +8,7 @@ import { Navbar } from '@/components/main/Navbar';
 import { Footer } from '@/components/main/Footer';
 import HeroCarousel from '@/components/ui/HeroCarousel';
 import PublicPackages from '@/components/main/PublicPackages';
+import PublicArtists from '@/components/main/PublicArtists';
 import { Iansui } from 'next/font/google';
 import Image from 'next/image';
 import TitleTag from '@/components/ui/TitleTag';
@@ -117,45 +118,6 @@ export default function HomePage() {
       place: 'Creative Studio',
       price: 40,
       rating: 4.6,
-    },
-  ];
-
-  const artists = [
-    {
-      id: 1,
-      image: '/assets/images/artist1.jpg',
-      category: t('categories.photography'),
-      name: 'Sarah Mitchell',
-      location: 'New York, USA',
-      price: 150,
-      rating: 4.9,
-    },
-    {
-      id: 2,
-      image: '/assets/images/artist2.jpg',
-      category: t('categories.music'),
-      name: 'Jazz Ensemble',
-      location: 'London, UK',
-      price: 200,
-      rating: 4.8,
-    },
-    {
-      id: 3,
-      image: '/assets/images/artist3.jpg',
-      category: t('categories.dance'),
-      name: 'Modern Dance Troupe',
-      location: 'Paris, France',
-      price: 180,
-      rating: 4.7,
-    },
-    {
-      id: 4,
-      image: '/assets/images/artist4.jpg',
-      category: t('categories.art'),
-      name: 'Contemporary Painter',
-      location: 'Berlin, Germany',
-      price: 120,
-      rating: 4.8,
     },
   ];
 
@@ -290,68 +252,7 @@ export default function HomePage() {
       <section className="py-20 relative z-10">
         <div className="absolute inset-0 bg-gradient-to-r from-gray-50 to-purple-50" />
         <div className="max-w-7xl mx-auto px-6 relative">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl font-bold text-gray-900 mb-6 relative">
-              {t('home.bookYourArtist')}
-              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 h-1 bg-[#391C71] rounded-full" />
-            </h2>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
-              {t('home.bookYourArtistDesc')}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-            {artists.map((artist, index) => (
-              <Link key={artist.id} href={`/artists/${artist.id}`} className="block group">
-                <div
-                  className="bg-white rounded-3xl border border-gray-100 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-[#391C71]/10 cursor-pointer transform hover:-translate-y-2 hover:scale-105"
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  <div className="relative h-56 bg-gradient-to-br from-blue-500 to-[#391C71] overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full flex items-center shadow-lg border border-white/20">
-                      <Star className="w-4 h-4 text-yellow-500 fill-current mr-1" />
-                      <span className="text-sm font-semibold text-gray-700">
-                        {artist.rating}
-                      </span>
-                    </div>
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                    </div>
-                  </div>
-                  <div className="p-6">
-                    <div className="text-xs text-[#391C71] font-bold mb-3 uppercase tracking-wider">
-                      {artist.category}
-                    </div>
-                    <h3 className="font-bold text-gray-900 mb-3 text-xl group-hover:text-[#391C71] transition-colors duration-300">
-                      {artist.name}
-                    </h3>
-                    <div className="flex items-center text-sm text-gray-500 mb-5">
-                      <MapPin className="w-4 h-4 mr-2 text-[#391C71]" />
-                      {artist.location}
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="font-bold text-gray-900 text-lg">
-                        KD {artist.price}/{t('home.perHour')}
-                      </span>
-                      <span className="text-sm text-[#391C71] hover:text-[#5B2C87] font-semibold transition-colors duration-300">
-                        {t('home.viewDetails')} →
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          <div className="text-center">
-            <Link
-              href="/artists"
-              className="inline-block bg-white border-2 border-[#391C71] text-[#391C71] px-10 py-4 rounded-full hover:bg-[#391C71] hover:text-white transition-all duration-500 font-medium shadow-xl hover:shadow-2xl hover:shadow-[#391C71]/20 hover:scale-105"
-            >
-              {t('home.viewAllArtists')}
-            </Link>
-          </div>
+          <PublicArtists limit={8} showHeader={true} />
         </div>
       </section>
 
