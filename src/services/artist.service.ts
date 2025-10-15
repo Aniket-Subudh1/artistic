@@ -64,9 +64,15 @@ export interface CreateArtistRequest {
 }
 
 export interface UpdateArtistProfileRequest {
+  about?: string;
+  yearsOfExperience?: number;
+  pricePerHour?: number;
   genres?: string[];
   skills?: string[];
+  musicLanguages?: string[];
+  awards?: string[];
   category?: string;
+  performPreference?: string[];
 }
 
 export interface Artist {
@@ -191,15 +197,33 @@ export class ArtistService {
   ): Promise<{ message: string }> {
     const formData = new FormData();
 
-    // Add text fields
-    if (updateData.genres) {
+    // Add text fields (only if they have values)
+    if (updateData.genres && updateData.genres.length > 0) {
       formData.append('genres', JSON.stringify(updateData.genres));
     }
-    if (updateData.skills) {
+    if (updateData.skills && updateData.skills.length > 0) {
       formData.append('skills', JSON.stringify(updateData.skills));
     }
-    if (updateData.category) {
+    if (updateData.category && updateData.category.trim()) {
       formData.append('category', updateData.category);
+    }
+    if (updateData.about && updateData.about.trim()) {
+      formData.append('about', updateData.about);
+    }
+    if (updateData.yearsOfExperience !== undefined && updateData.yearsOfExperience !== null) {
+      formData.append('yearsOfExperience', updateData.yearsOfExperience.toString());
+    }
+    if (updateData.pricePerHour !== undefined && updateData.pricePerHour !== null) {
+      formData.append('pricePerHour', updateData.pricePerHour.toString());
+    }
+    if (updateData.musicLanguages && updateData.musicLanguages.length > 0) {
+      formData.append('musicLanguages', JSON.stringify(updateData.musicLanguages));
+    }
+    if (updateData.awards && updateData.awards.length > 0) {
+      formData.append('awards', JSON.stringify(updateData.awards));
+    }
+    if (updateData.performPreference && updateData.performPreference.length > 0) {
+      formData.append('performPreference', JSON.stringify(updateData.performPreference));
     }
 
     // Add files if provided
@@ -213,6 +237,12 @@ export class ArtistService {
       formData.append('demoVideo', files.demoVideo);
     }
 
+    // Debug: Log what's being sent
+    console.log('FormData entries:');
+    for (const [key, value] of formData.entries()) {
+      console.log(key, value);
+    }
+
     const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ARTIST.UPDATE_REQUEST}`, {
       method: 'POST',
       headers: getMultipartAuthHeaders(),
@@ -221,7 +251,12 @@ export class ArtistService {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || 'Failed to submit update request');
+      console.error('API Error Response:', {
+        status: response.status,
+        statusText: response.statusText,
+        errorData
+      });
+      throw new Error(errorData.message || `API Error: ${response.status} ${response.statusText}`);
     }
 
     return response.json();

@@ -13,7 +13,8 @@ import {
   Eye,
   Calendar,
   User,
-  Plus
+  Plus,
+  Download
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -29,7 +30,7 @@ interface UpdateRequest {
     lastName: string;
     email: string;
   };
-  proposedChnages: {
+  requestedChanges: {
     stageName?: string;
     about?: string;
     yearsOfExperience?: number;
@@ -65,6 +66,26 @@ export default function ArtistUpdateRequestsPage() {
   const [selectedRequest, setSelectedRequest] = useState<UpdateRequest | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
 
+  const getFieldDisplayName = (fieldName: string): string => {
+    const fieldNames: Record<string, string> = {
+      'about': 'About',
+      'yearsOfExperience': 'Years of Experience',
+      'pricePerHour': 'Price Per Hour',
+      'musicLanguages': 'Music Languages',
+      'performPreference': 'Performance Preferences',
+      'profileImage': 'Profile Image',
+      'profileCoverImage': 'Cover Image',
+      'demoVideo': 'Demo Video',
+      'stageName': 'Stage Name',
+      'category': 'Category',
+      'skills': 'Skills',
+      'genres': 'Genres',
+      'awards': 'Awards & Achievements',
+      'country': 'Country'
+    };
+    return fieldNames[fieldName] || fieldName.replace(/([A-Z])/g, ' $1').trim();
+  };
+
   useEffect(() => {
     if (user) {
       loadUpdateRequests();
@@ -75,8 +96,10 @@ export default function ArtistUpdateRequestsPage() {
     setIsLoadingData(true);
     try {
       const requests = await ArtistService.getMyUpdateRequests();
+      console.log('Loaded update requests:', requests);
       setRequests(requests);
     } catch (error: any) {
+      console.error('Error loading update requests:', error);
       setError('Failed to load update requests: ' + (error.message || 'Unknown error'));
     } finally {
       setIsLoadingData(false);
@@ -224,7 +247,7 @@ export default function ArtistUpdateRequestsPage() {
                             Profile Update Request
                           </div>
                           <div className="text-sm text-gray-500">
-                            {request.proposedChnages ? Object.keys(request.proposedChnages).length : 0} field(s) to update
+                            {request.requestedChanges ? Object.keys(request.requestedChanges).length : 0} field(s) to update
                           </div>
                         </div>
                       </td>
@@ -238,16 +261,17 @@ export default function ArtistUpdateRequestsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button
-                          onClick={() => {
-                            setSelectedRequest(request);
-                            setShowViewModal(true);
-                          }}
-                          className="text-blue-600 hover:text-blue-900 flex items-center"
-                        >
-                          <Eye className="w-4 h-4 mr-1" />
-                          View
-                        </button>
+                          <button
+                            onClick={() => {
+                              console.log('Selected request data:', request);
+                              setSelectedRequest(request);
+                              setShowViewModal(true);
+                            }}
+                            className="text-blue-600 hover:text-blue-900 flex items-center"
+                          >
+                            <Eye className="w-4 h-4 mr-1" />
+                            View
+                          </button>
                       </td>
                     </tr>
                   ))}
@@ -300,28 +324,126 @@ export default function ArtistUpdateRequestsPage() {
                   {/* Requested Changes */}
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 mb-4">Requested Changes</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {selectedRequest.proposedChnages && Object.entries(selectedRequest.proposedChnages).map(([key, value]) => (
-                        <div key={key} className="p-4 border border-gray-200 rounded-lg">
-                          <p className="text-sm font-medium text-gray-700 capitalize mb-2">
-                            {key.replace(/([A-Z])/g, ' $1').trim()}
-                          </p>
-                          <div className="text-sm text-gray-900">
-                            {Array.isArray(value) ? (
-                              <div className="flex flex-wrap gap-1">
-                                {value.map((item, index) => (
-                                  <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                                    {item}
-                                  </span>
-                                ))}
-                              </div>
-                            ) : (
-                              <p>{String(value)}</p>
-                            )}
+                    {/* Debug: Show raw data */}
+                    {process.env.NODE_ENV === 'development' && (
+                      <details className="mb-4 p-2 bg-gray-100 rounded text-xs">
+                        <summary className="cursor-pointer">Debug: Raw request data</summary>
+                        <pre className="mt-2 whitespace-pre-wrap">{JSON.stringify(selectedRequest, null, 2)}</pre>
+                      </details>
+                    )}
+                    
+                    {selectedRequest.requestedChanges && Object.keys(selectedRequest.requestedChanges).length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {Object.entries(selectedRequest.requestedChanges).map(([key, value]) => (
+                          <div key={key} className="p-4 border border-gray-200 rounded-lg">
+                            <p className="text-sm font-medium text-gray-700 mb-2">
+                              {getFieldDisplayName(key)}
+                            </p>
+                            <div className="text-sm text-gray-900">
+                              {/* Handle media fields specifically */}
+                              {(key === 'profileImage' || key === 'profileCoverImage') && typeof value === 'string' && value && (value.includes('http') || value.includes('amazonaws.com') || value.includes('s3')) ? (
+                                <div className="space-y-2">
+                                  <div className="relative">
+                                    <img 
+                                      src={value} 
+                                      alt={key === 'profileImage' ? 'Profile Image' : 'Cover Image'}
+                                      className="max-w-full h-auto max-h-48 rounded-lg border border-gray-200 shadow-sm"
+                                      onError={(e) => {
+                                        (e.target as HTMLImageElement).style.display = 'none';
+                                        (e.target as HTMLImageElement).nextElementSibling!.className = 'block text-red-600 text-xs';
+                                      }}
+                                    />
+                                    <p className="hidden">Failed to load image. <a href={value} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">View Original</a></p>
+                                  </div>
+                                  <a 
+                                    href={value} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center text-blue-600 hover:underline text-xs"
+                                  >
+                                    <Eye className="h-3 w-3 mr-1" />
+                                    View Full Size
+                                  </a>
+                                </div>
+                              ) : key === 'demoVideo' && typeof value === 'string' && value && (value.includes('http') || value.includes('amazonaws.com') || value.includes('s3')) ? (
+                                <div className="space-y-2">
+                                  <div className="relative">
+                                    <video 
+                                      src={value} 
+                                      controls
+                                      className="max-w-full h-auto max-h-64 rounded-lg border border-gray-200 shadow-sm"
+                                      onError={(e) => {
+                                        (e.target as HTMLVideoElement).style.display = 'none';
+                                        (e.target as HTMLVideoElement).nextElementSibling!.className = 'block text-red-600 text-xs';
+                                      }}
+                                    >
+                                      Your browser does not support the video tag.
+                                    </video>
+                                    <p className="hidden">Failed to load video. <a href={value} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Download Video</a></p>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <a 
+                                      href={value} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center text-blue-600 hover:underline text-xs"
+                                    >
+                                      <Eye className="h-3 w-3 mr-1" />
+                                      Open in New Tab
+                                    </a>
+                                    <a 
+                                      href={value} 
+                                      download
+                                      className="inline-flex items-center text-green-600 hover:underline text-xs"
+                                    >
+                                      <Download className="h-3 w-3 mr-1" />
+                                      Download
+                                    </a>
+                                  </div>
+                                </div>
+                              ) : Array.isArray(value) ? (
+                                <div className="flex flex-wrap gap-1">
+                                  {value.map((item, index) => (
+                                    <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                                      {item}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : typeof value === 'string' && value.length > 100 ? (
+                                <div className="space-y-2">
+                                  <p className="line-clamp-3">{value}</p>
+                                  <button
+                                    onClick={(e) => {
+                                      const target = e.target as HTMLButtonElement;
+                                      const textElement = target.previousElementSibling as HTMLParagraphElement;
+                                      if (textElement.classList.contains('line-clamp-3')) {
+                                        textElement.classList.remove('line-clamp-3');
+                                        target.textContent = 'Show Less';
+                                      } else {
+                                        textElement.classList.add('line-clamp-3');
+                                        target.textContent = 'Show More';
+                                      }
+                                    }}
+                                    className="text-blue-600 hover:underline text-xs"
+                                  >
+                                    Show More
+                                  </button>
+                                </div>
+                              ) : (
+                                <p className="break-words">{String(value)}</p>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg">
+                        <AlertCircle className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+                        <h4 className="text-lg font-medium text-gray-700 mb-2">No Changes Found</h4>
+                        <p className="text-sm">This request appears to be empty or the changes couldn't be loaded.</p>
+                        <p className="text-xs mt-2 text-gray-400">Please contact support if this seems incorrect.</p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Admin Comment */}

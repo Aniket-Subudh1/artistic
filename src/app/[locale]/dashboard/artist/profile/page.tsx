@@ -129,7 +129,7 @@ export default function ArtistProfilePage() {
             </div>
             <button
               onClick={() => setIsUpdateModalOpen(true)}
-              className="absolute top-6 right-6 inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-xl hover:bg-white/30 transition-all duration-300 border border-white/20"
+              className="absolute top-6 right-6 inline-flex items-center px-4 py-2 bg-gray-900/80 backdrop-blur-sm text-white rounded-xl hover:bg-gray-900 transition-all duration-300 border border-gray-700"
             >
               <Edit className="h-4 w-4 mr-2" />
               Edit Profile
@@ -147,7 +147,7 @@ export default function ArtistProfilePage() {
               </div>
               <button
                 onClick={() => setIsUpdateModalOpen(true)}
-                className="inline-flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm text-white rounded-xl hover:bg-white/30 transition-all duration-300 border border-white/20 group"
+                className="inline-flex items-center px-6 py-3 bg-gray-900/80 backdrop-blur-sm text-white rounded-xl hover:bg-gray-900 transition-all duration-300 border border-gray-700 group"
               >
                 <Edit className="h-4 w-4 mr-2 group-hover:rotate-6 transition-transform duration-200" />
                 Edit Profile

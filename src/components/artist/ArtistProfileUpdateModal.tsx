@@ -58,9 +58,15 @@ export function ArtistProfileUpdateModal({
 
   // Form state
   const [formData, setFormData] = useState<UpdateArtistProfileRequest>({
+    about: artist?.about || '',
+    yearsOfExperience: artist?.yearsOfExperience || 0,
+    pricePerHour: artist?.pricePerHour || 0,
     genres: artist?.genres || [],
     skills: artist?.skills || [],
+    musicLanguages: artist?.musicLanguages || [],
+    awards: artist?.awards || [],
     category: artist?.category || '',
+    performPreference: artist?.performPreference || [],
   });
 
   const [files, setFiles] = useState<{
@@ -79,13 +85,22 @@ export function ArtistProfileUpdateModal({
 
   const [newSkill, setNewSkill] = useState('');
   const [newGenre, setNewGenre] = useState('');
+  const [newLanguage, setNewLanguage] = useState('');
+  const [newAward, setNewAward] = useState('');
+  const [newPerformPreference, setNewPerformPreference] = useState('');
 
   useEffect(() => {
     if (artist) {
       setFormData({
+        about: artist.about || '',
+        yearsOfExperience: artist.yearsOfExperience || 0,
+        pricePerHour: artist.pricePerHour || 0,
         genres: artist.genres || [],
         skills: artist.skills || [],
+        musicLanguages: artist.musicLanguages || [],
+        awards: artist.awards || [],
         category: artist.category || '',
+        performPreference: artist.performPreference || [],
       });
       setPreviewImages({
         profileImage: artist.profileImage,
@@ -170,6 +185,66 @@ export function ArtistProfileUpdateModal({
     }));
   };
 
+  const addLanguage = () => {
+    if (newLanguage.trim() && !formData.musicLanguages?.includes(newLanguage.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        musicLanguages: [...(prev.musicLanguages || []), newLanguage.trim()]
+      }));
+      setNewLanguage('');
+    }
+  };
+
+  const removeLanguage = (language: string) => {
+    setFormData(prev => ({
+      ...prev,
+      musicLanguages: prev.musicLanguages?.filter(l => l !== language) || []
+    }));
+  };
+
+  const addAward = () => {
+    if (newAward.trim() && !formData.awards?.includes(newAward.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        awards: [...(prev.awards || []), newAward.trim()]
+      }));
+      setNewAward('');
+    }
+  };
+
+  const removeAward = (award: string) => {
+    setFormData(prev => ({
+      ...prev,
+      awards: prev.awards?.filter(a => a !== award) || []
+    }));
+  };
+
+  const addPerformPreference = () => {
+    if (newPerformPreference.trim() && !formData.performPreference?.includes(newPerformPreference.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        performPreference: [...(prev.performPreference || []), newPerformPreference.trim()]
+      }));
+      setNewPerformPreference('');
+    }
+  };
+
+  const removePerformPreference = (preference: string) => {
+    setFormData(prev => ({
+      ...prev,
+      performPreference: prev.performPreference?.filter(p => p !== preference) || []
+    }));
+  };
+
+  const handlePerformPreferenceToggle = (preference: string) => {
+    setFormData(prev => ({
+      ...prev,
+      performPreference: prev.performPreference?.includes(preference)
+        ? prev.performPreference.filter(p => p !== preference)
+        : [...(prev.performPreference || []), preference]
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -177,6 +252,28 @@ export function ArtistProfileUpdateModal({
       setSubmitting(true);
       setError('');
       setSuccess('');
+
+      // Validate that at least some data is provided
+      const hasChanges = 
+        (formData.genres && formData.genres.length > 0) ||
+        (formData.skills && formData.skills.length > 0) ||
+        (formData.category && formData.category.trim()) ||
+        (formData.about && formData.about.trim()) ||
+        (formData.yearsOfExperience !== undefined && formData.yearsOfExperience !== null) ||
+        (formData.pricePerHour !== undefined && formData.pricePerHour !== null) ||
+        (formData.musicLanguages && formData.musicLanguages.length > 0) ||
+        (formData.awards && formData.awards.length > 0) ||
+        (formData.performPreference && formData.performPreference.length > 0) ||
+        files.profileImage || files.profileCoverImage || files.demoVideo;
+
+      if (!hasChanges) {
+        setError('Please make at least one change before submitting the update request.');
+        return;
+      }
+
+      // Debug: Log the data being sent
+      console.log('Form Data being sent:', formData);
+      console.log('Files being sent:', files);
 
       await ArtistService.requestProfileUpdate(formData, files);
       
@@ -187,11 +284,11 @@ export function ArtistProfileUpdateModal({
         onUpdateSuccess();
       }
       
-      // Close modal after 2 seconds
+      // Close modal after 3 seconds to show success message
       setTimeout(() => {
         onClose();
         router.push('/dashboard/artist/update-requests');
-      }, 2000);
+      }, 3000);
       
     } catch (err: any) {
       console.error('Error submitting update request:', err);
@@ -207,9 +304,9 @@ export function ArtistProfileUpdateModal({
     <>
       {/* Modal Overlay */}
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 p-4">
-        <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
+        <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 flex-shrink-0">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">Request Profile Update</h2>
               <p className="text-gray-600 mt-1">Submit changes for administrator review</p>
@@ -223,23 +320,27 @@ export function ArtistProfileUpdateModal({
           </div>
 
           {/* Content */}
-          <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
-            {/* Messages */}
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center mb-6">
-                <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0" />
-                <span>{error}</span>
-              </div>
-            )}
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <div className="flex-1 p-6 overflow-y-auto">
+              {/* Messages */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center mb-6">
+                  <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
 
-            {success && (
-              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center mb-6">
-                <CheckCircle className="h-5 w-5 mr-2 flex-shrink-0" />
-                <span>{success}</span>
-              </div>
-            )}
+              {success && (
+                <div className="bg-green-50 border-2 border-green-200 text-green-700 px-6 py-4 rounded-xl flex items-center mb-6 shadow-sm">
+                  <CheckCircle className="h-6 w-6 mr-3 flex-shrink-0 text-green-600" />
+                  <div>
+                    <p className="font-semibold text-green-800">{success}</p>
+                    <p className="text-sm text-green-600 mt-1">Redirecting to your update requests...</p>
+                  </div>
+                </div>
+              )}
 
-            <form onSubmit={handleSubmit} className="space-y-8">
+              <form id="profile-update-form" onSubmit={handleSubmit} className="space-y-8">
               {/* Media Section */}
               <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
@@ -475,50 +576,208 @@ export function ArtistProfileUpdateModal({
                     </button>
                   </div>
                 </div>
-              </div>
-            </form>
 
-            {/* Info Box */}
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mt-6">
-              <div className="flex">
-                <AlertCircle className="h-5 w-5 text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
-                <div className="text-sm text-blue-800">
-                  <p className="font-medium mb-2">Important Notes:</p>
-                  <ul className="space-y-1 list-disc list-inside">
-                    <li>Profile updates require administrator approval</li>
-                    <li>You can only have one pending update request at a time</li>
-                    <li>Changes will be reviewed within 2-3 business days</li>
-                    <li>You'll receive an email notification when your request is processed</li>
-                  </ul>
+                {/* About */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    About
+                  </label>
+                  <textarea
+                    value={formData.about || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, about: e.target.value }))}
+                    placeholder="Tell us about yourself..."
+                    rows={4}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  />
                 </div>
-              </div>
-            </div>
-          </div>
 
-          {/* Footer */}
-          <div className="flex justify-end space-x-4 p-6 border-t border-gray-200 bg-gray-50">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              onClick={handleSubmit}
-              disabled={submitting}
-              className="flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm"
-            >
-              {submitting ? (
-                <LoadingSpinner />
-              ) : (
-                <>
-                  <Save className="h-4 w-4 mr-2" />
-                  Submit Update Request
-                </>
-              )}
-            </button>
+                {/* Years of Experience & Price Per Hour */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Years of Experience
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={formData.yearsOfExperience || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, yearsOfExperience: parseInt(e.target.value) || 0 }))}
+                      placeholder="0"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Price Per Hour ($)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formData.pricePerHour || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, pricePerHour: parseFloat(e.target.value) || 0 }))}
+                      placeholder="0.00"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                {/* Music Languages */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Music Languages
+                  </label>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {formData.musicLanguages?.map((language, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center bg-green-100 text-green-800 px-3 py-2 rounded-full text-sm font-medium"
+                      >
+                        {language}
+                        <button
+                          type="button"
+                          onClick={() => removeLanguage(language)}
+                          className="ml-2 text-green-600 hover:text-green-800 transition-colors"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newLanguage}
+                      onChange={(e) => setNewLanguage(e.target.value)}
+                      placeholder="Add a music language"
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addLanguage())}
+                    />
+                    <button
+                      type="button"
+                      onClick={addLanguage}
+                      className="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Awards */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Awards & Achievements
+                  </label>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {formData.awards?.map((award, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center bg-yellow-100 text-yellow-800 px-3 py-2 rounded-full text-sm font-medium"
+                      >
+                        {award}
+                        <button
+                          type="button"
+                          onClick={() => removeAward(award)}
+                          className="ml-2 text-yellow-600 hover:text-yellow-800 transition-colors"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newAward}
+                      onChange={(e) => setNewAward(e.target.value)}
+                      placeholder="Add an award or achievement"
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addAward())}
+                    />
+                    <button
+                      type="button"
+                      onClick={addAward}
+                      className="px-4 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors flex items-center"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Performance Preferences */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Performance Preferences
+                  </label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {['Public', 'Private', 'International', 'Workshop'].map((preference) => (
+                      <label
+                        key={preference}
+                        className={`relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                          formData.performPreference?.includes(preference)
+                            ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                            : 'border-gray-300 hover:border-gray-400'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.performPreference?.includes(preference) || false}
+                          onChange={() => handlePerformPreferenceToggle(preference)}
+                          className="sr-only"
+                        />
+                        <span className="text-sm font-medium">{preference}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                </div>
+
+                {/* Info Box */}
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mt-6">
+                  <div className="flex">
+                    <AlertCircle className="h-5 w-5 text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-blue-800">
+                      <p className="font-medium mb-2">Important Notes:</p>
+                      <ul className="space-y-1 list-disc list-inside">
+                        <li>Profile updates require administrator approval</li>
+                        <li>You can only have one pending update request at a time</li>
+                        <li>Changes will be reviewed within 2-3 business days</li>
+                        <li>You'll receive an email notification when your request is processed</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            {/* Footer */}
+            <div className="flex justify-end space-x-4 p-6 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="profile-update-form"
+                disabled={submitting}
+                className="flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm min-w-[200px] justify-center"
+              >
+                {submitting ? (
+                  <>
+                    <LoadingSpinner />
+                    <span className="ml-2">Submitting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Submit Update Request
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>

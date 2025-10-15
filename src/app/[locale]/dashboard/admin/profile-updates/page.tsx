@@ -515,7 +515,58 @@ export default function AdminProfileUpdatesPage() {
                               {key.replace(/([A-Z])/g, ' $1').trim()}
                             </p>
                             <div className="text-sm text-gray-900">
-                              {Array.isArray(value) ? (
+                              {/* Handle media fields specifically */}
+                              {(key === 'profileImage' || key === 'profileCoverImage') && typeof value === 'string' && value && (value.includes('http') || value.includes('amazonaws.com') || value.includes('s3')) ? (
+                                <div className="space-y-2">
+                                  <div className="relative">
+                                    <img 
+                                      src={value} 
+                                      alt={key === 'profileImage' ? 'Profile Image' : 'Cover Image'}
+                                      className="max-w-full h-auto max-h-48 rounded-lg border border-gray-200 shadow-sm"
+                                      onError={(e) => {
+                                        (e.target as HTMLImageElement).style.display = 'none';
+                                        (e.target as HTMLImageElement).nextElementSibling!.className = 'block text-red-600 text-xs';
+                                      }}
+                                    />
+                                    <p className="hidden">Failed to load image. <a href={value} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">View Original</a></p>
+                                  </div>
+                                  <a 
+                                    href={value} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center text-blue-600 hover:underline text-xs"
+                                  >
+                                    View Full Size
+                                  </a>
+                                </div>
+                              ) : key === 'demoVideo' && typeof value === 'string' && value && (value.includes('http') || value.includes('amazonaws.com') || value.includes('s3')) ? (
+                                <div className="space-y-2">
+                                  <div className="relative">
+                                    <video 
+                                      src={value} 
+                                      controls
+                                      className="max-w-full h-auto max-h-64 rounded-lg border border-gray-200 shadow-sm"
+                                      onError={(e) => {
+                                        (e.target as HTMLVideoElement).style.display = 'none';
+                                        (e.target as HTMLVideoElement).nextElementSibling!.className = 'block text-red-600 text-xs';
+                                      }}
+                                    >
+                                      Your browser does not support the video tag.
+                                    </video>
+                                    <p className="hidden">Failed to load video. <a href={value} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Download Video</a></p>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <a 
+                                      href={value} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center text-blue-600 hover:underline text-xs"
+                                    >
+                                      Open in New Tab
+                                    </a>
+                                  </div>
+                                </div>
+                              ) : Array.isArray(value) ? (
                                 <div className="flex flex-wrap gap-1">
                                   {value.map((item, index) => (
                                     <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
@@ -523,8 +574,28 @@ export default function AdminProfileUpdatesPage() {
                                     </span>
                                   ))}
                                 </div>
+                              ) : typeof value === 'string' && value.length > 100 ? (
+                                <div className="space-y-2">
+                                  <p className="line-clamp-3">{value}</p>
+                                  <button
+                                    onClick={(e) => {
+                                      const target = e.target as HTMLButtonElement;
+                                      const textElement = target.previousElementSibling as HTMLParagraphElement;
+                                      if (textElement.classList.contains('line-clamp-3')) {
+                                        textElement.classList.remove('line-clamp-3');
+                                        target.textContent = 'Show Less';
+                                      } else {
+                                        textElement.classList.add('line-clamp-3');
+                                        target.textContent = 'Show More';
+                                      }
+                                    }}
+                                    className="text-blue-600 hover:underline text-xs"
+                                  >
+                                    Show More
+                                  </button>
+                                </div>
                               ) : (
-                                <p>{String(value)}</p>
+                                <p className="break-words">{String(value)}</p>
                               )}
                             </div>
                           </div>
