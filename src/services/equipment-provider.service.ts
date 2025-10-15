@@ -60,7 +60,7 @@ export class EquipmentProviderService {
     return {
       message: response.message,
       access_token: response.access_token,
-      name: credentials.email.split('@')[0], // Use email prefix as fallback name
+      name: credentials.email.split('@')[0], 
       email: credentials.email,
       role: response.role
     };

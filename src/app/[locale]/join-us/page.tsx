@@ -3,11 +3,12 @@
 import React, { useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { Link, useRouter } from '@/i18n/routing';
-import { Upload, User, Mail, Calendar, CheckCircle, AlertCircle, FileText, Video, Palette, Users, Sparkles, ArrowRight, Star, Camera, Music, Award } from 'lucide-react';
+import { Upload, User, Mail, Calendar, CheckCircle, AlertCircle, FileText, Video, Palette, Users, Sparkles, ArrowRight, Star, Camera, Music, Award, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 import { Footer } from '@/components/main/Footer';
 import { Navbar } from '@/components/main/Navbar';
 import { ApplicationService, CreateApplicationRequest } from '@/services/application.service';
+import { ImageCropper } from '@/components/ui/ImageCropper';
 
 export default function JoinUsPage() {
   const t = useTranslations();
@@ -28,10 +29,14 @@ export default function JoinUsPage() {
     age: '',
     gender: '',
     applicationType: 'SOLO' as 'SOLO' | 'GROUP',
-    videoLink: ''
+    videoLink: '',
+    performPreference: [] as string[]
   });
 
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+  const [showImageCropper, setShowImageCropper] = useState(false);
+  const [imageSrc, setImageSrc] = useState<string>('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +47,10 @@ export default function JoinUsPage() {
       // Validation
       if (!formData.fullName || !formData.email || !formData.age || !formData.gender) {
         throw new Error('Please fill in all required fields');
+      }
+
+      if (formData.performPreference.length === 0) {
+        throw new Error('Please select at least one performance preference');
       }
 
       if (!uploadedFile) {
@@ -66,10 +75,15 @@ export default function JoinUsPage() {
         age: formData.age,
         gender: formData.gender,
         applicationType: formData.applicationType,
-        videoLink: formData.videoLink.trim() || undefined
+        videoLink: formData.videoLink.trim() || undefined,
+        performPreference: formData.performPreference
       };
 
-      const response = await ApplicationService.submitApplication(applicationData, uploadedFile);
+      const response = await ApplicationService.submitApplication(
+        applicationData, 
+        uploadedFile,
+        uploadedImage || undefined
+      );
       
       setSuccess(true);
       
@@ -136,6 +150,60 @@ export default function JoinUsPage() {
     }));
   };
 
+  const handlePerformPreferenceChange = (preference: string) => {
+    setFormData(prev => ({
+      ...prev,
+      performPreference: prev.performPreference.includes(preference)
+        ? prev.performPreference.filter(p => p !== preference)
+        : [...prev.performPreference, preference]
+    }));
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      
+      if (!allowedTypes.includes(file.type)) {
+        setError('Please upload a JPEG, PNG, or WebP image');
+        return;
+      }
+      
+      if (file.size > 10 * 1024 * 1024) {
+        setError('Image size must be less than 10MB');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImageSrc(reader.result as string);
+        setShowImageCropper(true);
+      };
+      reader.readAsDataURL(file);
+      setError('');
+    }
+  };
+
+  const handleCropComplete = (croppedImageBlob: Blob) => {
+    const croppedFile = new File([croppedImageBlob], 'profile-image.jpg', {
+      type: 'image/jpeg',
+      lastModified: Date.now(),
+    });
+    
+    setUploadedImage(croppedFile);
+    setShowImageCropper(false);
+    setImageSrc('');
+  };
+
+  const handleCropCancel = () => {
+    setShowImageCropper(false);
+    setImageSrc('');
+    const fileInput = document.getElementById('image-upload') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       fullName: '',
@@ -143,9 +211,13 @@ export default function JoinUsPage() {
       age: '',
       gender: '',
       applicationType: 'SOLO',
-      videoLink: ''
+      videoLink: '',
+      performPreference: []
     });
     setUploadedFile(null);
+    setUploadedImage(null);
+    setShowImageCropper(false);
+    setImageSrc('');
     setSuccess(false);
     setError('');
     setCurrentStep(1);
@@ -153,6 +225,11 @@ export default function JoinUsPage() {
     const fileInput = document.getElementById('file-upload') as HTMLInputElement;
     if (fileInput) {
       fileInput.value = '';
+    }
+    
+    const imageInput = document.getElementById('image-upload') as HTMLInputElement;
+    if (imageInput) {
+      imageInput.value = '';
     }
   };
 
@@ -517,6 +594,54 @@ export default function JoinUsPage() {
                         </button>
                       </div>
                     </div>
+
+                    {/* Performance Preference */}
+                    <div>
+                      <h3 className={`text-lg font-semibold text-gray-900 mb-4 flex items-center ${isRTL ? 'flex-row-reverse' : ''}`}>
+                        <Star className={`w-5 h-5 text-[#391C71] ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                        {locale === 'ar' ? 'تفضيل الأداء' : 'Performance Preference'} *
+                      </h3>
+                      
+                      <div className="grid grid-cols-1 gap-3">
+                        {[
+                          { value: 'private', labelEn: 'Private Events', labelAr: 'فعاليات خاصة', desc: 'Weddings, private parties, corporate events' },
+                          { value: 'public', labelEn: 'Public Events', labelAr: 'فعاليات عامة', desc: 'Concerts, festivals, public performances' },
+                          { value: 'international', labelEn: 'International Events', labelAr: 'فعاليات دولية', desc: 'International tours and performances' },
+                          { value: 'workshop', labelEn: 'Workshops/Classes', labelAr: 'ورش عمل/دروس', desc: 'Teaching and educational sessions' }
+                        ].map((option) => (
+                          <button
+                            key={option.value}
+                            type="button"
+                            onClick={() => handlePerformPreferenceChange(option.value)}
+                            className={`p-4 border-2 rounded-xl transition-all duration-300 ${
+                              formData.performPreference.includes(option.value)
+                                ? 'border-[#391C71] bg-[#391C71]/5'
+                                : 'border-gray-200 hover:border-gray-300'
+                            } ${isRTL ? 'text-right' : 'text-left'}`}
+                            disabled={isLoading}
+                          >
+                            <div className={`flex items-center justify-between mb-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                              <span className="font-semibold text-gray-900">
+                                {locale === 'ar' ? option.labelAr : option.labelEn}
+                              </span>
+                              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                                formData.performPreference.includes(option.value) ? 'border-[#391C71] bg-[#391C71]' : 'border-gray-300'
+                              }`}>
+                                {formData.performPreference.includes(option.value) && (
+                                  <CheckCircle className="w-3 h-3 text-white" />
+                                )}
+                              </div>
+                            </div>
+                            <p className="text-sm text-gray-600">
+                              {option.desc}
+                            </p>
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">
+                        {locale === 'ar' ? 'يمكنك اختيار أكثر من خيار' : 'You can select multiple options'}
+                      </p>
+                    </div>
                   </div>
 
                   {/* Right Column - Portfolio */}
@@ -562,6 +687,54 @@ export default function JoinUsPage() {
                                   </p>
                                   <p className="text-xs text-gray-400 mt-2">
                                     {locale === 'ar' ? 'PDF, DOC, DOCX حتى 10 ميجابايت' : 'PDF, DOC, DOCX up to 10MB'}
+                                  </p>
+                                </div>
+                              )}
+                            </label>
+                          </div>
+                        </div>
+
+                        {/* Profile Image Upload */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            {locale === 'ar' ? 'صورة الملف الشخصي (اختياري)' : 'Profile Image (Optional)'}
+                          </label>
+                          <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-[#391C71] transition-colors bg-gray-50">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleImageUpload}
+                              className="hidden"
+                              id="image-upload"
+                              disabled={isLoading}
+                            />
+                            <label htmlFor="image-upload" className="cursor-pointer">
+                              {uploadedImage ? (
+                                <div className="text-[#391C71]">
+                                  <div className="w-16 h-16 mx-auto mb-3 relative">
+                                    <Image
+                                      src={URL.createObjectURL(uploadedImage)}
+                                      alt="Profile preview"
+                                      fill
+                                      className="rounded-full object-cover"
+                                    />
+                                  </div>
+                                  <p className="font-semibold text-lg">Profile Image Uploaded</p>
+                                  <p className="text-sm text-gray-500 mt-1">
+                                    {locale === 'ar' ? 'انقر لتغيير الصورة' : 'Click to change image'}
+                                  </p>
+                                </div>
+                              ) : (
+                                <div>
+                                  <ImageIcon className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                                  <p className="text-lg font-semibold text-gray-700">
+                                    {locale === 'ar' ? 'اسحب صورتك هنا' : 'Drop your image here'}
+                                  </p>
+                                  <p className="text-gray-500 mt-1">
+                                    {locale === 'ar' ? 'أو انقر للتصفح' : 'or click to browse'}
+                                  </p>
+                                  <p className="text-xs text-gray-400 mt-2">
+                                    {locale === 'ar' ? 'JPEG, PNG, WebP حتى 10 ميجابايت' : 'JPEG, PNG, WebP up to 10MB'}
                                   </p>
                                 </div>
                               )}
@@ -665,6 +838,22 @@ export default function JoinUsPage() {
           </div>
         </div>
       </div>
+
+      {/* Image Cropper Modal */}
+      {showImageCropper && imageSrc && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+            <ImageCropper
+              src={imageSrc}
+              onCropComplete={handleCropComplete}
+              onCancel={handleCropCancel}
+              aspectRatio={1}
+              cropShape="round"
+              locale={locale}
+            />
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>

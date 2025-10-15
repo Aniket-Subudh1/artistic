@@ -7,6 +7,7 @@ export interface CreateApplicationRequest {
   gender: string;
   applicationType: 'SOLO' | 'GROUP'; 
   videoLink?: string;
+  performPreference?: string[];
 }
 
 export interface Application {
@@ -17,7 +18,9 @@ export interface Application {
   gender: string;
   applicationType: string;
   videoLink?: string;
-  resume?: string; 
+  resume?: string;
+  profileImage?: string;
+  performPreference?: string[];
   status: 'PENDING' | 'APPROVED' | 'REJECTED'; 
   createdAt: string;
   updatedAt: string;
@@ -31,19 +34,29 @@ export interface ApplicationResponse {
 export class ApplicationService {
   static async submitApplication(
     applicationData: CreateApplicationRequest,
-    cvFile?: File
+    cvFile?: File,
+    profileImage?: File
   ): Promise<ApplicationResponse> {
     try {
       const formData = new FormData();
 
       Object.entries(applicationData).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
-          formData.append(key, value.toString());
+          if (Array.isArray(value)) {
+            // Handle arrays like performPreference
+            formData.append(key, JSON.stringify(value));
+          } else {
+            formData.append(key, value.toString());
+          }
         }
       });
 
       if (cvFile) {
         formData.append('resume', cvFile);
+      }
+
+      if (profileImage) {
+        formData.append('profileImage', profileImage);
       }
 
       const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.APPLICATIONS.SUBMIT}`, {
@@ -140,27 +153,27 @@ export class ApplicationService {
         }),
       });
     } catch (error) {
-      throw new Error(`Failed to ${action} application. Please try again.`);
+      throw new Error('Failed to review application. Please try again.');
     }
   }
 
-  static async getApplicationById(id: string): Promise<Application> {
+  static async deleteApplication(applicationId: string): Promise<{ message: string }> {
     try {
-      return await apiRequest<Application>(API_CONFIG.ENDPOINTS.APPLICATIONS.GET_BY_ID(id), {
-        method: 'GET',
-      });
-    } catch (error) {
-      throw new Error('Failed to load application details. Please try again.');
-    }
-  }
-
-  static async deleteApplication(id: string): Promise<{ message: string }> {
-    try {
-      return await apiRequest<{ message: string }>(API_CONFIG.ENDPOINTS.APPLICATIONS.DELETE(id), {
+      return await apiRequest<{ message: string }>(API_CONFIG.ENDPOINTS.APPLICATIONS.DELETE(applicationId), {
         method: 'DELETE',
       });
     } catch (error) {
       throw new Error('Failed to delete application. Please try again.');
+    }
+  }
+
+  static async getApplicationById(applicationId: string): Promise<Application> {
+    try {
+      return await apiRequest<Application>(API_CONFIG.ENDPOINTS.APPLICATIONS.GET_BY_ID(applicationId), {
+        method: 'GET',
+      });
+    } catch (error) {
+      throw new Error('Failed to load application details. Please try again.');
     }
   }
 

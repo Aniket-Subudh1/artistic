@@ -832,6 +832,67 @@ export function ArtistManagement() {
                   </div>
                 </div>
 
+                {/* Performance Preferences */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Performance Preferences</h3>
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newPerformPreference}
+                        onChange={(e) => setNewPerformPreference(e.target.value)}
+                        placeholder="Add a preference"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addPerformPreference())}
+                      />
+                      <button
+                        type="button"
+                        onClick={addPerformPreference}
+                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                      >
+                        Add
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {createArtistForm.performPreference.map((preference, index) => (
+                        <span key={index} className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+                          {preference}
+                          <button
+                            type="button"
+                            onClick={() => removePerformPreference(preference)}
+                            className="ml-2 text-blue-600 hover:text-blue-800"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                    <div className="mt-2">
+                      <p className="text-sm text-gray-600 mb-2">Quick Add Common Preferences:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {['private', 'public', 'international', 'workshop'].map((pref) => (
+                          <button
+                            key={pref}
+                            type="button"
+                            onClick={() => {
+                              if (!createArtistForm.performPreference.includes(pref)) {
+                                setCreateArtistForm(prev => ({
+                                  ...prev,
+                                  performPreference: [...prev.performPreference, pref]
+                                }));
+                              }
+                            }}
+                            disabled={createArtistForm.performPreference.includes(pref)}
+                            className="px-3 py-1 text-sm border border-gray-300 rounded-full hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {pref}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Form Actions */}
                 <div className="flex gap-4 pt-6 border-t border-gray-200">
                   <button

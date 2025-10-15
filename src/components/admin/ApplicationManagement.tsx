@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { 
   Clock, 
   CheckCircle, 
@@ -112,6 +113,25 @@ export function ApplicationManagement() {
     setSelectedApplication(application);
     setShowReviewModal(true);
     setReviewComment('');
+  };
+
+  const handleDeleteApplication = async (applicationId: string, applicantName: string) => {
+    if (!confirm(`Are you sure you want to delete the application from ${applicantName}? This action cannot be undone.`)) {
+      return;
+    }
+
+    setError('');
+    setSuccess('');
+
+    try {
+      const response = await ApplicationService.deleteApplication(applicationId);
+      setSuccess(response.message || 'Application deleted successfully');
+      
+      // Reload applications
+      await loadApplications();
+    } catch (error: any) {
+      setError('Failed to delete application: ' + (error.message || 'Unknown error'));
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -403,6 +423,14 @@ export function ApplicationManagement() {
                             Video
                           </a>
                         )}
+                        <button
+                          onClick={() => handleDeleteApplication(application._id, application.fullName)}
+                          className="text-red-600 hover:text-red-900 flex items-center"
+                          title="Delete Application"
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" />
+                          Delete
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -427,6 +455,28 @@ export function ApplicationManagement() {
             <div className="p-6">
               {/* Application Details */}
               <div className="space-y-4 mb-6">
+                {/* Profile Image */}
+                {selectedApplication.profileImage && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Profile Image</label>
+                    <div className="flex justify-center">
+                      <img
+                        src={selectedApplication.profileImage}
+                        alt={`${selectedApplication.fullName}'s profile`}
+                        className="w-32 h-32 rounded-full object-cover border-4 border-gray-200 shadow-lg"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          target.nextElementSibling?.classList.remove('hidden');
+                        }}
+                      />
+                      <div className="hidden w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center">
+                        <User className="w-12 h-12 text-gray-400" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Full Name</label>
@@ -457,6 +507,22 @@ export function ApplicationManagement() {
                     </div>
                   </div>
                 </div>
+
+                {selectedApplication.performPreference && selectedApplication.performPreference.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Performance Preferences</label>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedApplication.performPreference.map((preference, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800"
+                        >
+                          {preference.charAt(0).toUpperCase() + preference.slice(1)}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {selectedApplication.videoLink && (
                   <div>
@@ -564,16 +630,32 @@ export function ApplicationManagement() {
             </div>
 
             <div className="p-6 border-t border-gray-200">
-              <button
-                onClick={() => {
-                  setShowReviewModal(false);
-                  setSelectedApplication(null);
-                  setReviewComment('');
-                }}
-                className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Close
-              </button>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => {
+                    setShowReviewModal(false);
+                    setSelectedApplication(null);
+                    setReviewComment('');
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    if (selectedApplication) {
+                      handleDeleteApplication(selectedApplication._id, selectedApplication.fullName);
+                      setShowReviewModal(false);
+                      setSelectedApplication(null);
+                      setReviewComment('');
+                    }
+                  }}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete Application
+                </button>
+              </div>
             </div>
           </div>
         </div>
