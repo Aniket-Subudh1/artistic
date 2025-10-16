@@ -99,34 +99,42 @@ export function AvailabilityCalendar({
 
   const isDateAvailable = (day: number) => {
     const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    const targetDate = new Date(dateStr);
+    const targetDate = new Date(dateStr + 'T00:00:00');
     const now = new Date();
     
     // Check if date is in the past
     if (targetDate < today) {
+      console.log(`❌ Date ${dateStr} is in the past`);
       return false;
     }
     
     // Check if date is within 24 hours from now
     const twentyFourHoursLater = new Date(now.getTime() + 24 * 60 * 60 * 1000);
     if (targetDate < twentyFourHoursLater) {
+      console.log(`❌ Date ${dateStr} is within 24 hours`);
       return false;
     }
     
-    // Check if the entire day is marked as unavailable (all 24 hours)
+    // Check unavailable hours for this date
     const unavailableHours = availability[dateStr] || [];
-    console.log(`Checking date ${dateStr}, unavailable hours:`, unavailableHours);
+    console.log(`🔍 Checking date availability for ${dateStr}:`);
+    console.log(`   Unavailable hours:`, unavailableHours);
+    console.log(`   Length:`, unavailableHours.length);
     
-    // If all 24 hours (0-23) are unavailable, the date is not available
-    if (unavailableHours.length >= 24) {
-      const allHours = Array.from({ length: 24 }, (_, i) => i);
-      const hasAllHours = allHours.every(hour => unavailableHours.includes(hour));
-      if (hasAllHours) {
-        console.log(`Date ${dateStr} is completely unavailable - all 24 hours marked`);
+    // If this date has unavailable hours, check if ALL hours are unavailable
+    if (unavailableHours.length > 0) {
+      // If all 24 hours are unavailable, the entire date is unavailable
+      if (unavailableHours.length >= 24) {
+        console.log(`❌ Date ${dateStr} is completely unavailable - all ${unavailableHours.length} hours marked`);
         return false;
+      } else {
+        console.log(`⚠️ Date ${dateStr} is partially unavailable - ${unavailableHours.length} hours marked`);
+        // Date is still selectable if some hours are available
+        return true;
       }
     }
     
+    console.log(`✅ Date ${dateStr} is fully available`);
     return true;
   };
 

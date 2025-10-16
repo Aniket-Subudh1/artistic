@@ -146,15 +146,6 @@ export default function BookArtistPage() {
       const artistData = await ArtistService.getArtistById(artistId);
       setArtist(artistData);
       
-      // Then try to fetch availability - don't fail the whole page if this fails
-      try {
-        const currentDate = new Date();
-        await fetchAvailability(currentDate.getMonth() + 1, currentDate.getFullYear());
-      } catch (availabilityError) {
-        console.error('Availability fetch failed:', availabilityError);
-        // Error is already handled in fetchAvailability
-      }
-      
       // Fetch equipment packages
       try {
         const packages = await equipmentPackagesService.getPublicPackages();
@@ -182,6 +173,13 @@ export default function BookArtistPage() {
       const response = await BookingService.getArtistAvailability(artistId, month, year);
       console.log('📅 Availability response:', response);
       console.log('🚫 Unavailable slots:', response.unavailableSlots);
+      console.log('🔍 Object.keys(response.unavailableSlots):', Object.keys(response.unavailableSlots));
+      
+      // Log each date and its unavailable hours for debugging
+      Object.entries(response.unavailableSlots).forEach(([date, hours]) => {
+        console.log(`📅 Date ${date} -> Unavailable hours: [${hours.join(', ')}]`);
+      });
+      
       setAvailability(response.unavailableSlots);
     } catch (error: any) {
       console.error('❌ Error fetching availability:', error);
@@ -209,12 +207,25 @@ export default function BookArtistPage() {
     }
   };
 
-  const handleMonthChange = async (month: number, year: number) => {
+  const fetchDateAvailability = async (dateStr: string) => {
     try {
-      await fetchAvailability(month, year);
-    } catch (error) {
-      console.error('Error fetching availability for new month:', error);
+      const response: any = await BookingService.getArtistDateAvailability(artistId, dateStr);
+      
+      // Update availability state with this date's data
+      setAvailability(prev => ({
+        ...prev,
+        [dateStr]: response.unavailableHours || []
+      }));
+      
+      return response;
+    } catch (error: any) {
+      console.error('❌ Error fetching date availability:', error);
+      throw error;
     }
+  };
+
+  const handleMonthChange = async (month: number, year: number) => {
+    // No need to fetch data on month change, data will be fetched when dates are clicked
   };
 
   const validateStep = (stepNumber: number): boolean => {
@@ -582,6 +593,7 @@ export default function BookArtistPage() {
                 errors={errors}
                 onMonthChange={handleMonthChange}
                 artistId={artistId}
+                fetchDateAvailability={fetchDateAvailability}
               />
             )}
             
@@ -722,13 +734,22 @@ interface StepProps {
   errors: { [key: string]: string };
 }
 
-function DateTimeStep({ formData, setFormData, availability, errors, onMonthChange, artistId }: StepProps & { 
+function DateTimeStep({ formData, setFormData, availability, errors, onMonthChange, artistId, fetchDateAvailability }: StepProps & { 
   availability: AvailabilityData;
   onMonthChange: (month: number, year: number) => Promise<void>;
   artistId: string;
+  fetchDateAvailability: (date: string) => Promise<any>;
 }) {
-  const handleDateSelect = (date: string) => {
-    setFormData({ ...formData, eventDate: date });
+  const handleDateSelect = async (date: string) => {
+    // Fetch availability for this specific date
+    try {
+      await fetchDateAvailability(date);
+      setFormData({ ...formData, eventDate: date });
+    } catch (error) {
+      console.error('❌ Error fetching date availability:', error);
+      // Still set the date even if availability fetch fails
+      setFormData({ ...formData, eventDate: date });
+    }
   };
 
   const handleTimeSelect = (startTime: string, endTime: string) => {

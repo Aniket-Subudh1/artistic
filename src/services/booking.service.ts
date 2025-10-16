@@ -84,9 +84,18 @@ export class BookingService {
     if (month) params.append('month', month.toString());
     if (year) params.append('year', year.toString());
     
-    const url = `/bookings/artist/${artistId}/availability${params.toString() ? '?' + params.toString() : ''}`;
+    // Use the direct artist-availability endpoint instead
+    const url = `/artist-availability/calendar/${artistId}${params.toString() ? '?' + params.toString() : ''}`;
     
     return apiRequest<AvailabilityResponse>(url, {
+      method: 'GET',
+    });
+  }
+
+  static async getArtistDateAvailability(artistId: string, date: string) {
+    const url = `/artist-availability/date/${artistId}/${date}`;
+    
+    return apiRequest(url, {
       method: 'GET',
     });
   }
