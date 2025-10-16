@@ -317,7 +317,7 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancel }: Book
                         )}
                         <div className="flex items-center justify-between mt-3">
                           <span className="text-lg font-semibold text-gray-900">
-                            {formatCurrency(pkg.price)}
+                            {formatCurrency((pkg.totalPrice || 0) * bookingHours)}
                           </span>
                           <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
                             {bookingHours} hour{bookingHours !== 1 ? 's' : ''}
