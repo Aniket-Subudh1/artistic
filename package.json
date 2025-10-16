@@ -11,6 +11,7 @@
     "@types/qrcode": "^1.5.5",
     "axios": "^1.12.2",
     "bcrypt": "^6.0.0",
+    "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
     "lucide-react": "^0.544.0",
     "mongodb": "^6.20.0",

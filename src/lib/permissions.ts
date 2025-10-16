@@ -355,6 +355,14 @@ export const getSidebarItems = (): SidebarItem[] => [
         labelAr: 'حجوزاتي',
         icon: 'CalendarDays',
         href: '/dashboard/bookings',
+        roles: ['artist', 'equipment_provider', 'venue_owner'],
+      },
+      {
+        id: 'my-bookings',
+        label: 'My Bookings',
+        labelAr: 'حجوزاتي',
+        icon: 'CalendarDays',
+        href: '/dashboard/user/bookings',
         roles: ['artist', 'equipment_provider', 'venue_owner', 'user'],
       },
       {

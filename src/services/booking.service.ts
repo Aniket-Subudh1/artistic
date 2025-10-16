@@ -53,6 +53,20 @@ export interface AvailabilityResponse {
   };
 }
 
+export interface BookingStatsResponse {
+  totalBookings: number;
+  pendingBookings: number;
+  confirmedBookings: number;
+  completedBookings: number;
+  cancelledBookings: number;
+  totalRevenue: number;
+  upcomingBookings: number;
+}
+
+export interface CancelBookingRequest {
+  reason: string;
+}
+
 export class BookingService {
   static async createArtistBooking(data: BookingRequest): Promise<BookingResponse> {
     return apiRequest<BookingResponse>('/booking/combine', {
@@ -89,9 +103,35 @@ export class BookingService {
     });
   }
 
-  static async cancelBooking(bookingId: string): Promise<any> {
+  static async cancelBooking(bookingId: string, reason?: string): Promise<any> {
+    const body: CancelBookingRequest = { reason: reason || 'User cancelled' };
     return apiRequest<any>(`/booking/${bookingId}/cancel`, {
       method: 'PUT',
+      body: JSON.stringify(body),
+    });
+  }
+
+  static async getBookingStats(): Promise<BookingStatsResponse> {
+    return apiRequest<BookingStatsResponse>('/booking/stats', {
+      method: 'GET',
+    });
+  }
+
+  static async updateBookingStatus(bookingId: string, status: string): Promise<any> {
+    return apiRequest<any>(`/booking/${bookingId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    });
+  }
+
+  static async rescheduleBooking(bookingId: string, newDate: string, newStartTime: string, newEndTime: string): Promise<any> {
+    return apiRequest<any>(`/booking/${bookingId}/reschedule`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        eventDate: newDate,
+        startTime: newStartTime,
+        endTime: newEndTime
+      }),
     });
   }
 }
