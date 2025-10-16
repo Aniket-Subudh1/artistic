@@ -34,14 +34,6 @@ export default function ArtistsPage() {
   // Get unique categories for filter
   const [categories, setCategories] = useState<string[]>([]);
 
-  useEffect(() => {
-    fetchArtists();
-  }, []);
-
-  useEffect(() => {
-    applyFilters();
-  }, [artists, searchTerm, selectedCategory, priceRange, selectedDate]);
-
   const fetchArtists = async () => {
     try {
       setLoading(true);
@@ -88,14 +80,16 @@ export default function ArtistsPage() {
       });
     }
 
-    // Date availability filter (placeholder - would need actual availability data)
-    if (selectedDate) {
-      // This would integrate with the availability system
-      // For now, we'll just show all artists
-    }
-
     setFilteredArtists(filtered);
   };
+
+  useEffect(() => {
+    fetchArtists();
+  }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [artists, searchTerm, selectedCategory, priceRange, selectedDate]);
 
   const clearFilters = () => {
     setSearchTerm('');

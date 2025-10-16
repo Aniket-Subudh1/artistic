@@ -4,18 +4,21 @@ import { useState, useEffect } from "react"
 import { useTranslations, useLocale } from 'next-intl'
 import { Link, useRouter, usePathname } from '@/i18n/routing'
 import Image from "next/image"
-import { Users, Music, Calendar, Languages, Mic, Package } from "lucide-react"
+import { Users, Music, Calendar, Languages, Mic, Package, User } from "lucide-react"
+import { useAuthLogic } from '@/hooks/useAuth'
 
 export function Navbar() {
   const t = useTranslations('nav')
   const locale = useLocale()
   const router = useRouter()
   const pathname = usePathname()
+  const { user, isAuthenticated, logout } = useAuthLogic()
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState<number | null>(null)
   const [isVisible, setIsVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
+  const [showUserDropdown, setShowUserDropdown] = useState(false)
   
   useEffect(() => {
     const handleScroll = () => {
@@ -35,6 +38,7 @@ export function Navbar() {
         setIsMobileMenuOpen(false)
         // Close dropdowns
         setActiveDropdown(null)
+        setShowUserDropdown(false)
       }
       
       setLastScrollY(currentScrollY)
@@ -43,6 +47,21 @@ export function Navbar() {
     window.addEventListener("scroll", handleScroll, { passive: true })
     return () => window.removeEventListener("scroll", handleScroll)
   }, [lastScrollY])
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showUserDropdown) {
+        setShowUserDropdown(false)
+      }
+      if (activeDropdown !== null) {
+        setActiveDropdown(null)
+      }
+    }
+
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [showUserDropdown, activeDropdown])
 
   const toggleLanguage = () => {
     const newLocale = locale === 'en' ? 'ar' : 'en'
@@ -254,17 +273,70 @@ export function Navbar() {
                 <span>{locale === 'en' ? 'العربية' : 'English'}</span>
               </button>
               
-              
-              <Link
-                href="/auth/signin"
-                className="relative px-6 py-2 text-sm bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 text-white font-bold rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group"
-              >
-                <span className="relative z-10">{t('signIn')}</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-orange-500 via-pink-600 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="absolute inset-0 animate-pulse-slow opacity-30">
-                  <div className="absolute top-0 start-0 w-full h-full bg-gradient-to-r from-transparent via-white to-transparent transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+              {/* Authentication Section */}
+              {isAuthenticated && user ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setShowUserDropdown(!showUserDropdown)}
+                    className={`flex items-center space-x-2 px-3 py-2 rounded-full transition-all duration-300 ${
+                      isScrolled
+                        ? 'bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/20'
+                        : 'bg-purple-50 hover:bg-purple-100'
+                    }`}
+                  >
+                    {user.avatar ? (
+                      <Image
+                        src={user.avatar}
+                        alt={`${user.firstName} ${user.lastName}`}
+                        width={32}
+                        height={32}
+                        className="w-8 h-8 rounded-full object-cover border-2 border-white/50"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                        <User className="w-4 h-4 text-white" />
+                      </div>
+                    )}
+                    <span className={`text-sm font-medium ${
+                      isScrolled ? 'text-white' : 'text-gray-800'
+                    }`}>
+                      {user.firstName}
+                    </span>
+                  </button>
+                  
+                  {showUserDropdown && (
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
+                      <Link
+                        href="/dashboard"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors"
+                        onClick={() => setShowUserDropdown(false)}
+                      >
+                        Dashboard
+                      </Link>
+                      <button
+                        onClick={() => {
+                          logout()
+                          setShowUserDropdown(false)
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
+                      >
+                        Sign Out
+                      </button>
+                    </div>
+                  )}
                 </div>
-              </Link>
+              ) : (
+                <Link
+                  href="/auth/signin"
+                  className="relative px-6 py-2 text-sm bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 text-white font-bold rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group"
+                >
+                  <span className="relative z-10">{t('signIn')}</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-orange-500 via-pink-600 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="absolute inset-0 animate-pulse-slow opacity-30">
+                    <div className="absolute top-0 start-0 w-full h-full bg-gradient-to-r from-transparent via-white to-transparent transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                  </div>
+                </Link>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -382,13 +454,59 @@ export function Navbar() {
                     <Languages className="w-4 h-4" />
                     <span>{locale === 'en' ? 'العربية' : 'English'}</span>
                   </button>
-                  <Link
-                    href="/auth/signin"
-                    className="block w-full px-4 py-2.5 text-sm text-center bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {t('signIn')}
-                  </Link>
+                  
+                  {/* Mobile Authentication Section */}
+                  {isAuthenticated && user ? (
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-3 px-4 py-3 bg-purple-50 rounded-xl">
+                        {user.avatar ? (
+                          <Image
+                            src={user.avatar}
+                            alt={`${user.firstName} ${user.lastName}`}
+                            width={40}
+                            height={40}
+                            className="w-10 h-10 rounded-full object-cover border-2 border-purple-200"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                            <User className="w-5 h-5 text-white" />
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            {user.firstName} {user.lastName}
+                          </p>
+                          <p className="text-sm text-gray-600 capitalize">
+                            {user.role.replace('_', ' ')}
+                          </p>
+                        </div>
+                      </div>
+                      <Link
+                        href="/dashboard"
+                        className="block w-full px-4 py-2.5 text-sm text-center bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        Dashboard
+                      </Link>
+                      <button
+                        onClick={() => {
+                          logout()
+                          setIsMobileMenuOpen(false)
+                        }}
+                        className="block w-full px-4 py-2.5 text-sm text-center bg-red-500 text-white font-medium rounded-2xl hover:bg-red-600 transition-all duration-300"
+                      >
+                        Sign Out
+                      </button>
+                    </div>
+                  ) : (
+                    <Link
+                      href="/auth/signin"
+                      className="block w-full px-4 py-2.5 text-sm text-center bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {t('signIn')}
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>

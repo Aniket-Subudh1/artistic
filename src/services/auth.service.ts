@@ -53,6 +53,8 @@ export class AuthService {
   static logout(): void {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
+    // Also remove cookie
+    document.cookie = 'authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
   }
 
   static isAuthenticated(): boolean {
@@ -67,5 +69,7 @@ export class AuthService {
   static storeAuthData(token: string, user: any): void {
     localStorage.setItem('authToken', token);
     localStorage.setItem('user', JSON.stringify(user));
+    // Also store in cookie for middleware access
+    document.cookie = `authToken=${token}; path=/; max-age=${60 * 60 * 24 * 7}`; // 7 days
   }
 }

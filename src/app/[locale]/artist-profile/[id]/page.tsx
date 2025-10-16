@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useRouter as useI18nRouter } from '@/i18n/routing';
+import { useAuthLogic } from '@/hooks/useAuth';
 import { ArtistService, Artist, PortfolioItem } from '@/services/artist.service';
 import Image from 'next/image';
 import { 
@@ -30,6 +32,8 @@ import QRCode from 'qrcode';
 export default function ArtistProfilePage() {
   const params = useParams();
   const router = useRouter();
+  const i18nRouter = useI18nRouter();
+  const { isAuthenticated, isLoading: authLoading } = useAuthLogic();
   const artistId = params.id as string;
   
   const [artist, setArtist] = useState<Artist | null>(null);
@@ -83,8 +87,21 @@ export default function ArtistProfilePage() {
   }, [artistId]);
 
   const handleBookArtist = () => {
-    // Implement booking logic here
-    alert('Booking functionality will be implemented');
+    // Don't do anything if auth is still loading
+    if (authLoading) {
+      return;
+    }
+    
+    // Check if user is authenticated before allowing booking
+    if (!isAuthenticated) {
+      // Redirect to signin with current page as return URL
+      const currentPath = window.location.pathname;
+      i18nRouter.push(`/auth/signin?returnUrl=${encodeURIComponent(currentPath)}`);
+      return;
+    }
+    
+    // Navigate to booking page
+    i18nRouter.push(`/book-artist/${artistId}`);
   };
 
   const handleShare = async () => {
@@ -318,11 +335,18 @@ export default function ArtistProfilePage() {
                   <div className="flex flex-col sm:flex-row gap-4">
                     <button
                       onClick={handleBookArtist}
-                      className="flex-1 bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white px-8 py-4 rounded-2xl font-bold text-lg hover:from-[#5B2C87] hover:to-[#391C71] transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105 flex items-center justify-center gap-3 relative overflow-hidden group"
+                      disabled={authLoading}
+                      className={`flex-1 ${
+                        authLoading 
+                          ? 'bg-gray-400 cursor-not-allowed' 
+                          : 'bg-gradient-to-r from-[#391C71] to-[#5B2C87] hover:from-[#5B2C87] hover:to-[#391C71] hover:shadow-2xl hover:scale-105'
+                      } text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 shadow-xl flex items-center justify-center gap-3 relative overflow-hidden group`}
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                       <Calendar className="w-6 h-6 relative z-10" />
-                      <span className="relative z-10">Book Now - {artist.pricePerHour} KWD/hour</span>
+                      <span className="relative z-10">
+                        {authLoading ? 'Loading...' : `Book Now - ${artist.pricePerHour} KWD/hour`}
+                      </span>
                     </button>
                   </div>
                 </div>

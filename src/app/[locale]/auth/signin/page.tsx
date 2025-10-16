@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link, useRouter } from '@/i18n/routing';
+import { useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
 import Image from 'next/image';
 import { Footer } from '@/components/main/Footer';
@@ -11,7 +12,8 @@ import { useAuthLogic } from '@/hooks/useAuth';
 export default function SignInPage() {
   const t = useTranslations('auth.signIn');
   const router = useRouter();
-  const { login, isLoading } = useAuthLogic();
+  const searchParams = useSearchParams();
+  const { login, isLoading, isAuthenticated, isLoading: authLoading, user } = useAuthLogic();
   
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -19,6 +21,39 @@ export default function SignInPage() {
     email: '',
     password: ''
   });
+
+  // Redirect authenticated users
+  useEffect(() => {
+    if (!authLoading && isAuthenticated && user) {
+      // Check if there's a return URL
+      const returnUrl = searchParams.get('returnUrl');
+      
+      if (returnUrl) {
+        router.push(returnUrl);
+        return;
+      }
+      
+      // Redirect based on role
+      switch (user.role) {
+        case 'admin':
+        case 'super_admin':
+          router.push('/dashboard/admin');
+          break;
+        case 'artist':
+          router.push('/dashboard/artist');
+          break;
+        case 'equipment_provider':
+          router.push('/dashboard/equipment-provider');
+          break;
+        case 'venue_owner':
+          router.push('/dashboard/venue-owner');
+          break;
+        default:
+          router.push('/dashboard');
+          break;
+      }
+    }
+  }, [authLoading, isAuthenticated, user, router, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +66,15 @@ export default function SignInPage() {
 
     try {
       const response = await login(formData.email, formData.password);
+      
+      // Check if there's a return URL for users
+      const returnUrl = searchParams.get('returnUrl');
+      
+      if (returnUrl && response.role.toUpperCase() === 'USER') {
+        // For users who were redirected from artist pages, take them back
+        router.push(returnUrl);
+        return;
+      }
       
       // Redirect based on role
       switch (response.role.toUpperCase()) {
