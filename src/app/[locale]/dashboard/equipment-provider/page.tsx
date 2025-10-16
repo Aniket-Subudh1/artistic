@@ -75,6 +75,13 @@ export default function EquipmentProviderDashboard() {
       color: 'blue' as const
     },
     {
+      title: 'Package Bookings',
+      description: 'Manage your equipment package bookings',
+      icon: Calendar,
+      href: '/dashboard/equipment-provider/bookings',
+      color: 'green' as const
+    },
+    {
       title: 'Settings',
       description: 'Manage account settings and preferences',
       icon: Settings,
@@ -179,11 +186,13 @@ export default function EquipmentProviderDashboard() {
                   const Icon = action.icon;
                   const colorClasses = {
                     blue: 'hover:border-blue-300 hover:bg-blue-50',
+                    green: 'hover:border-green-300 hover:bg-green-50',
                     purple: 'hover:border-purple-300 hover:bg-purple-50',
                     orange: 'hover:border-orange-300 hover:bg-orange-50',
                   };
                   const iconClasses = {
                     blue: 'text-blue-600 bg-blue-100 group-hover:bg-blue-200',
+                    green: 'text-green-600 bg-green-100 group-hover:bg-green-200',
                     purple: 'text-purple-600 bg-purple-100 group-hover:bg-purple-200',
                     orange: 'text-orange-600 bg-orange-100 group-hover:bg-orange-200',
                   };

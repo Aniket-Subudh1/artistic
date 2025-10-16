@@ -6,7 +6,7 @@ import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { QuickActions } from '@/components/dashboard/QuickActions';
 import { useAuthLogic } from '@/hooks/useAuth';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { Calendar, Heart, Star } from 'lucide-react';
+import { Calendar, Heart, Star, Package } from 'lucide-react';
 
 export default function UserDashboard() {
   const { user, isLoading } = useAuthLogic();
@@ -21,6 +21,13 @@ export default function UserDashboard() {
       description: 'View your event bookings',
       icon: Calendar,
       href: '/dashboard/user/bookings',
+      color: 'blue' as const
+    },
+    {
+      title: 'Equipment Packages',
+      description: 'Browse and book equipment packages',
+      icon: Package,
+      href: '/equipment-packages',
       color: 'blue' as const
     },
     {

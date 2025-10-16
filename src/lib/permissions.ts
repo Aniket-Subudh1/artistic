@@ -23,6 +23,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     'manage_equipment',
     'manage_venues',
     'manage_equipment_providers',
+    'manage_terms_and_conditions',
     'update_profile_picture'
   ],
   admin: [
@@ -36,6 +37,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     'manage_applications',
     'manage_venues',
     'manage_equipment_providers',
+    'manage_terms_and_conditions',
     'update_profile_picture'
   ],
   venue_owner: [
@@ -131,6 +133,14 @@ export const getSidebarItems = (): SidebarItem[] => [
         icon: 'Cog',
         href: '/dashboard/admin/system',
         roles: ['super_admin'],
+      },
+      {
+        id: 'terms-and-conditions',
+        label: 'Terms & Conditions',
+        labelAr: 'الشروط والأحكام',
+        icon: 'FileText',
+        href: '/dashboard/admin/terms-and-conditions',
+        roles: ['super_admin', 'admin'],
       },
     ],
   },

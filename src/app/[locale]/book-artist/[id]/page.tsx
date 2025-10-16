@@ -27,6 +27,8 @@ import {
 } from 'lucide-react';
 import { Navbar } from '@/components/main/Navbar';
 import { Footer } from '@/components/main/Footer';
+import { TermsAndConditionsModal } from '@/components/booking/TermsAndConditionsModal';
+import { TermsAndConditionsService, TermsAndConditions, TermsType } from '@/services/terms-and-conditions.service';
 
 interface BookingFormData {
   eventDate: string;
@@ -98,6 +100,12 @@ export default function BookArtistPage() {
   });
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  // Terms and Conditions Modal State
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [terms, setTerms] = useState<TermsAndConditions | null>(null);
+  const [termsLoading, setTermsLoading] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   // Check authentication
   useEffect(() => {
@@ -246,6 +254,39 @@ export default function BookArtistPage() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const loadTermsAndConditions = async () => {
+    setTermsLoading(true);
+    try {
+      // Determine which terms to load based on booking type
+      let termsToLoad: TermsAndConditions | null = null;
+      
+      if (formData.selectedEquipmentPackages.length > 0) {
+        // Combined artist + equipment booking - load artist terms which should cover both
+        termsToLoad = await TermsAndConditionsService.getArtistBookingTerms();
+        
+        // If artist terms don't exist, try equipment terms as fallback
+        if (!termsToLoad) {
+          termsToLoad = await TermsAndConditionsService.getEquipmentBookingTerms();
+        }
+      } else {
+        // Artist-only booking
+        termsToLoad = await TermsAndConditionsService.getArtistBookingTerms();
+      }
+      
+      // Final fallback to general booking terms
+      if (!termsToLoad) {
+        termsToLoad = await TermsAndConditionsService.getGeneralBookingTerms();
+      }
+      
+      setTerms(termsToLoad);
+    } catch (error) {
+      console.error('Error loading terms and conditions:', error);
+      setTerms(null);
+    } finally {
+      setTermsLoading(false);
+    }
+  };
+
   const handleNext = () => {
     if (validateStep(step)) {
       setStep(step + 1);
@@ -259,6 +300,18 @@ export default function BookArtistPage() {
   const handleSubmit = async () => {
     if (!validateStep(step)) return;
 
+    // If terms haven't been accepted yet, show the terms modal
+    if (!termsAccepted) {
+      await loadTermsAndConditions();
+      setShowTermsModal(true);
+      return;
+    }
+
+    // If terms have been accepted, proceed with booking
+    await processBooking();
+  };
+
+  const processBooking = async () => {
     try {
       setSubmitting(true);
       
@@ -308,6 +361,26 @@ export default function BookArtistPage() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleTermsAccept = () => {
+    setTermsAccepted(true);
+    setShowTermsModal(false);
+    // Proceed with booking after accepting terms
+    processBooking();
+  };
+
+  const handleTermsDecline = () => {
+    setShowTermsModal(false);
+    setTermsAccepted(false);
+    // Reset submitting state since booking was cancelled
+    setSubmitting(false);
+  };
+
+  const handleTermsClose = () => {
+    setShowTermsModal(false);
+    // Reset submitting state since booking was cancelled
+    setSubmitting(false);
   };
 
   // Show loading while auth is being resolved
@@ -523,6 +596,24 @@ export default function BookArtistPage() {
           </div>
         </div>
       )}
+
+      {/* Terms and Conditions Modal */}
+      <TermsAndConditionsModal
+        isOpen={showTermsModal}
+        onClose={handleTermsClose}
+        onAccept={handleTermsAccept}
+        onDecline={handleTermsDecline}
+        terms={terms}
+        loading={termsLoading}
+        title="Terms and Conditions"
+        subtitle={
+          formData.selectedEquipmentPackages.length > 0
+            ? "Please read and accept the terms and conditions to complete your artist and equipment package booking."
+            : "Please read and accept the terms and conditions to complete your artist booking."
+        }
+        acceptButtonText="Accept & Complete Booking"
+        declineButtonText="Cancel Booking"
+      />
       
       <Footer />
     </div>

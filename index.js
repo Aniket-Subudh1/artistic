@@ -40,7 +40,7 @@ async function sendSms({ username, password, sender, mobile, message, test }) {
 }
 
 (async () => {
-  const mobile = '96599213471';
+  const mobile = '917008485825';
 
   const username = process.env.KWT_USERNAME;
   const password = process.env.KWT_PASSWORD;

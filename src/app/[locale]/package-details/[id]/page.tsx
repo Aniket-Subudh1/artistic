@@ -64,8 +64,8 @@ export default function PackageDetailsPage() {
   }, [packageId]);
 
   const handleBookPackage = () => {
-    // Implement booking logic here
-    alert('Booking functionality will be implemented');
+    // Navigate to the equipment package booking page
+    router.push(`/book-package/${packageId}`);
   };
 
   const handleShare = async () => {

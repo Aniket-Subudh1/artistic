@@ -28,10 +28,29 @@ export interface EquipmentPackage {
   _id: string;
   name: string;
   description: string;
-  price: number;
+  totalPrice: number;
   coverImage?: string;
-  equipment: Equipment[];
-  providerId: string;
+  images?: string[];
+  items: Array<{
+    equipmentId: {
+      _id: string;
+      name: string;
+      category: string;
+      pricePerDay: number;
+      images?: string[];
+    };
+    quantity: number;
+  }>;
+  createdBy: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  status: 'draft' | 'pending_review' | 'under_review' | 'approved' | 'rejected';
+  visibility: 'online' | 'offline';
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface BookingStatus {
@@ -76,6 +95,41 @@ export interface Booking {
   cancellationReason?: string;
   cancelledAt?: string;
   refundAmount?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface EquipmentPackageBooking {
+  _id: string;
+  bookedBy: string;
+  packageId: EquipmentPackage;
+  startDate: string;
+  endDate: string;
+  numberOfDays: number;
+  pricePerDay: number;
+  totalPrice: number;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  userDetails: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+  venueDetails: {
+    address: string;
+    city: string;
+    state: string;
+    country: string;
+    postalCode?: string;
+    venueType?: string;
+    additionalInfo?: string;
+  };
+  eventDescription?: string;
+  specialRequests?: string;
+  paymentStatus: 'pending' | 'paid' | 'refunded' | 'failed';
+  cancellationReason?: string;
+  cancelledAt?: string;
+  refundAmount?: number;
+  bookingDate: string;
   createdAt?: string;
   updatedAt?: string;
 }
