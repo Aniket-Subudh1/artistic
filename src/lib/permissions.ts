@@ -373,7 +373,7 @@ export const getSidebarItems = (): SidebarItem[] => [
         labelAr: 'حجوزاتي',
         icon: 'CalendarDays',
         href: '/dashboard/user/bookings',
-        roles: ['artist', 'equipment_provider', 'venue_owner', 'user'],
+        roles: [ 'user'],
       },
       {
         id: 'all-bookings',
