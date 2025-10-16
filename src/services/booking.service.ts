@@ -69,7 +69,7 @@ export interface CancelBookingRequest {
 
 export class BookingService {
   static async createArtistBooking(data: BookingRequest): Promise<BookingResponse> {
-    return apiRequest<BookingResponse>('/booking/combine', {
+    return apiRequest<BookingResponse>('/bookings/combine', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -84,7 +84,7 @@ export class BookingService {
     if (month) params.append('month', month.toString());
     if (year) params.append('year', year.toString());
     
-    const url = `/booking/artist/${artistId}/availability${params.toString() ? '?' + params.toString() : ''}`;
+    const url = `/bookings/artist/${artistId}/availability${params.toString() ? '?' + params.toString() : ''}`;
     
     return apiRequest<AvailabilityResponse>(url, {
       method: 'GET',
