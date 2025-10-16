@@ -24,7 +24,9 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     'manage_venues',
     'manage_equipment_providers',
     'manage_terms_and_conditions',
-    'update_profile_picture'
+    'update_profile_picture',
+    'view_all_bookings',
+    'view_payments'
   ],
   admin: [
     'manage_users',
@@ -38,7 +40,9 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     'manage_venues',
     'manage_equipment_providers',
     'manage_terms_and_conditions',
-    'update_profile_picture'
+    'update_profile_picture',
+    'view_all_bookings',
+    'view_payments'
   ],
   venue_owner: [
     'manage_own_venues',
@@ -495,6 +499,22 @@ export const getSidebarItems = (): SidebarItem[] => [
         labelAr: 'جميع المعاملات',
         icon: 'ArrowLeftRight',
         href: '/dashboard/payments/transactions',
+        roles: ['super_admin', 'admin'],
+      },
+      {
+        id: 'artist-payments',
+        label: 'Artist Payments',
+        labelAr: 'مدفوعات الفنانين',
+        icon: 'Users',
+        href: '/dashboard/admin/payments/artists',
+        roles: ['super_admin', 'admin'],
+      },
+      {
+        id: 'provider-payments',
+        label: 'Provider Payments',
+        labelAr: 'مدفوعات الموردين',
+        icon: 'Package',
+        href: '/dashboard/admin/payments/providers',
         roles: ['super_admin', 'admin'],
       },
     ],

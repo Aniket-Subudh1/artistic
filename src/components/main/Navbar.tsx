@@ -80,7 +80,7 @@ export function Navbar() {
           description: t('exploreArtistsDesc')
         },
         {
-          href: "/equipments",
+          href: "/packages",
           label: t('exploreEquipments'),
           icon: Music,
           description: t('exploreEquipmentsDesc')

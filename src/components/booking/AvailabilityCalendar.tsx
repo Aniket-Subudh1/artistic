@@ -113,6 +113,20 @@ export function AvailabilityCalendar({
       return false;
     }
     
+    // Check if the entire day is marked as unavailable (all 24 hours)
+    const unavailableHours = availability[dateStr] || [];
+    console.log(`Checking date ${dateStr}, unavailable hours:`, unavailableHours);
+    
+    // If all 24 hours (0-23) are unavailable, the date is not available
+    if (unavailableHours.length >= 24) {
+      const allHours = Array.from({ length: 24 }, (_, i) => i);
+      const hasAllHours = allHours.every(hour => unavailableHours.includes(hour));
+      if (hasAllHours) {
+        console.log(`Date ${dateStr} is completely unavailable - all 24 hours marked`);
+        return false;
+      }
+    }
+    
     return true;
   };
 
@@ -307,6 +321,10 @@ export function AvailabilityCalendar({
               const hasAvailability = availableSlots.length > 0;
               const isToday = new Date().toDateString() === new Date(dateStr).toDateString();
               
+              // Check if completely unavailable
+              const unavailableHours = availability[dateStr] || [];
+              const isCompletelyUnavailable = unavailableHours.length >= 24;
+              
               return (
                 <button
                   key={`day-${currentYear}-${currentMonth}-${day}`}
@@ -318,13 +336,21 @@ export function AvailabilityCalendar({
                       ? 'bg-purple-600 text-white shadow-lg transform scale-105' 
                       : isAvailable && hasAvailability
                         ? 'hover:bg-purple-100 text-gray-900 hover:shadow-md hover:transform hover:scale-105'
-                        : 'text-gray-400 cursor-not-allowed'
+                        : isCompletelyUnavailable
+                          ? 'bg-red-100 text-red-600 cursor-not-allowed border border-red-300'
+                          : 'text-gray-400 cursor-not-allowed'
                     }
-                    ${!hasAvailability && isAvailable ? 'bg-red-50 text-red-400' : ''}
+                    ${!hasAvailability && isAvailable && !isCompletelyUnavailable ? 'bg-red-50 text-red-400' : ''}
                     ${isToday && !isSelected ? 'bg-blue-50 border-2 border-blue-200 font-semibold' : ''}
                   `}
+                  title={isCompletelyUnavailable ? 'Artist is not available on this date' : undefined}
                 >
                   <span className="block">{day}</span>
+                  {isCompletelyUnavailable && (
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-xs">✕</span>
+                    </div>
+                  )}
                   {isToday && (
                     <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full"></div>
                   )}

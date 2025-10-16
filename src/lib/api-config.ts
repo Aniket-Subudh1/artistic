@@ -79,7 +79,7 @@ export const API_CONFIG = {
       APPROVE: (id: string) => `/equipment-packages/approve/${id}`,
       REJECT: (id: string) => `/equipment-packages/reject/${id}`,
       GET_BY_ID: (id: string) => `/equipment-packages/${id}`,
-      TOGGLE_VISIBILITY: (id: string) => `/equipment-packages/toggle-visibility/${id}`,
+      TOGGLE_VISIBILITY: (id: string) => `/equipment-packages/visibility/${id}`,
       UPLOAD_IMAGES: (id: string) => `/equipment-packages/upload-images/${id}`,
       UPLOAD_COVER_IMAGE: (id: string) => `/equipment-packages/upload-cover-image/${id}`,
     },
@@ -91,13 +91,10 @@ export const API_CONFIG = {
       UPDATE_STATUS: (id: string) => `/equipment-package-booking/${id}/status`,
       CHECK_AVAILABILITY: (packageId: string) => `/equipment-package-booking/check-availability/${packageId}`,
       ADMIN_ALL: '/equipment-package-booking/admin/all',
-      TOGGLE_VISIBILITY: (id: string) => `/equipment-packages/visibility/${id}`,
-      UPLOAD_IMAGES: (id: string) => `/equipment-packages/upload-images/${id}`,
-      UPLOAD_COVER_IMAGE: (id: string) => `/equipment-packages/upload-cover-image/${id}`,
     },
     EQUIPMENT_PROVIDER: {
       SIGNUP: '/equipment-provider',
-      CREATE: '/equipment-provider', // Admin creation endpoint
+      CREATE: '/equipment-provider', 
       LIST_ALL: '/equipment-provider',
       CHANGE_PASSWORD: '/equipment-provider/change-password',
       GET_BY_ID: (id: string) => `/equipment-provider/${id}`,

@@ -107,4 +107,198 @@ export class AdminService {
       body: JSON.stringify({ reviewComment }),
     });
   }
+
+  // Artist Booking Management
+  static async getArtistBookings(filters?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    search?: string;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<{
+    bookings: any[];
+    metrics: {
+      totalRevenue: number;
+      statusBreakdown: any[];
+      artistTypeBreakdown: any[];
+      monthlyRevenue: any[];
+      topArtists: any[];
+      avgBookingValue: number;
+    };
+    pagination: {
+      current: number;
+      total: number;
+      count: number;
+      perPage: number;
+    };
+  }> {
+    const params = new URLSearchParams();
+    if (filters?.page) params.append('page', filters.page.toString());
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.search) params.append('search', filters.search);
+    if (filters?.startDate) params.append('startDate', filters.startDate);
+    if (filters?.endDate) params.append('endDate', filters.endDate);
+
+    const url = `${API_CONFIG.BASE_URL}/admin/bookings/artists?${params}`;
+    return apiRequest(url, { method: 'GET' });
+  }
+
+  // Equipment Booking Management
+  static async getEquipmentBookings(filters?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    search?: string;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<{
+    bookings: any[];
+    metrics: {
+      totalRevenue: number;
+      combinedEquipmentRevenue: number;
+      packageRevenue: number;
+      equipmentTypeBreakdown: any[];
+      providerPerformance: any[];
+      monthlyTrends: any[];
+      utilizationStats: {
+        avgDuration: number;
+        totalBookingDays: number;
+      };
+    };
+    pagination: {
+      current: number;
+      total: number;
+      count: number;
+      perPage: number;
+    };
+  }> {
+    const params = new URLSearchParams();
+    if (filters?.page) params.append('page', filters.page.toString());
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.search) params.append('search', filters.search);
+    if (filters?.startDate) params.append('startDate', filters.startDate);
+    if (filters?.endDate) params.append('endDate', filters.endDate);
+
+    const url = `${API_CONFIG.BASE_URL}/admin/bookings/equipment?${params}`;
+    return apiRequest(url, { method: 'GET' });
+  }
+
+  // Legacy Booking Management (for backward compatibility)
+  static async getAllBookings(filters?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    search?: string;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<{
+    bookings: any[];
+    pagination: {
+      current: number;
+      total: number;
+      count: number;
+      perPage: number;
+    };
+  }> {
+    const params = new URLSearchParams();
+    if (filters?.page) params.append('page', filters.page.toString());
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.search) params.append('search', filters.search);
+    if (filters?.startDate) params.append('startDate', filters.startDate);
+    if (filters?.endDate) params.append('endDate', filters.endDate);
+
+    const url = `${API_CONFIG.BASE_URL}/admin/bookings?${params}`;
+    return apiRequest(url, { method: 'GET' });
+  }
+
+  static async getAllEquipmentPackageBookings(filters?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    search?: string;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<{
+    bookings: any[];
+    pagination: {
+      current: number;
+      total: number;
+      count: number;
+      perPage: number;
+    };
+  }> {
+    const params = new URLSearchParams();
+    if (filters?.page) params.append('page', filters.page.toString());
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.search) params.append('search', filters.search);
+    if (filters?.startDate) params.append('startDate', filters.startDate);
+    if (filters?.endDate) params.append('endDate', filters.endDate);
+
+    const url = `${API_CONFIG.BASE_URL}/admin/equipment-package-bookings?${params}`;
+    return apiRequest(url, { method: 'GET' });
+  }
+
+  // Payment Management
+  static async getArtistPayments(filters?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    search?: string;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<{
+    payments: any[];
+    totalEarnings: number;
+    pagination: {
+      current: number;
+      total: number;
+      count: number;
+      perPage: number;
+    };
+  }> {
+    const params = new URLSearchParams();
+    if (filters?.page) params.append('page', filters.page.toString());
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.search) params.append('search', filters.search);
+    if (filters?.startDate) params.append('startDate', filters.startDate);
+    if (filters?.endDate) params.append('endDate', filters.endDate);
+
+    const url = `${API_CONFIG.BASE_URL}/admin/payments/artists?${params}`;
+    return apiRequest(url, { method: 'GET' });
+  }
+
+  static async getEquipmentProviderPayments(filters?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    search?: string;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<{
+    payments: any[];
+    totalEarnings: number;
+    pagination: {
+      current: number;
+      total: number;
+      count: number;
+      perPage: number;
+    };
+  }> {
+    const params = new URLSearchParams();
+    if (filters?.page) params.append('page', filters.page.toString());
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.search) params.append('search', filters.search);
+    if (filters?.startDate) params.append('startDate', filters.startDate);
+    if (filters?.endDate) params.append('endDate', filters.endDate);
+
+    const url = `${API_CONFIG.BASE_URL}/admin/payments/equipment-providers?${params}`;
+    return apiRequest(url, { method: 'GET' });
+  }
 }
