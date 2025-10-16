@@ -399,199 +399,294 @@ export default function BookArtistPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      <div className="min-h-screen relative">
+        <div className="fixed inset-0 z-0">
+          <Image
+            src="/design.png"
+            alt="Background"
+            fill
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-50/80 via-white/50 to-pink-50/80"></div>
+        </div>
+        <Navbar />
+        <div className="relative z-10 flex justify-center items-center h-96 pt-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#391C71]"></div>
+        </div>
+        <Footer />
       </div>
     );
   }
 
   if (!artist) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Artist Not Found</h2>
-          <p className="text-gray-600 mb-4">The artist you're looking for doesn't exist or is not available for booking.</p>
-          <button
-            onClick={() => router.back()}
-            className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors"
-          >
-            Go Back
-          </button>
+      <div className="min-h-screen relative">
+        <div className="fixed inset-0 z-0">
+          <Image
+            src="/design.png"
+            alt="Background"
+            fill
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-50/80 via-white/50 to-pink-50/80"></div>
         </div>
+        <Navbar />
+        <div className="relative z-10 text-center py-20 pt-32">
+          <div className="max-w-md mx-auto bg-white/60 backdrop-blur-md rounded-3xl shadow-2xl border border-white/20 p-8">
+            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Artist Not Found</h2>
+            <p className="text-gray-600 mb-4">The artist you're looking for doesn't exist or is not available for booking.</p>
+            <button
+              onClick={() => router.back()}
+              className="bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white px-6 py-3 rounded-full hover:from-[#5B2C87] hover:to-[#391C71] transition-colors shadow-lg"
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen relative">
+      {/* Background */}
+      <div className="fixed inset-0 z-0">
+        <Image
+          src="/design.png"
+          alt="Background"
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-50/80 via-white/50 to-pink-50/80"></div>
+      </div>
       <Navbar />
       
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="relative z-10 max-w-4xl mx-auto px-6 pt-24 pb-8">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <button
-            onClick={() => router.back()}
-            className="flex items-center text-purple-600 hover:text-purple-700 mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Artist Profile
-          </button>
+        <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-8 mb-8 relative overflow-hidden">
+          {/* Decorative Elements */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#391C71]/10 to-transparent rounded-bl-full"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-purple-100/50 to-transparent rounded-tr-full"></div>
           
-          <div className="flex items-center space-x-4">
-            <Image
-              src={artist.profileImage || '/default-avatar.png'}
-              alt={artist.stageName}
-              width={80}
-              height={80}
-              className="rounded-full object-cover"
-            />
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Book {artist.stageName}</h1>
-              <p className="text-gray-600">{artist.category}</p>
-              <p className="text-lg font-semibold text-purple-600">
-                ${artist.pricePerHour}/hour
-              </p>
+          <div className="relative z-10">
+            <button
+              onClick={() => router.back()}
+              className="flex items-center bg-white/90 backdrop-blur-sm text-[#391C71] hover:text-[#5B2C87] mb-6 px-4 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 font-semibold"
+            >
+              <ArrowLeft className="w-5 h-5 mr-2" />
+              Back to Artist Profile
+            </button>
+            
+            <div className="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6">
+              {/* Artist Image */}
+              <div className="relative w-24 h-24 flex-shrink-0">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-2xl transform rotate-3"></div>
+                <Image
+                  src={artist.profileImage || '/default-avatar.png'}
+                  alt={artist.stageName}
+                  width={96}
+                  height={96}
+                  className="object-cover rounded-2xl border-4 border-white shadow-lg relative z-10"
+                />
+                {/* Verified Badge */}
+                <div className="absolute -top-2 -right-2 bg-[#391C71] rounded-full p-2 shadow-lg z-20">
+                  <CheckCircle className="w-4 h-4 text-white" />
+                </div>
+              </div>
+              
+              <div className="flex-1">
+                <h1 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">Book {artist.stageName}</h1>
+                <div className="flex flex-wrap items-center gap-4 mb-3">
+                  <div className="inline-flex items-center bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
+                    <User className="w-4 h-4 mr-2" />
+                    {artist.category || 'Artist'}
+                  </div>
+                  <div className="bg-gradient-to-r from-[#391C71]/10 to-purple-100 text-[#391C71] px-4 py-2 rounded-full text-sm font-bold border border-[#391C71]/20">
+                    {artist.pricePerHour} KWD/hour
+                  </div>
+                </div>
+                <p className="text-gray-600 text-sm">{artist.user.firstName} {artist.user.lastName}</p>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Progress Steps */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <div className="flex items-center justify-between">
-            {[1, 2, 3, 4].map((stepNumber) => (
-              <div
-                key={stepNumber}
-                className={`flex items-center ${stepNumber < 4 ? 'flex-1' : ''}`}
-              >
+        <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-8 mb-8 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-[#391C71]/20 to-transparent rounded-br-full"></div>
+          <div className="relative z-10">
+            <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+              <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3">
+                <Calendar className="w-5 h-5 text-white" />
+              </div>
+              Booking Progress
+            </h2>
+            <div className="flex items-center justify-between">
+              {[1, 2, 3, 4].map((stepNumber) => (
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${
-                    stepNumber <= step
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-gray-200 text-gray-600'
-                  }`}
+                  key={stepNumber}
+                  className={`flex items-center ${stepNumber < 4 ? 'flex-1' : ''}`}
                 >
-                  {stepNumber < step ? (
-                    <CheckCircle className="w-5 h-5" />
-                  ) : (
-                    stepNumber
+                  <div
+                    className={`w-12 h-12 rounded-2xl flex items-center justify-center text-sm font-bold shadow-lg ${
+                      stepNumber <= step
+                        ? 'bg-gradient-to-br from-[#391C71] to-[#5B2C87] text-white'
+                        : 'bg-white/50 text-gray-600 border border-gray-200'
+                    }`}
+                  >
+                    {stepNumber < step ? (
+                      <CheckCircle className="w-6 h-6" />
+                    ) : (
+                      stepNumber
+                    )}
+                  </div>
+                  <div className="ml-4 hidden sm:block">
+                    <p className={`text-sm font-bold ${
+                      stepNumber <= step ? 'text-[#391C71]' : 'text-gray-500'
+                    }`}>
+                      {stepNumber === 1 && 'Date & Time'}
+                      {stepNumber === 2 && 'Event Details'}
+                      {stepNumber === 3 && 'Equipment'}
+                      {stepNumber === 4 && 'Review & Book'}
+                    </p>
+                  </div>
+                  {stepNumber < 4 && (
+                    <div
+                      className={`flex-1 h-1 mx-4 rounded-full ${
+                        stepNumber < step 
+                          ? 'bg-gradient-to-r from-[#391C71] to-[#5B2C87]' 
+                          : 'bg-gray-200'
+                      }`}
+                    />
                   )}
                 </div>
-                <div className="ml-3">
-                  <p className={`text-sm font-medium ${
-                    stepNumber <= step ? 'text-purple-600' : 'text-gray-500'
-                  }`}>
-                    {stepNumber === 1 && 'Date & Time'}
-                    {stepNumber === 2 && 'Event Details'}
-                    {stepNumber === 3 && 'Equipment'}
-                    {stepNumber === 4 && 'Review & Book'}
-                  </p>
-                </div>
-                {stepNumber < 4 && (
-                  <div
-                    className={`flex-1 h-0.5 mx-4 ${
-                      stepNumber < step ? 'bg-purple-600' : 'bg-gray-200'
-                    }`}
-                  />
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Step Content */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          {step === 1 && (
-            <DateTimeStep
-              formData={formData}
-              setFormData={setFormData}
-              availability={availability}
-              errors={errors}
-              onMonthChange={handleMonthChange}
-              artistId={artistId}
-            />
-          )}
-          
-          {step === 2 && (
-            <EventDetailsStep
-              formData={formData}
-              setFormData={setFormData}
-              errors={errors}
-            />
-          )}
-          
-          {step === 3 && (
-            <EquipmentStep
-              formData={formData}
-              setFormData={setFormData}
-              equipmentPackages={equipmentPackages}
-              errors={errors}
-            />
-          )}
-          
-          {step === 4 && (
-            <ReviewStep
-              formData={formData}
-              artist={artist}
-              equipmentPackages={equipmentPackages}
-            />
-          )}
-
-          {/* Navigation Buttons */}
-          <div className="flex justify-between mt-8">
-            <button
-              onClick={handlePrevious}
-              disabled={step === 1}
-              className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Previous
-            </button>
-            
-            {step < 4 ? (
-              <button
-                onClick={handleNext}
-                className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-              >
-                Next
-              </button>
-            ) : (
-              <button
-                onClick={handleSubmit}
-                disabled={submitting}
-                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-              >
-                {submitting ? 'Booking...' : 'Confirm Booking'}
-              </button>
+        <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-8 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-28 h-28 bg-gradient-to-bl from-[#391C71]/10 to-transparent rounded-bl-full"></div>
+          <div className="relative z-10">
+            {step === 1 && (
+              <DateTimeStep
+                formData={formData}
+                setFormData={setFormData}
+                availability={availability}
+                errors={errors}
+                onMonthChange={handleMonthChange}
+                artistId={artistId}
+              />
             )}
+            
+            {step === 2 && (
+              <EventDetailsStep
+                formData={formData}
+                setFormData={setFormData}
+                errors={errors}
+              />
+            )}
+            
+            {step === 3 && (
+              <EquipmentStep
+                formData={formData}
+                setFormData={setFormData}
+                equipmentPackages={equipmentPackages}
+                errors={errors}
+              />
+            )}
+            
+            {step === 4 && (
+              <ReviewStep
+                formData={formData}
+                artist={artist}
+                equipmentPackages={equipmentPackages}
+              />
+            )}
+
+            {/* Navigation Buttons */}
+            <div className="flex flex-col sm:flex-row justify-between gap-4 mt-8 pt-6 border-t border-white/20">
+              <button
+                onClick={handlePrevious}
+                disabled={step === 1}
+                className="px-8 py-3 bg-white/50 backdrop-blur-sm border border-gray-200 rounded-2xl text-gray-700 hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Previous
+              </button>
+              
+              {step < 4 ? (
+                <button
+                  onClick={handleNext}
+                  className="px-8 py-3 bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white rounded-2xl hover:from-[#5B2C87] hover:to-[#391C71] hover:shadow-xl hover:scale-105 font-bold transition-all duration-300 shadow-lg flex items-center justify-center gap-2 relative overflow-hidden group"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                  <span className="relative z-10">Next Step</span>
+                  <ArrowLeft className="w-4 h-4 rotate-180 relative z-10" />
+                </button>
+              ) : (
+                <button
+                  onClick={handleSubmit}
+                  disabled={submitting}
+                  className="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-2xl hover:from-emerald-600 hover:to-green-500 hover:shadow-xl hover:scale-105 font-bold transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 relative overflow-hidden group"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                  {submitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white relative z-10"></div>
+                      <span className="relative z-10">Booking...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-5 h-5 relative z-10" />
+                      <span className="relative z-10">Confirm Booking</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
       
       {/* Error Modal */}
       {errorModal.show && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <div className="flex items-center mb-4">
-              <AlertCircle className="w-6 h-6 text-red-500 mr-3" />
-              <h3 className="text-lg font-semibold text-gray-900">{errorModal.title}</h3>
-            </div>
-            <p className="text-gray-600 mb-6">{errorModal.message}</p>
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => setErrorModal({ show: false, title: '', message: '' })}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
-              >
-                Close
-              </button>
-              <button
-                onClick={() => {
-                  setErrorModal({ show: false, title: '', message: '' });
-                  router.back();
-                }}
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-              >
-                Go Back
-              </button>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-8 max-w-md w-full mx-4 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-red-100/50 to-transparent rounded-bl-full"></div>
+            <div className="relative z-10">
+              <div className="flex items-center mb-6">
+                <div className="bg-red-100 rounded-full p-2 mr-4">
+                  <AlertCircle className="w-6 h-6 text-red-500" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">{errorModal.title}</h3>
+              </div>
+              <div className="bg-red-50/50 rounded-2xl p-4 mb-6 border border-red-100">
+                <p className="text-gray-700 leading-relaxed">{errorModal.message}</p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => setErrorModal({ show: false, title: '', message: '' })}
+                  className="flex-1 px-6 py-3 bg-white/50 backdrop-blur-sm border border-gray-200 rounded-2xl text-gray-700 hover:bg-white/70 font-semibold transition-all duration-200"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    setErrorModal({ show: false, title: '', message: '' });
+                    router.back();
+                  }}
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white rounded-2xl hover:from-[#5B2C87] hover:to-[#391C71] font-bold transition-all duration-200 shadow-lg"
+                >
+                  Go Back
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { 
   Calendar, Clock, MapPin, User, Phone, Mail, 
   Package, CreditCard, ArrowLeft, AlertCircle, CheckCircle,
-  DollarSign, Users, Star, Camera
+  DollarSign, Users, Star, Camera, Sparkles
 } from 'lucide-react';
 import { equipmentPackagesService, EquipmentPackage } from '@/services/equipment-packages.service';
 import { 
@@ -16,6 +17,8 @@ import { useAuthLogic } from '@/hooks/useAuth';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { TermsAndConditionsModal } from '@/components/booking/TermsAndConditionsModal';
 import { TermsAndConditionsService, TermsAndConditions, TermsType } from '@/services/terms-and-conditions.service';
+import { Navbar } from '@/components/main/Navbar';
+import { Footer } from '@/components/main/Footer';
 
 interface FormData {
   startDate: string;
@@ -299,26 +302,54 @@ const BookEquipmentPackagePage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size="lg" />
+      <div className="min-h-screen relative">
+        <div className="fixed inset-0 z-0">
+          <Image
+            src="/design.png"
+            alt="Background"
+            fill
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-50/80 via-white/50 to-pink-50/80"></div>
+        </div>
+        <Navbar />
+        <div className="relative z-10 flex justify-center items-center h-96 pt-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#391C71]"></div>
+        </div>
+        <Footer />
       </div>
     );
   }
 
   if (!packageData) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Package Not Found</h2>
-          <p className="text-gray-600 mb-4">The equipment package you're looking for doesn't exist.</p>
-          <button
-            onClick={() => router.back()}
-            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
-          >
-            Go Back
-          </button>
+      <div className="min-h-screen relative">
+        <div className="fixed inset-0 z-0">
+          <Image
+            src="/design.png"
+            alt="Background"
+            fill
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-50/80 via-white/50 to-pink-50/80"></div>
         </div>
+        <Navbar />
+        <div className="relative z-10 text-center py-20 pt-32">
+          <div className="max-w-md mx-auto bg-white/60 backdrop-blur-md rounded-3xl shadow-2xl border border-white/20 p-8">
+            <Package className="h-16 w-16 text-[#391C71] mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Package Not Found</h2>
+            <p className="text-gray-600 mb-4">The equipment package you're looking for doesn't exist.</p>
+            <button
+              onClick={() => router.back()}
+              className="bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white px-6 py-3 rounded-full hover:from-[#5B2C87] hover:to-[#391C71] transition-colors shadow-lg"
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+        <Footer />
       </div>
     );
   }
@@ -327,91 +358,146 @@ const BookEquipmentPackagePage: React.FC = () => {
   const totalPrice = calculateTotalPrice();
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen relative">
+      {/* Background */}
+      <div className="fixed inset-0 z-0">
+        <Image
+          src="/design.png"
+          alt="Background"
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-50/80 via-white/50 to-pink-50/80"></div>
+      </div>
+      
+      <Navbar />
+      
+      <div className="relative z-10 max-w-7xl mx-auto px-6 pt-24 pb-8">
         {/* Header */}
-        <div className="mb-8">
-          <button
-            onClick={() => router.back()}
-            className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
-          >
-            <ArrowLeft className="h-5 w-5 mr-2" />
-            Back
-          </button>
-          <h1 className="text-3xl font-bold text-gray-900">Book Equipment Package</h1>
-          <p className="text-gray-600 mt-2">Complete your booking for {packageData.name}</p>
+        <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-8 mb-8 relative overflow-hidden">
+          {/* Decorative Elements */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#391C71]/10 to-transparent rounded-bl-full"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-purple-100/50 to-transparent rounded-tr-full"></div>
+          
+          <div className="relative z-10">
+            <button
+              onClick={() => router.back()}
+              className="flex items-center bg-white/90 backdrop-blur-sm text-[#391C71] hover:text-[#5B2C87] mb-6 px-4 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 font-semibold"
+            >
+              <ArrowLeft className="w-5 h-5 mr-2" />
+              Back to Packages
+            </button>
+            
+            <div className="flex items-center space-x-4 mb-4">
+              <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-3">
+                <Package className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Book Equipment Package</h1>
+                <p className="text-gray-600 text-lg mt-2">Complete your booking for <span className="font-semibold text-[#391C71]">{packageData.name}</span></p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Package Details Sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-md p-6 sticky top-6">
-              {/* Package Image */}
-              <div className="mb-6">
-                {packageData.coverImage || (packageData.images && packageData.images.length > 0) ? (
-                  <img
-                    src={packageData.coverImage || packageData.images![0]}
-                    alt={packageData.name}
-                    className="w-full h-48 object-cover rounded-lg"
-                  />
-                ) : (
-                  <div className="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center">
-                    <Package className="h-12 w-12 text-gray-400" />
-                  </div>
-                )}
-              </div>
-
-              {/* Package Info */}
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900">{packageData.name}</h3>
-                  <p className="text-gray-600 text-sm mt-1">{packageData.description}</p>
-                </div>
-
-                <div className="border-t pt-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm text-gray-600">Price per day:</span>
-                    <span className="text-lg font-semibold text-purple-600">
-                      ${packageData.totalPrice.toLocaleString()}
-                    </span>
-                  </div>
-                  
-                  {numberOfDays > 0 && (
-                    <>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm text-gray-600">Number of days:</span>
-                        <span className="text-sm font-medium">{numberOfDays}</span>
+            <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-8 sticky top-6 relative overflow-hidden">
+              {/* Decorative Elements */}
+              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-[#391C71]/20 to-transparent rounded-bl-full"></div>
+              
+              <div className="relative z-10">
+                {/* Package Image */}
+                <div className="mb-6">
+                  <div className="relative">
+                    {packageData.coverImage || (packageData.images && packageData.images.length > 0) ? (
+                      <div className="relative w-full h-48 rounded-2xl overflow-hidden shadow-lg">
+                        <Image
+                          src={packageData.coverImage || packageData.images![0]}
+                          alt={packageData.name}
+                          fill
+                          className="object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                       </div>
-                      <div className="flex justify-between items-center pt-2 border-t">
-                        <span className="text-base font-medium text-gray-900">Total Price:</span>
-                        <span className="text-xl font-bold text-purple-600">
-                          ${totalPrice.toLocaleString()}
-                        </span>
+                    ) : (
+                      <div className="w-full h-48 bg-gradient-to-br from-[#391C71]/20 to-purple-100 rounded-2xl flex items-center justify-center border border-[#391C71]/20">
+                        <Package className="h-16 w-16 text-[#391C71]" />
                       </div>
-                    </>
-                  )}
-                </div>
-
-                <div className="border-t pt-4">
-                  <h4 className="text-sm font-medium text-gray-900 mb-2">Equipment Included:</h4>
-                  <div className="space-y-2">
-                    {packageData.items.map((item, index) => (
-                      <div key={index} className="flex items-center text-sm text-gray-600">
-                        <div className="w-2 h-2 bg-purple-600 rounded-full mr-2"></div>
-                        {item.quantity}x {item.equipmentId.name}
-                      </div>
-                    ))}
+                    )}
+                    
+                    {/* Verified Badge */}
+                    <div className="absolute -top-2 -right-2 bg-[#391C71] rounded-full p-2 shadow-lg">
+                      <Sparkles className="w-4 h-4 text-white" />
+                    </div>
                   </div>
                 </div>
 
-                {/* Provider Info */}
-                <div className="border-t pt-4">
-                  <h4 className="text-sm font-medium text-gray-900 mb-2">Provided by:</h4>
-                  <div className="flex items-center">
-                    <User className="h-4 w-4 text-gray-400 mr-2" />
-                    <span className="text-sm text-gray-600">
+                {/* Package Info */}
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-2">{packageData.name}</h3>
+                    <div className="bg-gradient-to-r from-[#391C71]/10 to-purple-100 rounded-2xl p-3 border border-[#391C71]/20">
+                      <p className="text-gray-700 text-sm leading-relaxed">{packageData.description}</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-2xl p-4 border border-[#391C71]/10">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-sm font-medium text-gray-600">Price per day:</span>
+                      <div className="bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white px-3 py-1 rounded-full text-sm font-bold">
+                        {packageData.totalPrice.toLocaleString()} KWD
+                      </div>
+                    </div>
+                    
+                    {numberOfDays > 0 && (
+                      <>
+                        <div className="flex justify-between items-center mb-3">
+                          <span className="text-sm font-medium text-gray-600">Number of days:</span>
+                          <span className="text-sm font-bold text-[#391C71]">{numberOfDays} days</span>
+                        </div>
+                        <div className="flex justify-between items-center pt-3 border-t border-[#391C71]/20">
+                          <span className="text-base font-bold text-gray-900">Total Price:</span>
+                          <span className="text-2xl font-bold text-[#391C71]">
+                            {totalPrice.toLocaleString()} KWD
+                          </span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  <div>
+                    <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                      <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3">
+                        <Package className="w-4 h-4 text-white" />
+                      </div>
+                      Equipment Included
+                    </h4>
+                    <div className="space-y-3">
+                      {packageData.items.map((item, index) => (
+                        <div key={index} className="flex items-center bg-white/50 rounded-xl p-3 border border-white/20">
+                          <div className="w-3 h-3 bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full mr-3 flex-shrink-0"></div>
+                          <span className="text-sm font-medium text-gray-700">
+                            {item.quantity}x {item.equipmentId.name}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Provider Info */}
+                  <div className="bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-2xl p-4 border border-[#391C71]/10">
+                    <h4 className="text-sm font-bold text-gray-900 mb-3 flex items-center">
+                      <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-1.5 mr-2">
+                        <User className="w-3 h-3 text-white" />
+                      </div>
+                      Provided by
+                    </h4>
+                    <div className="text-sm font-medium text-[#391C71]">
                       {packageData.createdBy.firstName} {packageData.createdBy.lastName}
-                    </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -422,65 +508,75 @@ const BookEquipmentPackagePage: React.FC = () => {
           <div className="lg:col-span-2">
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Date Selection */}
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  <Calendar className="h-5 w-5 inline mr-2" />
-                  Select Dates
-                </h3>
+              <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-28 h-28 bg-gradient-to-bl from-[#391C71]/10 to-transparent rounded-bl-full"></div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Start Date
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.startDate}
-                      onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
-                      min={new Date().toISOString().split('T')[0]}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      required
-                    />
-                  </div>
+                <div className="relative z-10">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                    <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-3 mr-4">
+                      <Calendar className="w-6 h-6 text-white" />
+                    </div>
+                    Select Dates
+                  </h3>
                   
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      End Date
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.endDate}
-                      onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
-                      min={formData.startDate || new Date().toISOString().split('T')[0]}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      required
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-3">
+                        Start Date
+                      </label>
+                      <input
+                        type="date"
+                        value={formData.startDate}
+                        onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
+                        min={new Date().toISOString().split('T')[0]}
+                        className="w-full px-4 py-3 bg-white/50 backdrop-blur-sm border border-white/20 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71] shadow-lg transition-all duration-200"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-3">
+                        End Date
+                      </label>
+                      <input
+                        type="date"
+                        value={formData.endDate}
+                        onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
+                        min={formData.startDate || new Date().toISOString().split('T')[0]}
+                        className="w-full px-4 py-3 bg-white/50 backdrop-blur-sm border border-white/20 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71] shadow-lg transition-all duration-200"
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
 
                 {/* Availability Status */}
                 {(formData.startDate && formData.endDate) && (
-                  <div className="mt-4 p-4 rounded-lg border">
+                  <div className="mt-6 p-4 rounded-2xl border border-white/20 bg-white/30 backdrop-blur-sm">
                     {availability.checking ? (
-                      <div className="flex items-center text-blue-600">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-                        Checking availability...
+                      <div className="flex items-center text-[#391C71]">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#391C71] mr-3"></div>
+                        <span className="font-medium">Checking availability...</span>
                       </div>
                     ) : availability.available ? (
                       <div className="flex items-center text-green-600">
-                        <CheckCircle className="h-5 w-5 mr-2" />
-                        Package is available for selected dates
+                        <div className="bg-green-100 rounded-full p-1 mr-3">
+                          <CheckCircle className="h-5 w-5" />
+                        </div>
+                        <span className="font-semibold">Package is available for selected dates</span>
                       </div>
                     ) : (
                       <div className="text-red-600">
-                        <div className="flex items-center mb-2">
-                          <AlertCircle className="h-5 w-5 mr-2" />
-                          Package is not available for selected dates
+                        <div className="flex items-center mb-3">
+                          <div className="bg-red-100 rounded-full p-1 mr-3">
+                            <AlertCircle className="h-5 w-5" />
+                          </div>
+                          <span className="font-semibold">Package is not available for selected dates</span>
                         </div>
                         {availability.conflicts.length > 0 && (
-                          <div className="text-sm">
-                            <p>Conflicting bookings:</p>
-                            <ul className="list-disc list-inside ml-4">
+                          <div className="bg-red-50 rounded-xl p-3 text-sm">
+                            <p className="font-medium mb-2">Conflicting bookings:</p>
+                            <ul className="list-disc list-inside ml-4 space-y-1">
                               {availability.conflicts.map((conflict, index) => (
                                 <li key={index}>{conflict}</li>
                               ))}
@@ -494,241 +590,280 @@ const BookEquipmentPackagePage: React.FC = () => {
               </div>
 
               {/* Contact Details */}
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  <User className="h-5 w-5 inline mr-2" />
-                  Contact Details
-                </h3>
+              <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-8 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-[#391C71]/20 to-transparent rounded-br-full"></div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Full Name
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.userDetails.name}
-                      onChange={(e) => updateFormData('userDetails', 'name', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      required
-                    />
-                  </div>
+                <div className="relative z-10">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                    <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-3 mr-4">
+                      <User className="w-6 h-6 text-white" />
+                    </div>
+                    Contact Details
+                  </h3>
                   
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      value={formData.userDetails.email}
-                      onChange={(e) => updateFormData('userDetails', 'email', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      required
-                    />
-                  </div>
-                  
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      value={formData.userDetails.phone}
-                      onChange={(e) => updateFormData('userDetails', 'phone', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      required
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-3">
+                        Full Name
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.userDetails.name}
+                        onChange={(e) => updateFormData('userDetails', 'name', e.target.value)}
+                        className="w-full px-4 py-3 bg-white/50 backdrop-blur-sm border border-white/20 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71] shadow-lg transition-all duration-200"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-3">
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        value={formData.userDetails.email}
+                        onChange={(e) => updateFormData('userDetails', 'email', e.target.value)}
+                        className="w-full px-4 py-3 bg-white/50 backdrop-blur-sm border border-white/20 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71] shadow-lg transition-all duration-200"
+                        required
+                      />
+                    </div>
+                    
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-bold text-gray-700 mb-3">
+                        Phone Number
+                      </label>
+                      <input
+                        type="tel"
+                        value={formData.userDetails.phone}
+                        onChange={(e) => updateFormData('userDetails', 'phone', e.target.value)}
+                        className="w-full px-4 py-3 bg-white/50 backdrop-blur-sm border border-white/20 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71] shadow-lg transition-all duration-200"
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Venue Details */}
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  <MapPin className="h-5 w-5 inline mr-2" />
-                  Venue Details
-                </h3>
+              <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-28 h-28 bg-gradient-to-bl from-[#391C71]/10 to-transparent rounded-bl-full"></div>
                 
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Address
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.venueDetails.address}
-                      onChange={(e) => updateFormData('venueDetails', 'address', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Street address"
-                      required
-                    />
-                  </div>
+                <div className="relative z-10">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                    <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-3 mr-4">
+                      <MapPin className="w-6 h-6 text-white" />
+                    </div>
+                    Venue Details
+                  </h3>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        City
+                      <label className="block text-sm font-bold text-gray-700 mb-3">
+                        Address
                       </label>
                       <input
                         type="text"
-                        value={formData.venueDetails.city}
-                        onChange={(e) => updateFormData('venueDetails', 'city', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        value={formData.venueDetails.address}
+                        onChange={(e) => updateFormData('venueDetails', 'address', e.target.value)}
+                        className="w-full px-4 py-3 bg-white/50 backdrop-blur-sm border border-white/20 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71] shadow-lg transition-all duration-200"
+                        placeholder="Street address"
                         required
                       />
                     </div>
                     
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        State
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.venueDetails.state}
-                        onChange={(e) => updateFormData('venueDetails', 'state', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        required
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-3">
+                          City
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.venueDetails.city}
+                          onChange={(e) => updateFormData('venueDetails', 'city', e.target.value)}
+                          className="w-full px-4 py-3 bg-white/50 backdrop-blur-sm border border-white/20 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71] shadow-lg transition-all duration-200"
+                          required
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-3">
+                          State
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.venueDetails.state}
+                          onChange={(e) => updateFormData('venueDetails', 'state', e.target.value)}
+                          className="w-full px-4 py-3 bg-white/50 backdrop-blur-sm border border-white/20 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71] shadow-lg transition-all duration-200"
+                          required
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-3">
+                          Country
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.venueDetails.country}
+                          onChange={(e) => updateFormData('venueDetails', 'country', e.target.value)}
+                          className="w-full px-4 py-3 bg-white/50 backdrop-blur-sm border border-white/20 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71] shadow-lg transition-all duration-200"
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-3">
+                          Postal Code
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.venueDetails.postalCode}
+                          onChange={(e) => updateFormData('venueDetails', 'postalCode', e.target.value)}
+                          className="w-full px-4 py-3 bg-white/50 backdrop-blur-sm border border-white/20 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71] shadow-lg transition-all duration-200"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-3">
+                          Venue Type
+                        </label>
+                        <select
+                          value={formData.venueDetails.venueType}
+                          onChange={(e) => updateFormData('venueDetails', 'venueType', e.target.value)}
+                          className="w-full px-4 py-3 bg-white/50 backdrop-blur-sm border border-white/20 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71] shadow-lg transition-all duration-200"
+                        >
+                          <option value="">Select venue type</option>
+                          <option value="outdoor">Outdoor</option>
+                          <option value="indoor">Indoor</option>
+                          <option value="hotel">Hotel</option>
+                          <option value="restaurant">Restaurant</option>
+                          <option value="conference_center">Conference Center</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Country
+                      <label className="block text-sm font-bold text-gray-700 mb-3">
+                        Additional Info
                       </label>
-                      <input
-                        type="text"
-                        value={formData.venueDetails.country}
-                        onChange={(e) => updateFormData('venueDetails', 'country', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        required
+                      <textarea
+                        value={formData.venueDetails.additionalInfo}
+                        onChange={(e) => updateFormData('venueDetails', 'additionalInfo', e.target.value)}
+                        rows={3}
+                        className="w-full px-4 py-3 bg-white/50 backdrop-blur-sm border border-white/20 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71] shadow-lg transition-all duration-200"
+                        placeholder="Any specific venue details or instructions..."
                       />
                     </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Postal Code
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.venueDetails.postalCode}
-                        onChange={(e) => updateFormData('venueDetails', 'postalCode', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Venue Type
-                      </label>
-                      <select
-                        value={formData.venueDetails.venueType}
-                        onChange={(e) => updateFormData('venueDetails', 'venueType', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      >
-                        <option value="">Select venue type</option>
-                        <option value="outdoor">Outdoor</option>
-                        <option value="indoor">Indoor</option>
-                        <option value="hotel">Hotel</option>
-                        <option value="restaurant">Restaurant</option>
-                        <option value="conference_center">Conference Center</option>
-                        <option value="other">Other</option>
-                      </select>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Additional Info
-                    </label>
-                    <textarea
-                      value={formData.venueDetails.additionalInfo}
-                      onChange={(e) => updateFormData('venueDetails', 'additionalInfo', e.target.value)}
-                      rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Any specific venue details or instructions..."
-                    />
                   </div>
                 </div>
               </div>
 
               {/* Event Details */}
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Event Details (Optional)
-                </h3>
+              <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-8 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-[#391C71]/20 to-transparent rounded-br-full"></div>
                 
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Event Description
-                    </label>
-                    <textarea
-                      value={formData.eventDescription}
-                      onChange={(e) => setFormData(prev => ({ ...prev, eventDescription: e.target.value }))}
-                      rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Tell us about your event..."
-                    />
-                  </div>
+                <div className="relative z-10">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                    <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-3 mr-4">
+                      <Camera className="w-6 h-6 text-white" />
+                    </div>
+                    Event Details
+                    <span className="ml-3 text-sm font-normal text-gray-600">(Optional)</span>
+                  </h3>
                   
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Special Requests
-                    </label>
-                    <textarea
-                      value={formData.specialRequests}
-                      onChange={(e) => setFormData(prev => ({ ...prev, specialRequests: e.target.value }))}
-                      rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Any special requirements or requests..."
-                    />
+                  <div className="space-y-6">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-3">
+                        Event Description
+                      </label>
+                      <textarea
+                        value={formData.eventDescription}
+                        onChange={(e) => setFormData(prev => ({ ...prev, eventDescription: e.target.value }))}
+                        rows={4}
+                        className="w-full px-4 py-3 bg-white/50 backdrop-blur-sm border border-white/20 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71] shadow-lg transition-all duration-200 resize-none"
+                        placeholder="Tell us about your event..."
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-3">
+                        Special Requests
+                      </label>
+                      <textarea
+                        value={formData.specialRequests}
+                        onChange={(e) => setFormData(prev => ({ ...prev, specialRequests: e.target.value }))}
+                        rows={4}
+                        className="w-full px-4 py-3 bg-white/50 backdrop-blur-sm border border-white/20 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71] shadow-lg transition-all duration-200 resize-none"
+                        placeholder="Any special requirements or requests..."
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Submit Button */}
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Ready to Book?</h3>
-                    <p className="text-gray-600 text-sm">Review your details and submit your booking request.</p>
+              <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-[#391C71]/20 to-transparent rounded-bl-full"></div>
+                
+                <div className="relative z-10">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-2">Ready to Book?</h3>
+                      <p className="text-gray-600">Review your details and submit your booking request.</p>
+                      {numberOfDays > 0 && (
+                        <div className="mt-3 bg-gradient-to-r from-[#391C71]/10 to-purple-100 rounded-2xl p-3 border border-[#391C71]/20">
+                          <p className="text-sm text-[#391C71] font-bold">
+                            Total: {totalPrice.toLocaleString()} KWD for {numberOfDays} days
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <button
+                      type="submit"
+                      disabled={submitting || !availability.available || availability.checking}
+                      className="bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white px-8 py-4 rounded-2xl font-bold hover:from-[#5B2C87] hover:to-[#391C71] hover:shadow-xl hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#391C71] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-3 transition-all duration-300 shadow-lg min-w-[200px] relative overflow-hidden group"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                      {submitting ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white relative z-10"></div>
+                          <span className="relative z-10">Processing...</span>
+                        </>
+                      ) : (
+                        <>
+                          <CreditCard className="w-5 h-5 relative z-10" />
+                          <span className="relative z-10">Book Package</span>
+                        </>
+                      )}
+                    </button>
                   </div>
-                  
-                  <button
-                    type="submit"
-                    disabled={submitting || !availability.available || availability.checking}
-                    className="bg-purple-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-                  >
-                    {submitting ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        <CreditCard className="h-4 w-4 mr-2" />
-                        Book Package
-                      </>
-                    )}
-                  </button>
                 </div>
               </div>
             </form>
           </div>
         </div>
       </div>
+      
+      <Footer />
 
-      {/* Simple Notifications */}
+      {/* Glass Notifications */}
       {error && (
-        <div className="fixed top-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg z-50">
-          <div className="flex items-center">
-            <AlertCircle className="h-5 w-5 mr-2" />
-            {error}
+        <div className="fixed top-24 right-6 bg-white/90 backdrop-blur-xl text-red-600 p-6 rounded-3xl shadow-2xl border border-white/30 z-50 max-w-md">
+          <div className="flex items-start">
+            <div className="bg-red-100 rounded-full p-2 mr-4 flex-shrink-0">
+              <AlertCircle className="h-5 w-5" />
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold text-gray-900 mb-1">Error</p>
+              <p className="text-sm text-gray-700">{error}</p>
+            </div>
             <button
               onClick={() => setError('')}
-              className="ml-4 text-white hover:text-gray-200"
+              className="ml-4 text-gray-400 hover:text-gray-600 font-bold text-xl"
             >
               ×
             </button>
@@ -737,13 +872,18 @@ const BookEquipmentPackagePage: React.FC = () => {
       )}
       
       {success && (
-        <div className="fixed top-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg z-50">
-          <div className="flex items-center">
-            <CheckCircle className="h-5 w-5 mr-2" />
-            {success}
+        <div className="fixed top-24 right-6 bg-white/90 backdrop-blur-xl text-green-600 p-6 rounded-3xl shadow-2xl border border-white/30 z-50 max-w-md">
+          <div className="flex items-start">
+            <div className="bg-green-100 rounded-full p-2 mr-4 flex-shrink-0">
+              <CheckCircle className="h-5 w-5" />
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold text-gray-900 mb-1">Success</p>
+              <p className="text-sm text-gray-700">{success}</p>
+            </div>
             <button
               onClick={() => setSuccess('')}
-              className="ml-4 text-white hover:text-gray-200"
+              className="ml-4 text-gray-400 hover:text-gray-600 font-bold text-xl"
             >
               ×
             </button>

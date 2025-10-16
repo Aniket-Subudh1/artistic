@@ -298,7 +298,7 @@ export function Navbar() {
                       </div>
                     )}
                     <span className={`text-sm font-medium ${
-                      isScrolled ? 'text-white' : 'text-gray-800'
+                      isScrolled ? 'text-gray-800' : 'text-gray-800'
                     }`}>
                       {user.firstName}
                     </span>
