@@ -3,6 +3,9 @@ export const API_CONFIG = {
   ENDPOINTS: {
     AUTH: {
       LOGIN: '/auth/login',
+      SIGNUP: '/auth/signup',
+      VERIFY_OTP: '/auth/verify-otp', 
+      RESEND_OTP: '/auth/resend-otp',
     },
     USER: {
       SIGNUP: '/user/signup',

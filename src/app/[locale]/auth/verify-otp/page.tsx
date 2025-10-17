@@ -6,6 +6,7 @@ import { Link } from '@/i18n/routing';
 import { Phone, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react';
 import Image from 'next/image';
 import { Footer } from '@/components/main/Footer';
+import { AuthService } from '@/services/auth.service';
 
 export default function VerifyOTPPage() {
   const router = useRouter();
@@ -63,28 +64,16 @@ export default function VerifyOTPPage() {
     setIsLoading(true);
 
     try {
-      // TODO: Replace with actual OTP verification API call
-      const response = await fetch('/api/auth/verify-otp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          phoneNumber,
-          otp: otpCode
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'OTP verification failed');
-      }
-
-      setSuccess('Phone number verified successfully!');
+      const response = await AuthService.verifyOtp(phoneNumber, otpCode);
       
-      // Redirect to sign in page after success
+      // Store auth data if verification successful
+      AuthService.storeAuthData(response.access_token, response.user);
+      
+      setSuccess('Phone number verified successfully! Redirecting...');
+      
+      // Redirect to dashboard or signin page after success
       setTimeout(() => {
-        router.push('/auth/signin');
+        router.push('/dashboard');
       }, 2000);
       
     } catch (error: any) {
@@ -101,19 +90,8 @@ export default function VerifyOTPPage() {
     setSuccess('');
     
     try {
-      // TODO: Replace with actual resend OTP API call
-      const response = await fetch('/api/auth/resend-otp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ phoneNumber }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to resend OTP');
-      }
-
+      await AuthService.resendOtp(phoneNumber);
+      
       setSuccess('OTP sent successfully!');
       setCountdown(60);
       setCanResend(false);

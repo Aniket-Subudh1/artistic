@@ -44,9 +44,23 @@ export class AuthService {
   }
 
   static async signup(userData: SignupRequest): Promise<SignupResponse> {
-    return apiRequest<SignupResponse>(API_CONFIG.ENDPOINTS.USER.SIGNUP, {
+    return apiRequest<SignupResponse>(API_CONFIG.ENDPOINTS.AUTH.SIGNUP, {
       method: 'POST',
       body: JSON.stringify(userData),
+    });
+  }
+
+  static async verifyOtp(phoneNumber: string, otp: string): Promise<LoginResponse> {
+    return apiRequest<LoginResponse>(API_CONFIG.ENDPOINTS.AUTH.VERIFY_OTP, {
+      method: 'POST',
+      body: JSON.stringify({ phoneNumber, otp }),
+    });
+  }
+
+  static async resendOtp(phoneNumber: string): Promise<{ message: string }> {
+    return apiRequest<{ message: string }>(API_CONFIG.ENDPOINTS.AUTH.RESEND_OTP, {
+      method: 'POST',
+      body: JSON.stringify({ phoneNumber }),
     });
   }
 
