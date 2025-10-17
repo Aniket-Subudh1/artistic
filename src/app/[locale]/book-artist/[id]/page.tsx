@@ -1098,7 +1098,7 @@ function EquipmentStep({
         <h2 className="text-xl font-bold text-gray-900">Equipment Packages (Optional)</h2>
         <div className="text-right">
           <p className="text-sm text-gray-600">Selected equipment cost</p>
-          <p className="text-lg font-semibold text-purple-600">${calculateEquipmentPrice()}</p>
+          <p className="text-lg font-semibold text-purple-600">{calculateEquipmentPrice()} KWD</p>
         </div>
       </div>
       
@@ -1175,7 +1175,7 @@ function EquipmentStep({
               <p className="text-gray-600 text-sm mb-4">{pkg.description}</p>
               
               <div className="space-y-2">
-                <p className="text-lg font-bold text-purple-600">${pkg.totalPrice}</p>
+                <p className="text-lg font-bold text-purple-600">{pkg.totalPrice} KWD</p>
                 <p className="text-xs text-gray-500">
                   {pkg.items.length} items included
                 </p>
@@ -1255,7 +1255,7 @@ function EquipmentStep({
                 <p className="text-gray-600 text-sm mb-4">{pkg.description}</p>
                 
                 <div className="space-y-2">
-                  <p className="text-lg font-bold text-purple-600">${pkg.totalPricePerDay}/day</p>
+                  <p className="text-lg font-bold text-purple-600">{pkg.totalPricePerDay} KWD/day</p>
                   <p className="text-xs text-gray-500">
                     {pkg.items.length} items included
                   </p>
@@ -1304,7 +1304,7 @@ function EquipmentStep({
             </p>
           )}
           <p className="text-green-700 text-sm font-medium">
-            Total equipment cost: ${calculateEquipmentPrice()}
+            Total equipment cost: {calculateEquipmentPrice()} KWD
           </p>
         </div>
       )}
@@ -1379,8 +1379,8 @@ function ReviewStep({ formData, artist, equipmentPackages, customPackages }: {
         
         <div className="space-y-3">
           <div className="flex justify-between">
-            <span>Artist Fee ({hours} hours × ${artist.pricePerHour}/hour):</span>
-            <span className="font-medium">${artistPrice}</span>
+            <span>Artist Fee ({hours} hours × {artist.pricePerHour} KWD/hour):</span>
+            <span className="font-medium">{artistPrice} KWD</span>
           </div>
           {(selectedPackages.length > 0 || selectedCustomPackages.length > 0) && (
             <div className="space-y-2">
@@ -1388,24 +1388,24 @@ function ReviewStep({ formData, artist, equipmentPackages, customPackages }: {
               {selectedPackages.map(pkg => (
                 <div key={pkg._id} className="flex justify-between text-sm pl-4">
                   <span>• {pkg.name} (Provider):</span>
-                  <span>${pkg.totalPrice}</span>
+                  <span>{pkg.totalPrice} KWD</span>
                 </div>
               ))}
               {selectedCustomPackages.map(pkg => (
                 <div key={pkg._id} className="flex justify-between text-sm pl-4">
                   <span>• {pkg.name} (Custom):</span>
-                  <span>${pkg.totalPricePerDay}</span>
+                  <span>{pkg.totalPricePerDay} KWD</span>
                 </div>
               ))}
               <div className="flex justify-between font-medium text-purple-600">
                 <span>Equipment Subtotal:</span>
-                <span>${equipmentPrice}</span>
+                <span>{equipmentPrice} KWD</span>
               </div>
             </div>
           )}
           <div className="border-t pt-3 flex justify-between text-lg font-bold">
             <span>Total:</span>
-            <span>${totalPrice}</span>
+            <span>{totalPrice} KWD</span>
           </div>
         </div>
       </div>

@@ -366,10 +366,10 @@ const BookCustomPackagePage: React.FC = () => {
               <div className="bg-gradient-to-r from-[#391C71] to-[#5B2C87] rounded-xl p-6 text-white mb-6">
                 <div className="text-center">
                   <p className="text-sm opacity-90 mb-2">Total Package Price</p>
-                  <p className="text-3xl font-bold">${packageData?.totalPricePerDay}/day</p>
+                  <p className="text-3xl font-bold">{packageData?.totalPricePerDay} KWD/day</p>
                   {calculateDays() > 0 && (
                     <p className="text-sm opacity-90 mt-2">
-                      {calculateDays()} day{calculateDays() !== 1 ? 's' : ''} = ${calculateTotalPrice()}
+                      {calculateDays()} day{calculateDays() !== 1 ? 's' : ''} = {calculateTotalPrice()} KWD
                     </p>
                   )}
                 </div>
@@ -387,7 +387,7 @@ const BookCustomPackagePage: React.FC = () => {
                       </div>
                       <div className="text-right">
                         <p className="font-medium text-gray-900">
-                          {item.quantity}x ${item.pricePerDay}
+                          {item.quantity}x {item.pricePerDay} KWD
                         </p>
                         <p className="text-sm text-gray-600">per day</p>
                       </div>

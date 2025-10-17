@@ -281,7 +281,7 @@ function CustomPackageCard({
             {pkg.items.length} items
           </div>
           <div className="text-lg font-bold text-[#391C71]">
-            ${pkg.totalPricePerDay}/day
+            {pkg.totalPricePerDay} KWD/day
           </div>
         </div>
 
@@ -301,7 +301,7 @@ function CustomPackageCard({
                   {item.quantity}x {item.equipmentId.name}
                 </span>
                 <span className="text-gray-500">
-                  ${item.quantity * item.pricePerDay}/day
+                  {item.quantity * item.pricePerDay} KWD/day
                 </span>
               </div>
             ))}
@@ -399,7 +399,7 @@ function CustomPackageCard({
                 </div>
                 <div className="text-right">
                   <p className="font-medium">
-                    {item.quantity}x ${item.pricePerDay} = ${item.quantity * item.pricePerDay}
+                    {item.quantity}x {item.pricePerDay} KWD = {item.quantity * item.pricePerDay} KWD
                   </p>
                   <p className="text-gray-600">per day</p>
                 </div>

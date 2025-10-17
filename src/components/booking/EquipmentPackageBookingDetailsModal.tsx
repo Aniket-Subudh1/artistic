@@ -207,9 +207,9 @@ export const EquipmentPackageBookingDetailsModal: React.FC<EquipmentPackageBooki
                   <DollarSign className="h-4 w-4 text-gray-400" />
                   <div className="flex-1">
                     <p className="font-medium text-gray-900 text-sm">Total Amount</p>
-                    <p className="text-lg font-bold text-purple-600">${booking.totalPrice.toLocaleString()}</p>
+                    <p className="text-lg font-bold text-purple-600">{booking.totalPrice.toLocaleString()} KWD</p>
                     <p className="text-xs text-gray-500">
-                      ${booking.pricePerDay.toLocaleString()} × {booking.numberOfDays} day{booking.numberOfDays !== 1 ? 's' : ''}
+                      {booking.pricePerDay.toLocaleString()} KWD × {booking.numberOfDays} day{booking.numberOfDays !== 1 ? 's' : ''}
                     </p>
                   </div>
                 </div>

@@ -453,7 +453,7 @@ const EquipmentProviderPackages: React.FC<Props> = ({ isModal = false }) => {
                 <div className="mb-3">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm text-gray-600">Items: {pkg.items.length}</span>
-                    <span className="text-lg font-bold text-green-600">${pkg.totalPrice}/day</span>
+                    <span className="text-lg font-bold text-green-600">{pkg.totalPrice} KWD/day</span>
                   </div>
                   
                   {/* Equipment Categories */}
@@ -739,7 +739,7 @@ const EquipmentProviderPackages: React.FC<Props> = ({ isModal = false }) => {
                           </p>
                           <div className="flex items-center justify-between">
                             <span className="text-sm font-semibold text-blue-600">
-                              ${equipment.pricePerDay}/day
+                              {equipment.pricePerDay} KWD/day
                             </span>
                             <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
                               {equipment.category}
@@ -826,7 +826,7 @@ const EquipmentProviderPackages: React.FC<Props> = ({ isModal = false }) => {
                               {equipment.name} × {item.quantity}
                             </span>
                             <span className="font-medium text-blue-600">
-                              ${(equipment.pricePerDay * item.quantity).toFixed(2)}/day
+                              {(equipment.pricePerDay * item.quantity).toFixed(2)} KWD/day
                             </span>
                           </div>
                         );
@@ -834,7 +834,7 @@ const EquipmentProviderPackages: React.FC<Props> = ({ isModal = false }) => {
                       <div className="border-t border-blue-200 pt-2 mt-2">
                         <div className="flex items-center justify-between font-semibold text-blue-900">
                           <span>Total</span>
-                          <span>${calculateTotalPrice()}/day</span>
+                          <span>{calculateTotalPrice()} KWD/day</span>
                         </div>
                       </div>
                     </div>
@@ -848,7 +848,7 @@ const EquipmentProviderPackages: React.FC<Props> = ({ isModal = false }) => {
               <div className="text-sm text-gray-600">
                 {selectedItems.length > 0 && (
                   <span>
-                    {selectedItems.length} item{selectedItems.length !== 1 ? 's' : ''} • ${calculateTotalPrice()}/day
+                    {selectedItems.length} item{selectedItems.length !== 1 ? 's' : ''} • {calculateTotalPrice()} KWD/day
                   </span>
                 )}
               </div>
@@ -962,12 +962,12 @@ const EquipmentProviderPackages: React.FC<Props> = ({ isModal = false }) => {
                           <h5 className="font-medium text-gray-900">{item.equipmentId.name}</h5>
                           <p className="text-sm text-gray-600">Category: {item.equipmentId.category}</p>
                           <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
-                          <p className="text-sm text-blue-600 font-medium">${item.equipmentId.pricePerDay}/day each</p>
+                          <p className="text-sm text-blue-600 font-medium">{item.equipmentId.pricePerDay} KWD/day each</p>
                         </div>
                       </div>
                       <div className="text-right">
                         <p className="font-semibold text-gray-900">
-                          ${((item.equipmentId.pricePerDay || 0) * (item.quantity || 0)).toFixed(2)}
+                          {((item.equipmentId.pricePerDay || 0) * (item.quantity || 0)).toFixed(2)} KWD
                         </p>
                         <p className="text-sm text-gray-600">total per day</p>
                       </div>
@@ -992,7 +992,7 @@ const EquipmentProviderPackages: React.FC<Props> = ({ isModal = false }) => {
               <div className="bg-blue-50 p-4 rounded-lg">
                 <div className="flex justify-between items-center">
                   <h4 className="font-semibold text-blue-900">Total Package Price</h4>
-                  <p className="text-2xl font-bold text-blue-600">${(modal.data.totalPrice || 0).toFixed(2)}/day</p>
+                  <p className="text-2xl font-bold text-blue-600">{(modal.data.totalPrice || 0).toFixed(2)} KWD/day</p>
                 </div>
               </div>
 

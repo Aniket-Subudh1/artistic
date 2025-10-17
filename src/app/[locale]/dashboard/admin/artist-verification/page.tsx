@@ -305,7 +305,7 @@ export default function ArtistVerificationPage() {
                           </div>
                           <div className="flex items-center text-sm text-gray-500">
                             <Star className="w-4 h-4 mr-1 text-yellow-400" />
-                            ${artist.pricePerHour}/hr
+                            {artist.pricePerHour} KWD/hr
                           </div>
                         </div>
                       </td>
@@ -416,7 +416,7 @@ export default function ArtistVerificationPage() {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Rate</label>
-                        <p className="text-gray-900">${selectedArtist.pricePerHour}/hour</p>
+                        <p className="text-gray-900">{selectedArtist.pricePerHour} KWD/hour</p>
                       </div>
                     </div>
 

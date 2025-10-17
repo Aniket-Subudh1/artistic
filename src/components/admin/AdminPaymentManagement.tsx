@@ -121,9 +121,9 @@ export function AdminPaymentManagement() {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-KW', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'KWD',
     }).format(amount);
   };
 

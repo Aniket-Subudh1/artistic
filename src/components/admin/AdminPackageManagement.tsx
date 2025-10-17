@@ -260,7 +260,7 @@ const AdminPackageManagement: React.FC = () => {
                 <div className="mb-3">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm text-gray-600">Items: {pkg.items.length}</span>
-                    <span className="text-lg font-bold text-green-600">${pkg.totalPrice}/day</span>
+                    <span className="text-lg font-bold text-green-600">{pkg.totalPrice} KWD/day</span>
                   </div>
                   
                   {/* Equipment Categories */}
@@ -434,7 +434,7 @@ const AdminPackageManagement: React.FC = () => {
                       </div>
                       <div className="text-right">
                         <p className="font-semibold text-gray-900">
-                          ${((item.equipmentId.pricePerDay || 0) * (item.quantity || 0)).toFixed(2)}
+                          {((item.equipmentId.pricePerDay || 0) * (item.quantity || 0)).toFixed(2)} KWD
                         </p>
                         <p className="text-sm text-gray-600">per day</p>
                       </div>
@@ -447,7 +447,7 @@ const AdminPackageManagement: React.FC = () => {
               <div className="bg-blue-50 p-4 rounded-lg">
                 <div className="flex justify-between items-center">
                   <h4 className="font-semibold text-blue-900">Total Package Price</h4>
-                  <p className="text-2xl font-bold text-blue-600">${(modal.data.totalPrice || 0).toFixed(2)}/day</p>
+                  <p className="text-2xl font-bold text-blue-600">{(modal.data.totalPrice || 0).toFixed(2)} KWD/day</p>
                 </div>
               </div>
 

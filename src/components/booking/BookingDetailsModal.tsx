@@ -32,7 +32,7 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancel }: Book
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'KWD'
     }).format(amount);
   };
 

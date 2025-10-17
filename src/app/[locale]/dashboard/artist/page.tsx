@@ -143,7 +143,7 @@ export default function ArtistDashboard() {
               },
               {
                 title: 'Rate/Hour',
-                value: `$${artist.pricePerHour}`,
+                value: `${artist.pricePerHour} KWD`,
                 icon: TrendingUp,
                 iconColor: 'text-purple-600',
                 iconBgColor: 'bg-purple-100'

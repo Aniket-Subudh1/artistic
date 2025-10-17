@@ -317,7 +317,7 @@ export function ArtistManagement() {
             <div>
               <p className="text-sm font-medium text-gray-600">Avg. Rate</p>
               <p className="text-2xl font-bold text-gray-900">
-                ${artists.length > 0 ? Math.round(artists.reduce((sum, artist) => sum + artist.pricePerHour, 0) / artists.length) : 0}
+                {artists.length > 0 ? Math.round(artists.reduce((sum, artist) => sum + artist.pricePerHour, 0) / artists.length) : 0} KWD
               </p>
             </div>
             <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
@@ -416,7 +416,7 @@ export function ArtistManagement() {
                   <span>{artist.yearsOfExperience} years experience</span>
                 </div>
                 <div className="font-semibold text-gray-900">
-                  ${artist.pricePerHour}/hour
+                  {artist.pricePerHour} KWD/hour
                 </div>
               </div>
 
@@ -557,7 +557,7 @@ export function ArtistManagement() {
                   </div>
                   <div>
                     <label className="block font-medium text-gray-700">Rate</label>
-                    <p className="text-gray-900">${selectedArtist.pricePerHour}/hour</p>
+                    <p className="text-gray-900">{selectedArtist.pricePerHour} KWD/hour</p>
                   </div>
                 </div>
 
@@ -770,7 +770,7 @@ export function ArtistManagement() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Price per Hour ($)
+                        Price per Hour (KWD)
                       </label>
                       <input
                         type="number"

@@ -223,9 +223,9 @@ const AdminEquipmentBookingManagement = () => {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-KW', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'KWD'
     }).format(amount);
   };
 
@@ -256,6 +256,14 @@ const AdminEquipmentBookingManagement = () => {
                  `${booking.packageId.createdBy?.firstName} ${booking.packageId.createdBy?.lastName}`,
         items: booking.packageId.items
       };
+    } else if (booking.bookingSource === 'combined') {
+      // Custom package booking
+      return {
+        name: 'Custom Package',
+        coverImage: null,
+        provider: booking.bookedBy ? `${booking.bookedBy.firstName} ${booking.bookedBy.lastName}` : 'Customer',
+        items: booking.equipmentBookingId?.equipments || []
+      };
     } else if (booking.equipmentBookingId?.packages && booking.equipmentBookingId.packages.length > 0) {
       // Combined booking with equipment packages
       const firstPackage = booking.equipmentBookingId.packages[0];
@@ -268,13 +276,14 @@ const AdminEquipmentBookingManagement = () => {
       };
     } else if (booking.equipmentBookingId?.equipments && booking.equipmentBookingId.equipments.length > 0) {
       // Individual equipment booking
-      const equipmentNames = booking.equipmentBookingId.equipments
-        .filter(eq => eq.equipmentId && eq.equipmentId.name) // Filter out null equipmentId
+      const validEquipment = booking.equipmentBookingId.equipments.filter(eq => eq.equipmentId?.name);
+      const equipmentNames = validEquipment
         .map(eq => `${eq.equipmentId!.name} (${eq.quantity}x)`) // Safe after filter
         .join(', ');
+      
       return {
-        name: equipmentNames || 'Unknown Equipment',
-        coverImage: booking.equipmentBookingId.equipments[0]?.equipmentId?.images?.[0],
+        name: equipmentNames || 'Equipment Booking',
+        coverImage: validEquipment[0]?.equipmentId?.images?.[0],
         provider: 'Equipment Provider',
         items: booking.equipmentBookingId.equipments
       };
@@ -621,7 +630,7 @@ const AdminEquipmentBookingManagement = () => {
                   Duration
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Amount
+                  Booking Type
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
@@ -656,17 +665,21 @@ const AdminEquipmentBookingManagement = () => {
                             {packageInfo.name}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {booking.bookingSource || 'package'} • {booking.bookingType}
+                            {booking.bookingSource === 'combined' ? 'Custom Package' : 
+                             booking.packageId ? 'Standard Package' : 'Individual Equipment'} • {booking.bookingType || 'equipment'}
                           </div>
                         </div>
                       </div>
                     </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
-                      {booking.userDetails?.name || `${booking.bookedBy.firstName} ${booking.bookedBy.lastName}`}
+                      {booking.userDetails?.name || 
+                       (booking.bookedBy?.firstName && booking.bookedBy?.lastName 
+                        ? `${booking.bookedBy.firstName} ${booking.bookedBy.lastName}` 
+                        : 'Customer Details Pending')}
                     </div>
                     <div className="text-sm text-gray-500">
-                      {booking.userDetails?.email || booking.bookedBy.email}
+                      {booking.userDetails?.email || booking.bookedBy?.email || 'Email pending'}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -684,12 +697,13 @@ const AdminEquipmentBookingManagement = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
-                      {booking.numberOfDays ? `${booking.numberOfDays} days` : 'N/A'}
+                      {booking.numberOfDays ? `${booking.numberOfDays} days` : '1 day'}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">
-                      {formatCurrency(booking.totalPrice)}
+                      {booking.bookingSource === 'combined' ? 'Custom Package' : 
+                       booking.packageId ? 'Standard Package' : 'Individual Equipment'}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -1030,19 +1044,22 @@ const AdminEquipmentBookingManagement = () => {
                   <div>
                     <p className="text-sm font-medium text-gray-700">Name</p>
                     <p className="text-sm text-gray-900">
-                      {selectedBooking.userDetails?.name || `${selectedBooking.bookedBy.firstName} ${selectedBooking.bookedBy.lastName}`}
+                      {selectedBooking.userDetails?.name || 
+                       (selectedBooking.bookedBy?.firstName && selectedBooking.bookedBy?.lastName 
+                        ? `${selectedBooking.bookedBy.firstName} ${selectedBooking.bookedBy.lastName}` 
+                        : 'Customer details pending')}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-700">Email</p>
                     <p className="text-sm text-gray-900">
-                      {selectedBooking.userDetails?.email || selectedBooking.bookedBy.email}
+                      {selectedBooking.userDetails?.email || selectedBooking.bookedBy?.email || 'Email pending confirmation'}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-700">Phone</p>
                     <p className="text-sm text-gray-900">
-                      {selectedBooking.userDetails?.phone || selectedBooking.bookedBy.phoneNumber}
+                      {selectedBooking.userDetails?.phone || selectedBooking.bookedBy?.phoneNumber || 'Phone pending confirmation'}
                     </p>
                   </div>
                 </div>
@@ -1067,7 +1084,7 @@ const AdminEquipmentBookingManagement = () => {
                   <div>
                     <p className="text-sm font-medium text-gray-700">Duration</p>
                     <p className="text-sm text-gray-900">
-                      {selectedBooking.numberOfDays ? `${selectedBooking.numberOfDays} days` : 'N/A'}
+                      {selectedBooking.numberOfDays ? `${selectedBooking.numberOfDays} days` : '1 day'}
                     </p>
                   </div>
                   <div>
@@ -1077,9 +1094,10 @@ const AdminEquipmentBookingManagement = () => {
                     </span>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-700">Total Amount</p>
+                    <p className="text-sm font-medium text-gray-700">Booking Type</p>
                     <p className="text-sm text-gray-900 font-semibold">
-                      {formatCurrency(selectedBooking.totalPrice)}
+                      {selectedBooking.bookingSource === 'combined' ? 'Custom Package' : 
+                       selectedBooking.packageId ? 'Standard Package' : 'Individual Equipment'}
                     </p>
                   </div>
                 </div>
@@ -1092,62 +1110,270 @@ const AdminEquipmentBookingManagement = () => {
                   <div className="grid grid-cols-1 gap-4">
                     <div>
                       <p className="text-sm font-medium text-gray-700">Address</p>
-                      <p className="text-sm text-gray-900">{selectedBooking.venueDetails.address}</p>
+                      <p className="text-sm text-gray-900">
+                        {selectedBooking.venueDetails.address || 'Address to be confirmed'}
+                      </p>
                     </div>
                     <div className="grid grid-cols-3 gap-4">
                       <div>
                         <p className="text-sm font-medium text-gray-700">City</p>
-                        <p className="text-sm text-gray-900">{selectedBooking.venueDetails.city}</p>
+                        <p className="text-sm text-gray-900">
+                          {selectedBooking.venueDetails.city || 'Not specified'}
+                        </p>
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-700">State</p>
-                        <p className="text-sm text-gray-900">{selectedBooking.venueDetails.state}</p>
+                        <p className="text-sm text-gray-900">
+                          {selectedBooking.venueDetails.state || 'Not specified'}
+                        </p>
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-700">Country</p>
-                        <p className="text-sm text-gray-900">{selectedBooking.venueDetails.country}</p>
+                        <p className="text-sm text-gray-900">
+                          {selectedBooking.venueDetails.country || 'Not specified'}
+                        </p>
                       </div>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Equipment Items */}
+              {/* Equipment/Package Items */}
               {(() => {
-                const packageItems = selectedBooking.packageId?.items || 
-                                   selectedBooking.equipmentBookingId?.packages?.[0]?.items;
-                const equipmentItems = selectedBooking.equipmentBookingId?.equipments;
+                console.log('=== BOOKING DEBUG INFO ===');
+                console.log('Selected Booking Structure:', JSON.stringify(selectedBooking, null, 2));
+                console.log('Booking Source:', selectedBooking.bookingSource);
+                console.log('Package Items:', selectedBooking.packageId?.items);
+                console.log('Equipment Booking Items:', selectedBooking.equipmentBookingId?.equipments);
+                console.log('Combined Package Items:', selectedBooking.equipmentBookingId?.packages);
                 
-                if (packageItems && packageItems.length > 0) {
+                // Check what's in equipmentBookingId for custom packages
+                if (selectedBooking.bookingSource === 'combined' && selectedBooking.equipmentBookingId) {
+                  console.log('CUSTOM PACKAGE DEBUG:');
+                  console.log('- equipmentBookingId.equipments:', selectedBooking.equipmentBookingId.equipments);
+                  console.log('- equipmentBookingId.packages:', selectedBooking.equipmentBookingId.packages);
+                  console.log('- equipmentBookingId.customPackages:', (selectedBooking.equipmentBookingId as any).customPackages);
+                  
+                  if (selectedBooking.equipmentBookingId.equipments) {
+                    selectedBooking.equipmentBookingId.equipments.forEach((item: any, i: number) => {
+                      console.log(`Equipment ${i}:`, item);
+                      console.log(`Equipment ${i} equipmentId:`, item.equipmentId);
+                      console.log(`Equipment ${i} name:`, item.equipmentId?.name);
+                    });
+                  }
+                  
+                  if ((selectedBooking.equipmentBookingId as any).customPackages) {
+                    (selectedBooking.equipmentBookingId as any).customPackages.forEach((pkg: any, i: number) => {
+                      console.log(`Custom Package ${i}:`, pkg);
+                      console.log(`Custom Package ${i} items:`, pkg.items);
+                      if (pkg.items) {
+                        pkg.items.forEach((item: any, j: number) => {
+                          console.log(`Custom Package ${i} Item ${j}:`, item);
+                          console.log(`Custom Package ${i} Item ${j} equipmentId:`, item.equipmentId);
+                        });
+                      }
+                    });
+                  }
+                }
+                
+                if (selectedBooking.equipmentBookingId?.packages) {
+                  selectedBooking.equipmentBookingId.packages.forEach((pkg: any, i: number) => {
+                    console.log(`Package ${i} items:`, pkg.items);
+                    if (pkg.items) {
+                      pkg.items.forEach((item: any, j: number) => {
+                        console.log(`Item ${j}:`, item);
+                        console.log(`Item ${j} equipmentId:`, item.equipmentId);
+                      });
+                    }
+                  });
+                }
+                console.log('========================');
+                
+                // Check for standard package items first
+                if (selectedBooking.packageId?.items && selectedBooking.packageId.items.length > 0) {
                   return (
                     <div>
-                      <h4 className="text-md font-semibold text-gray-900 mb-3">Package Items</h4>
+                      <h4 className="text-md font-semibold text-gray-900 mb-3">Package Items ({selectedBooking.packageId.items.length} items)</h4>
                       <div className="space-y-2">
-                        {packageItems.map((item: any, index: number) => (
-                          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                            <span className="text-sm text-gray-900">{item.name || 'Item'}</span>
-                            <span className="text-sm text-gray-600">Qty: {item.quantity || 1}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                } else if (equipmentItems && equipmentItems.length > 0) {
-                  return (
-                    <div>
-                      <h4 className="text-md font-semibold text-gray-900 mb-3">Equipment Items</h4>
-                      <div className="space-y-2">
-                        {equipmentItems.map((item: any, index: number) => (
-                          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                            <span className="text-sm text-gray-900">{item.equipmentId?.name || 'Equipment'}</span>
-                            <span className="text-sm text-gray-600">Qty: {item.quantity}</span>
+                        {selectedBooking.packageId.items.map((item: any, index: number) => (
+                          <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                            <div className="flex-1">
+                              <span className="text-sm font-medium text-gray-900">
+                                {item.equipmentId?.name || item.name || 'Equipment Item'}
+                              </span>
+                              {item.equipmentId?.category && (
+                                <p className="text-xs text-gray-600 mt-1">Category: {item.equipmentId.category}</p>
+                              )}
+                              {item.equipmentId?.specifications && (
+                                <p className="text-xs text-gray-600">Specifications available</p>
+                              )}
+                            </div>
+                            <span className="text-sm text-gray-600 font-medium bg-gray-200 px-2 py-1 rounded">
+                              Qty: {item.quantity || 1}
+                            </span>
                           </div>
                         ))}
                       </div>
                     </div>
                   );
                 }
-                return null;
+                
+                // Check for equipment package items in combined bookings (packages array)
+                if (selectedBooking.equipmentBookingId?.packages && selectedBooking.equipmentBookingId.packages.length > 0) {
+                  const allPackageItems = selectedBooking.equipmentBookingId.packages.flatMap(pkg => pkg.items || []);
+                  if (allPackageItems.length > 0) {
+                    return (
+                      <div>
+                        <h4 className="text-md font-semibold text-gray-900 mb-3">Package Items ({allPackageItems.length} items)</h4>
+                        <div className="space-y-2">
+                          {allPackageItems.map((item: any, index: number) => (
+                            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                              <div className="flex-1">
+                                <span className="text-sm font-medium text-gray-900">
+                                  {item.equipmentId?.name || item.name || 'Equipment Item'}
+                                </span>
+                                {item.equipmentId?.category && (
+                                  <p className="text-xs text-gray-600 mt-1">Category: {item.equipmentId.category}</p>
+                                )}
+                                {item.equipmentId?.specifications && (
+                                  <p className="text-xs text-gray-600">Specifications available</p>
+                                )}
+                              </div>
+                              <span className="text-sm text-gray-600 font-medium bg-gray-200 px-2 py-1 rounded">
+                                Qty: {item.quantity || 1}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  }
+                }
+                
+                // Check for custom package items in combined bookings (customPackages array)
+                if (selectedBooking.bookingSource === 'combined' && (selectedBooking.equipmentBookingId as any)?.customPackages && (selectedBooking.equipmentBookingId as any).customPackages.length > 0) {
+                  console.log('Processing customPackages:', (selectedBooking.equipmentBookingId as any).customPackages);
+                  
+                  // Check if customPackages are properly populated (objects) or just IDs (strings)
+                  const customPackages = (selectedBooking.equipmentBookingId as any).customPackages;
+                  const firstPackage = customPackages[0];
+                  
+                  if (typeof firstPackage === 'string') {
+                    console.log('Custom packages are not populated - showing fallback message');
+                    return (
+                      <div className="text-sm text-gray-600">
+                        <p>Custom Package (ID: {firstPackage})</p>
+                        <p className="text-xs text-orange-600 mt-1">Equipment details not loaded - please refresh</p>
+                      </div>
+                    );
+                  }
+                  
+                  const allCustomPackageItems = customPackages.flatMap((pkg: any) => pkg.items || []);
+                  if (allCustomPackageItems.length > 0) {
+                    return (
+                      <div>
+                        <h4 className="text-md font-semibold text-gray-900 mb-3">Custom Package Items ({allCustomPackageItems.length} items)</h4>
+                        <div className="space-y-2">
+                          {allCustomPackageItems.map((item: any, index: number) => (
+                            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                              <div className="flex-1">
+                                <span className="text-sm font-medium text-gray-900">
+                                  {item.equipmentId?.name || 'Equipment Item'}
+                                </span>
+                                {item.equipmentId?.category && (
+                                  <p className="text-xs text-gray-600 mt-1">Category: {item.equipmentId.category}</p>
+                                )}
+                                {item.equipmentId?.pricePerDay && (
+                                  <p className="text-xs text-gray-600">Price: {item.equipmentId.pricePerDay} KWD/day</p>
+                                )}
+                                {item.equipmentId?.specifications && (
+                                  <p className="text-xs text-gray-600">Specifications available</p>
+                                )}
+                              </div>
+                              <span className="text-sm text-gray-600 font-medium bg-gray-200 px-2 py-1 rounded">
+                                Qty: {item.quantity || 1}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  }
+                }
+                
+                // Fallback: Check for custom package items in combined bookings (equipments array) - for backward compatibility
+                if (selectedBooking.bookingSource === 'combined' && selectedBooking.equipmentBookingId?.equipments && selectedBooking.equipmentBookingId.equipments.length > 0) {
+                  const validEquipment = selectedBooking.equipmentBookingId.equipments.filter(item => item.equipmentId);
+                  if (validEquipment.length > 0) {
+                    return (
+                      <div>
+                        <h4 className="text-md font-semibold text-gray-900 mb-3">Equipment Items ({validEquipment.length} items)</h4>
+                        <div className="space-y-2">
+                          {validEquipment.map((item: any, index: number) => (
+                            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                              <div className="flex-1">
+                                <span className="text-sm font-medium text-gray-900">
+                                  {item.equipmentId?.name || 'Equipment Item'}
+                                </span>
+                                {item.equipmentId?.category && (
+                                  <p className="text-xs text-gray-600 mt-1">Category: {item.equipmentId.category}</p>
+                                )}
+                                {item.equipmentId?.specifications && (
+                                  <p className="text-xs text-gray-600">Specifications available</p>
+                                )}
+                              </div>
+                              <span className="text-sm text-gray-600 font-medium bg-gray-200 px-2 py-1 rounded">
+                                Qty: {item.quantity || 1}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  }
+                }
+                
+                // Check for individual equipment items
+                if (selectedBooking.equipmentBookingId?.equipments && selectedBooking.equipmentBookingId.equipments.length > 0) {
+                  const validEquipment = selectedBooking.equipmentBookingId.equipments.filter(item => item.equipmentId);
+                  if (validEquipment.length > 0) {
+                    return (
+                      <div>
+                        <h4 className="text-md font-semibold text-gray-900 mb-3">Equipment Items ({validEquipment.length} items)</h4>
+                        <div className="space-y-2">
+                          {validEquipment.map((item: any, index: number) => (
+                            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                              <div className="flex-1">
+                                <span className="text-sm font-medium text-gray-900">
+                                  {item.equipmentId?.name || 'Equipment Item'}
+                                </span>
+                                {item.equipmentId?.category && (
+                                  <p className="text-xs text-gray-600 mt-1">Category: {item.equipmentId.category}</p>
+                                )}
+                                {item.equipmentId?.specifications && (
+                                  <p className="text-xs text-gray-600">Specifications available</p>
+                                )}
+                              </div>
+                              <span className="text-sm text-gray-600 font-medium bg-gray-200 px-2 py-1 rounded">
+                                Qty: {item.quantity || 1}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  }
+                }
+                
+                // Show message if no items found
+                return (
+                  <div>
+                    <h4 className="text-md font-semibold text-gray-900 mb-3">Equipment/Package Items</h4>
+                    <div className="p-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                      <p className="text-sm text-gray-600 text-center">No equipment or package items found for this booking</p>
+                    </div>
+                  </div>
+                );
               })()}
 
               {/* Event Description */}

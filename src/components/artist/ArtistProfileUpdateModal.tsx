@@ -608,7 +608,7 @@ export function ArtistProfileUpdateModal({
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-3">
-                      Price Per Hour ($)
+                      Price Per Hour (KWD)
                     </label>
                     <input
                       type="number"

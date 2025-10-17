@@ -184,9 +184,9 @@ const AdminArtistBookingManagement = () => {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-KW', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'KWD'
     }).format(amount);
   };
 
@@ -509,7 +509,7 @@ const AdminArtistBookingManagement = () => {
                   Venue
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Amount
+                  Service Type
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
@@ -550,10 +550,12 @@ const AdminArtistBookingManagement = () => {
                           {booking.artistBookingId?.artistId?.roleProfile?.stageName || 
                            (booking.artistBookingId?.artistId?.firstName && booking.artistBookingId?.artistId?.lastName
                             ? `${booking.artistBookingId.artistId.firstName} ${booking.artistBookingId.artistId.lastName}`
-                            : 'Artist Name Unavailable')}
+                            : 'Artist Details Pending')}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {booking.artistBookingId?.artistType || 'N/A'} • {booking.bookingType}
+                          {booking.artistBookingId?.artistType ? 
+                            (booking.artistBookingId.artistType === 'private' ? 'Private Event' : 'Public Performance') : 
+                            'Service Type TBD'} • {booking.bookingType}
                         </div>
                       </div>
                     </div>
@@ -563,10 +565,10 @@ const AdminArtistBookingManagement = () => {
                       {booking.userDetails?.name || 
                        (booking.bookedBy?.firstName && booking.bookedBy?.lastName 
                         ? `${booking.bookedBy.firstName} ${booking.bookedBy.lastName}` 
-                        : 'N/A')}
+                        : 'Customer Details Pending')}
                     </div>
                     <div className="text-sm text-gray-500">
-                      {booking.userDetails?.email || booking.bookedBy?.email || 'N/A'}
+                      {booking.userDetails?.email || booking.bookedBy?.email || 'Email pending'}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -577,15 +579,20 @@ const AdminArtistBookingManagement = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
-                      {booking.venueDetails?.city || 'N/A'}
+                      {booking.venueDetails?.city || 'Not specified'}
                     </div>
                     <div className="text-sm text-gray-500">
-                      {booking.venueDetails?.state || 'N/A'}, {booking.venueDetails?.country || 'N/A'}
+                      {booking.venueDetails?.state ? `${booking.venueDetails.state}, ` : ''}{booking.venueDetails?.country || 'Location TBD'}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">
-                      {formatCurrency(booking.totalPrice)}
+                      {booking.artistBookingId?.artistType ? 
+                        (booking.artistBookingId.artistType === 'private' ? 'Private Event' : 'Public Performance') : 
+                        'Artist Service'}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {booking.artistBookingId?.artistId?.roleProfile?.artistType || 'Entertainment'}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -877,27 +884,29 @@ const AdminArtistBookingManagement = () => {
               {/* Customer Information */}
               <div>
                 <h4 className="text-md font-semibold text-gray-900 mb-3">Customer Information</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Name</p>
-                    <p className="text-sm text-gray-900">
-                      {selectedBooking.userDetails?.name || 
-                       (selectedBooking.bookedBy?.firstName && selectedBooking.bookedBy?.lastName 
-                        ? `${selectedBooking.bookedBy.firstName} ${selectedBooking.bookedBy.lastName}` 
-                        : 'N/A')}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Email</p>
-                    <p className="text-sm text-gray-900">
-                      {selectedBooking.userDetails?.email || selectedBooking.bookedBy?.email || 'N/A'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Phone</p>
-                    <p className="text-sm text-gray-900">
-                      {selectedBooking.userDetails?.phone || selectedBooking.bookedBy?.phoneNumber || 'N/A'}
-                    </p>
+                <div className="bg-blue-50 p-4 rounded-lg border">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Name</p>
+                      <p className="text-sm text-gray-900 font-medium">
+                        {selectedBooking.userDetails?.name || 
+                         (selectedBooking.bookedBy?.firstName && selectedBooking.bookedBy?.lastName 
+                          ? `${selectedBooking.bookedBy.firstName} ${selectedBooking.bookedBy.lastName}` 
+                          : 'Customer details pending')}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Email</p>
+                      <p className="text-sm text-gray-900">
+                        {selectedBooking.userDetails?.email || selectedBooking.bookedBy?.email || 'Email pending confirmation'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Phone</p>
+                      <p className="text-sm text-gray-900">
+                        {selectedBooking.userDetails?.phone || selectedBooking.bookedBy?.phoneNumber || 'Phone pending confirmation'}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -923,9 +932,11 @@ const AdminArtistBookingManagement = () => {
                     </span>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-700">Total Amount</p>
+                    <p className="text-sm font-medium text-gray-700">Service Type</p>
                     <p className="text-sm text-gray-900 font-semibold">
-                      {formatCurrency(selectedBooking.totalPrice)}
+                      {selectedBooking.artistBookingId?.artistType ? 
+                        (selectedBooking.artistBookingId.artistType === 'private' ? 'Private Event' : 'Public Performance') : 
+                        'Artist Service'}
                     </p>
                   </div>
                 </div>
@@ -937,24 +948,102 @@ const AdminArtistBookingManagement = () => {
                 <div className="grid grid-cols-1 gap-4">
                   <div>
                     <p className="text-sm font-medium text-gray-700">Address</p>
-                    <p className="text-sm text-gray-900">{selectedBooking.venueDetails?.address || 'N/A'}</p>
+                    <p className="text-sm text-gray-900">
+                      {selectedBooking.venueDetails?.address || 'Address to be confirmed'}
+                    </p>
                   </div>
                   <div className="grid grid-cols-3 gap-4">
                     <div>
                       <p className="text-sm font-medium text-gray-700">City</p>
-                      <p className="text-sm text-gray-900">{selectedBooking.venueDetails?.city || 'N/A'}</p>
+                      <p className="text-sm text-gray-900">
+                        {selectedBooking.venueDetails?.city || 'Not specified'}
+                      </p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-700">State</p>
-                      <p className="text-sm text-gray-900">{selectedBooking.venueDetails?.state || 'N/A'}</p>
+                      <p className="text-sm text-gray-900">
+                        {selectedBooking.venueDetails?.state || 'Not specified'}
+                      </p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-700">Country</p>
-                      <p className="text-sm text-gray-900">{selectedBooking.venueDetails?.country || 'N/A'}</p>
+                      <p className="text-sm text-gray-900">
+                        {selectedBooking.venueDetails?.country || 'Not specified'}
+                      </p>
                     </div>
                   </div>
                 </div>
               </div>
+
+              {/* Artist Details */}
+              {selectedBooking.artistBookingId?.artistId && (
+                <div>
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Artist Information</h4>
+                  <div className="bg-gray-50 p-4 rounded-lg border">
+                    <div className="flex items-center space-x-4 mb-3">
+                      {selectedBooking.artistBookingId.artistId.roleProfile?.profileImage && (
+                        <img 
+                          src={selectedBooking.artistBookingId.artistId.roleProfile.profileImage} 
+                          alt="Artist" 
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                      )}
+                      <div>
+                        <h5 className="text-sm font-semibold text-gray-900">
+                          {selectedBooking.artistBookingId.artistId.roleProfile?.stageName || 
+                           `${selectedBooking.artistBookingId.artistId.firstName} ${selectedBooking.artistBookingId.artistId.lastName}`}
+                        </h5>
+                        <p className="text-xs text-gray-600">
+                          {selectedBooking.artistBookingId.artistId.roleProfile?.artistType || 'Artist'}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {selectedBooking.artistBookingId.artistId.roleProfile?.about && (
+                      <div className="mb-3">
+                        <p className="text-sm font-medium text-gray-700">About</p>
+                        <p className="text-sm text-gray-900 mt-1">
+                          {selectedBooking.artistBookingId.artistId.roleProfile.about}
+                        </p>
+                      </div>
+                    )}
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      {selectedBooking.artistBookingId.artistId.roleProfile?.yearsOfExperience && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">Experience</p>
+                          <p className="text-sm text-gray-900">
+                            {selectedBooking.artistBookingId.artistId.roleProfile.yearsOfExperience} years
+                          </p>
+                        </div>
+                      )}
+                      
+                      {selectedBooking.artistBookingId.artistId.roleProfile?.skills && 
+                       selectedBooking.artistBookingId.artistId.roleProfile.skills.length > 0 && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">Skills</p>
+                          <p className="text-sm text-gray-900">
+                            {selectedBooking.artistBookingId.artistId.roleProfile.skills.slice(0, 3).join(', ')}
+                            {selectedBooking.artistBookingId.artistId.roleProfile.skills.length > 3 && '...'}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <p className="text-sm font-medium text-gray-700">Contact</p>
+                      <p className="text-sm text-gray-900">
+                        {selectedBooking.artistBookingId.artistId.email}
+                      </p>
+                      {selectedBooking.artistBookingId.artistId.phoneNumber && (
+                        <p className="text-sm text-gray-900">
+                          {selectedBooking.artistBookingId.artistId.phoneNumber}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Event Description */}
               {selectedBooking.eventDescription && (

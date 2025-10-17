@@ -211,7 +211,7 @@ export function EquipmentManagement({ onAddEquipment }: EquipmentManagementProps
               {item.name}
             </h3>
             <div className="text-right">
-              <p className="font-bold text-green-600">${item.pricePerDay}</p>
+              <p className="font-bold text-green-600">{item.pricePerDay} KWD</p>
               <p className="text-xs text-gray-500">per day</p>
             </div>
           </div>
@@ -228,7 +228,7 @@ export function EquipmentManagement({ onAddEquipment }: EquipmentManagementProps
               </div>
               <div className="flex items-center space-x-1">
                 <DollarSign className="w-4 h-4" />
-                <span>${item.pricePerHour}/hr</span>
+                <span>{item.pricePerHour} KWD/hr</span>
               </div>
             </div>
           </div>
@@ -301,8 +301,8 @@ export function EquipmentManagement({ onAddEquipment }: EquipmentManagementProps
               {item.description}
             </p>
             <div className="flex items-center gap-4 text-sm text-gray-500">
-              <span>${item.pricePerHour}/hr</span>
-              <span>${item.pricePerDay}/day</span>
+              <span>{item.pricePerHour} KWD/hr</span>
+              <span>{item.pricePerDay} KWD/day</span>
               <span>{item.quantity} available</span>
             </div>
           </div>
@@ -562,11 +562,11 @@ export function EquipmentManagement({ onAddEquipment }: EquipmentManagementProps
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <h5 className="font-medium text-gray-900">Price per Hour</h5>
-                      <p className="text-2xl font-bold text-green-600">${selectedEquipment.pricePerHour}</p>
+                      <p className="text-2xl font-bold text-green-600">{selectedEquipment.pricePerHour} KWD</p>
                     </div>
                     <div>
                       <h5 className="font-medium text-gray-900">Price per Day</h5>
-                      <p className="text-2xl font-bold text-green-600">${selectedEquipment.pricePerDay}</p>
+                      <p className="text-2xl font-bold text-green-600">{selectedEquipment.pricePerDay} KWD</p>
                     </div>
                   </div>
                   

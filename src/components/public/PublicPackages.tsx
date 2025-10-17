@@ -105,7 +105,7 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({
                     <span className="text-gray-700">
                       {item.equipmentId.name} x {item.quantity}
                     </span>
-                    <span className="text-gray-500">${item.equipmentId.pricePerDay * item.quantity}/day</span>
+                    <span className="text-gray-500">{item.equipmentId.pricePerDay * item.quantity} KWD/day</span>
                   </div>
                 ))}
                 {pkg.items.length > 3 && (
@@ -131,7 +131,7 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({
               <div className="border-t pt-4">
                 <div className="flex justify-between items-center mb-4">
                   <div>
-                    <p className="text-2xl font-bold text-green-600">${pkg.totalPrice}</p>
+                    <p className="text-2xl font-bold text-green-600">{pkg.totalPrice} KWD</p>
                     <p className="text-sm text-gray-500">per day</p>
                   </div>
                   <div className="text-right">

@@ -262,7 +262,7 @@ export default function EquipmentProviderDashboard() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-medium text-gray-900">${item.pricePerDay}/day</p>
+                          <p className="font-medium text-gray-900">{item.pricePerDay} KWD/day</p>
                           <p className="text-sm text-gray-500">{item.quantity} available</p>
                         </div>
                       </div>

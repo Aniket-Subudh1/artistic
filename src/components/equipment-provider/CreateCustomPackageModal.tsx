@@ -342,7 +342,7 @@ export function CreateCustomPackageModal({
                           <Package className="w-5 h-5 text-gray-400 mr-3" />
                           <div>
                             <p className="font-medium text-gray-900">{item.name}</p>
-                            <p className="text-sm text-gray-600">{item.category} • ${item.pricePerDay}/day</p>
+                            <p className="text-sm text-gray-600">{item.category} • {item.pricePerDay} KWD/day</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
@@ -373,7 +373,7 @@ export function CreateCustomPackageModal({
                   </div>
                   <div className="mt-4 pt-4 border-t border-green-200">
                     <p className="text-lg font-bold text-green-800">
-                      Total: ${calculateTotalPrice()}/day
+                      Total: {calculateTotalPrice()} KWD/day
                     </p>
                   </div>
                 </div>
@@ -408,7 +408,7 @@ export function CreateCustomPackageModal({
                                 {equipment.description}
                               </p>
                               <p className="text-lg font-bold text-[#391C71] mt-2">
-                                ${equipment.pricePerDay}/day
+                                {equipment.pricePerDay} KWD/day
                               </p>
                             </div>
                             <div className="ml-4">
@@ -452,7 +452,7 @@ export function CreateCustomPackageModal({
                   <div>
                     <h4 className="font-semibold text-gray-700 mb-2">Pricing</h4>
                     <p className="text-3xl font-bold text-[#391C71]">
-                      ${calculateTotalPrice()}/day
+                      {calculateTotalPrice()} KWD/day
                     </p>
                     <p className="text-sm text-gray-600 mt-1">
                       {selectedEquipment.length} equipment items
@@ -475,7 +475,7 @@ export function CreateCustomPackageModal({
                       </div>
                       <div className="text-right">
                         <p className="font-medium text-gray-900">
-                          {item.quantity}x ${item.pricePerDay} = ${item.quantity * item.pricePerDay}
+                          {item.quantity}x {item.pricePerDay} KWD = {item.quantity * item.pricePerDay} KWD
                         </p>
                         <p className="text-sm text-gray-600">per day</p>
                       </div>

@@ -208,7 +208,7 @@ export function EquipmentManagement() {
             <div>
               <p className="text-sm font-medium text-gray-600">Avg. Price/Day</p>
               <p className="text-2xl font-bold text-gray-900">
-                ${equipment.length > 0 ? Math.round(equipment.reduce((sum, item) => sum + item.pricePerDay, 0) / equipment.length) : 0}
+                {equipment.length > 0 ? Math.round(equipment.reduce((sum, item) => sum + item.pricePerDay, 0) / equipment.length) : 0} KWD
               </p>
             </div>
             <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
@@ -255,7 +255,7 @@ export function EquipmentManagement() {
                 </div>
                 <div className="flex items-center gap-2">
                   <DollarSign className="w-4 h-4" />
-                  <span>${item.pricePerHour}/hr • ${item.pricePerDay}/day</span>
+                  <span>{item.pricePerHour} KWD/hr • {item.pricePerDay} KWD/day</span>
                 </div>
               </div>
 
@@ -343,12 +343,12 @@ export function EquipmentManagement() {
 
                   <div>
                     <label className="block font-medium text-gray-700">Price per Hour</label>
-                    <p className="text-gray-900 font-semibold">${selectedEquipment.pricePerHour}</p>
+                    <p className="text-gray-900 font-semibold">{selectedEquipment.pricePerHour} KWD</p>
                   </div>
                   
                   <div>
                     <label className="block font-medium text-gray-700">Price per Day</label>
-                    <p className="text-gray-900 font-semibold">${selectedEquipment.pricePerDay}</p>
+                    <p className="text-gray-900 font-semibold">{selectedEquipment.pricePerDay} KWD</p>
                   </div>
 
                   <div className="col-span-2">

@@ -163,7 +163,7 @@ export function ArtistProfile({ artistId, isOwnProfile = false }: ArtistProfileP
                 </div>
                 <div className="flex items-center space-x-1">
                   <DollarSign className="h-4 w-4 text-green-500" />
-                  <span className="text-sm text-gray-600">${artist.pricePerHour}/hour</span>
+                  <span className="text-sm text-gray-600">{artist.pricePerHour} KWD/hour</span>
                 </div>
               </div>
             </div>

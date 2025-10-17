@@ -164,7 +164,7 @@ export const EquipmentPackageBookingCard: React.FC<EquipmentPackageBookingCardPr
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">Price per day:</span>
-              <span className="font-medium">${booking.pricePerDay.toLocaleString()}</span>
+              <span className="font-medium">{booking.pricePerDay.toLocaleString()} KWD</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">Number of days:</span>
@@ -172,7 +172,7 @@ export const EquipmentPackageBookingCard: React.FC<EquipmentPackageBookingCardPr
             </div>
             <div className="flex justify-between text-base font-semibold pt-2 border-t border-gray-200">
               <span className="text-gray-900">Total Amount:</span>
-              <span className="text-purple-600">${booking.totalPrice.toLocaleString()}</span>
+              <span className="text-purple-600">{booking.totalPrice.toLocaleString()} KWD</span>
             </div>
           </div>
         </div>

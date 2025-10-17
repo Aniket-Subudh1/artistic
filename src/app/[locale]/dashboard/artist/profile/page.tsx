@@ -270,7 +270,7 @@ export default function ArtistProfilePage() {
                   </div>
                   <div className="text-center bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200">
                     <DollarSign className="h-6 w-6 text-[#391C71] mx-auto mb-1" />
-                    <div className="text-xl font-bold text-gray-900">${artist.pricePerHour}</div>
+                    <div className="text-xl font-bold text-gray-900">{artist.pricePerHour} KWD</div>
                     <div className="text-xs text-gray-600">Per Hour</div>
                   </div>
                 </div>
@@ -324,7 +324,7 @@ export default function ArtistProfilePage() {
                       </div>
                       <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 text-center shadow-lg border border-purple-200">
                         <DollarSign className="h-8 w-8 text-[#391C71] mx-auto mb-2" />
-                        <div className="text-2xl font-bold text-gray-900">${artist.pricePerHour}</div>
+                        <div className="text-2xl font-bold text-gray-900">{artist.pricePerHour} KWD</div>
                         <div className="text-sm text-gray-600">Per Hour</div>
                       </div>
                     </div>
