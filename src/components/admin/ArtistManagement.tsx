@@ -17,11 +17,15 @@ import {
   UserCheck,
   UserX,
   X,
-  EyeOff
+  EyeOff,
+  Camera,
+  Upload,
+  Trash2
 } from 'lucide-react';
 import { ArtistService, Artist, ArtistType } from '@/services/artist.service';
 import { AdminService } from '@/services/admin.service';
 import { UserService } from '@/services/user.service';
+import { ImageCropper } from '@/components/ui/ImageCropper';
 
 export function ArtistManagement() {
   const [artists, setArtists] = useState<Artist[]>([]);
@@ -58,6 +62,15 @@ export function ArtistManagement() {
   const [newLanguage, setNewLanguage] = useState('');
   const [newAward, setNewAward] = useState('');
   const [newPerformPreference, setNewPerformPreference] = useState('');
+
+  // Image upload states
+  const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [coverImage, setCoverImage] = useState<File | null>(null);
+  const [profileImagePreview, setProfileImagePreview] = useState<string>('');
+  const [coverImagePreview, setCoverImagePreview] = useState<string>('');
+  const [showCropper, setShowCropper] = useState(false);
+  const [cropperImage, setCropperImage] = useState<string>('');
+  const [currentCropType, setCurrentCropType] = useState<'profile' | 'cover'>('profile');
 
   useEffect(() => {
     loadData();
@@ -119,7 +132,16 @@ export function ArtistManagement() {
     }
 
     try {
-      await ArtistService.createArtist(createArtistForm);
+      // Prepare files object
+      const files: {
+        profileImage?: File;
+        profileCoverImage?: File;
+      } = {};
+      
+      if (profileImage) files.profileImage = profileImage;
+      if (coverImage) files.profileCoverImage = coverImage;
+
+      await ArtistService.createArtist(createArtistForm, files);
       setSuccess('Artist created successfully!');
       setShowCreateModal(false);
       // Reset form
@@ -145,6 +167,13 @@ export function ArtistManagement() {
       setNewLanguage('');
       setNewAward('');
       setNewPerformPreference('');
+      
+      // Reset image states
+      setProfileImage(null);
+      setCoverImage(null);
+      setProfileImagePreview('');
+      setCoverImagePreview('');
+      
       loadData();
     } catch (error: any) {
       setError('Failed to create artist: ' + (error.message || 'Unknown error'));
@@ -217,6 +246,49 @@ export function ArtistManagement() {
       ...prev, 
       performPreference: prev.performPreference.filter(p => p !== preference) 
     }));
+  };
+
+  // Image handling functions
+  const handleImageSelect = (event: Event, type: 'profile' | 'cover') => {
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
+    
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        setError('Image size must be less than 5MB');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setCropperImage(result);
+        setCurrentCropType(type);
+        setShowCropper(true);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCropComplete = (croppedImageBlob: Blob) => {
+    const file = new File([croppedImageBlob], `${currentCropType}-image.jpg`, { type: 'image/jpeg' });
+    const previewUrl = URL.createObjectURL(croppedImageBlob);
+    
+    if (currentCropType === 'profile') {
+      setProfileImage(file);
+      setProfileImagePreview(previewUrl);
+    } else {
+      setCoverImage(file);
+      setCoverImagePreview(previewUrl);
+    }
+    
+    setShowCropper(false);
+    setCropperImage('');
+  };
+
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    setCropperImage('');
   };
 
   const filteredArtists = artists.filter(artist => {
@@ -676,6 +748,114 @@ export function ArtistManagement() {
                   </div>
                 </div>
 
+                {/* Profile Images */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Profile Images</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Profile Photo */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Profile Photo
+                      </label>
+                      <div className="flex flex-col items-center space-y-3">
+                        <div className="relative">
+                          <div className="w-32 h-32 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50">
+                            {profileImagePreview ? (
+                              <img 
+                                src={profileImagePreview} 
+                                alt="Profile preview" 
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="text-center">
+                                <Camera className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                                <p className="text-xs text-gray-500">Profile Photo</p>
+                              </div>
+                            )}
+                          </div>
+                          {profileImagePreview && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setProfileImage(null);
+                                setProfileImagePreview('');
+                              }}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const input = document.createElement('input');
+                            input.type = 'file';
+                            input.accept = 'image/*';
+                            input.onchange = (e) => handleImageSelect(e, 'profile');
+                            input.click();
+                          }}
+                          className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                        >
+                          <Upload className="w-4 h-4" />
+                          <span>Upload Photo</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Cover Image */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Cover Image
+                      </label>
+                      <div className="flex flex-col items-center space-y-3">
+                        <div className="relative">
+                          <div className="w-48 h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50">
+                            {coverImagePreview ? (
+                              <img 
+                                src={coverImagePreview} 
+                                alt="Cover preview" 
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="text-center">
+                                <Camera className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                                <p className="text-xs text-gray-500">Cover Image</p>
+                              </div>
+                            )}
+                          </div>
+                          {coverImagePreview && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setCoverImage(null);
+                                setCoverImagePreview('');
+                              }}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const input = document.createElement('input');
+                            input.type = 'file';
+                            input.accept = 'image/*';
+                            input.onchange = (e) => handleImageSelect(e, 'cover');
+                            input.click();
+                          }}
+                          className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                        >
+                          <Upload className="w-4 h-4" />
+                          <span>Upload Cover</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Artist Information */}
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 mb-4">Artist Information</h3>
@@ -953,6 +1133,18 @@ export function ArtistManagement() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Image Cropper Modal */}
+      {showCropper && cropperImage && (
+        <ImageCropper
+          src={cropperImage}
+          onCropComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+          aspectRatio={currentCropType === 'profile' ? 1 : 16 / 9}
+          cropShape={currentCropType === 'profile' ? 'round' : 'rect'}
+          locale="en"
+        />
       )}
     </div>
   );
