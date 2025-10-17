@@ -26,6 +26,7 @@ export interface BookingRequest {
   eventDescription?: string;
   specialRequests?: string;
   selectedEquipmentPackages?: string[];
+  selectedCustomPackages?: string[];
 }
 
 export interface BookingResponse {

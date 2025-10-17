@@ -7,6 +7,11 @@ import { useAuthLogic } from '@/hooks/useAuth';
 import { ArtistService, Artist } from '@/services/artist.service';
 import { BookingService } from '@/services/booking.service';
 import { equipmentPackagesService, EquipmentPackage } from '@/services/equipment-packages.service';
+import { 
+  customEquipmentPackagesService, 
+  CustomEquipmentPackage 
+} from '@/services/custom-equipment-packages.service';
+import { CreateCustomPackageModal } from '@/components/equipment-provider/CreateCustomPackageModal';
 import { AvailabilityCalendar } from '@/components/booking/AvailabilityCalendar';
 import Image from 'next/image';
 import { 
@@ -51,6 +56,7 @@ interface BookingFormData {
   eventDescription: string;
   specialRequests: string;
   selectedEquipmentPackages: string[];
+  selectedCustomPackages: string[];
 }
 
 interface AvailabilityData {
@@ -68,6 +74,7 @@ export default function BookArtistPage() {
   const [loading, setLoading] = useState(true);
   const [availability, setAvailability] = useState<AvailabilityData>({});
   const [equipmentPackages, setEquipmentPackages] = useState<EquipmentPackage[]>([]);
+  const [customPackages, setCustomPackages] = useState<CustomEquipmentPackage[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [step, setStep] = useState(1);
   const [errorModal, setErrorModal] = useState<{
@@ -97,6 +104,7 @@ export default function BookArtistPage() {
     eventDescription: '',
     specialRequests: '',
     selectedEquipmentPackages: [],
+    selectedCustomPackages: [],
   });
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -106,6 +114,24 @@ export default function BookArtistPage() {
   const [terms, setTerms] = useState<TermsAndConditions | null>(null);
   const [termsLoading, setTermsLoading] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+
+  // Create Custom Package Modal State
+  const [showCreatePackageModal, setShowCreatePackageModal] = useState(false);
+
+  // Handler for when a custom package is created
+  const handlePackageCreated = async () => {
+    setShowCreatePackageModal(false);
+    // Refresh custom packages
+    if (isAuthenticated) {
+      try {
+        const customPackagesData = await customEquipmentPackagesService.getAllCustomPackages();
+        setCustomPackages(Array.isArray(customPackagesData) ? customPackagesData : []);
+      } catch (error) {
+        console.error('Failed to refresh custom packages:', error);
+        setCustomPackages([]);
+      }
+    }
+  };
 
   // Check authentication
   useEffect(() => {
@@ -153,6 +179,18 @@ export default function BookArtistPage() {
       } catch (packageError) {
         console.error('Equipment packages fetch failed:', packageError);
         // Continue without packages
+      }
+
+      // Fetch custom packages if user is authenticated
+      if (isAuthenticated) {
+        try {
+          const customPackagesData = await customEquipmentPackagesService.getAllCustomPackages();
+          setCustomPackages(Array.isArray(customPackagesData) ? customPackagesData : []);
+        } catch (customPackageError) {
+          console.error('Custom packages fetch failed:', customPackageError);
+          // Continue without custom packages
+          setCustomPackages([]);
+        }
       }
       
     } catch (error) {
@@ -333,12 +371,20 @@ export default function BookArtistPage() {
       const hours = endHour - startHour;
       const totalArtistPrice = artistPrice * hours;
       
-      // Calculate equipment price
+      // Calculate equipment price from regular packages
       let equipmentPrice = 0;
       formData.selectedEquipmentPackages.forEach(packageId => {
         const pkg = equipmentPackages.find(p => p._id === packageId);
         if (pkg) {
           equipmentPrice += pkg.totalPrice;
+        }
+      });
+
+      // Calculate price from custom packages
+      formData.selectedCustomPackages.forEach(packageId => {
+        const customPkg = customPackages.find(p => p._id === packageId);
+        if (customPkg) {
+          equipmentPrice += customPkg.totalPricePerDay;
         }
       });
       
@@ -356,6 +402,7 @@ export default function BookArtistPage() {
         eventDescription: formData.eventDescription,
         specialRequests: formData.specialRequests,
         selectedEquipmentPackages: formData.selectedEquipmentPackages,
+        selectedCustomPackages: formData.selectedCustomPackages,
       };
 
       const response = await BookingService.createArtistBooking(bookingData);
@@ -610,7 +657,9 @@ export default function BookArtistPage() {
                 formData={formData}
                 setFormData={setFormData}
                 equipmentPackages={equipmentPackages}
+                customPackages={customPackages}
                 errors={errors}
+                onCreateCustomPackage={() => setShowCreatePackageModal(true)}
               />
             )}
             
@@ -619,6 +668,7 @@ export default function BookArtistPage() {
                 formData={formData}
                 artist={artist}
                 equipmentPackages={equipmentPackages}
+                customPackages={customPackages}
               />
             )}
 
@@ -720,6 +770,13 @@ export default function BookArtistPage() {
         }
         acceptButtonText="Accept & Complete Booking"
         declineButtonText="Cancel Booking"
+      />
+
+      {/* Create Custom Package Modal */}
+      <CreateCustomPackageModal
+        isOpen={showCreatePackageModal}
+        onClose={() => setShowCreatePackageModal(false)}
+        onPackageCreated={handlePackageCreated}
       />
       
       <Footer />
@@ -972,13 +1029,32 @@ function EventDetailsStep({ formData, setFormData, errors }: StepProps) {
   );
 }
 
-function EquipmentStep({ formData, setFormData, equipmentPackages, errors }: StepProps & { equipmentPackages: EquipmentPackage[] }) {
+function EquipmentStep({ 
+  formData, 
+  setFormData, 
+  equipmentPackages, 
+  customPackages, 
+  errors,
+  onCreateCustomPackage 
+}: StepProps & { 
+  equipmentPackages: EquipmentPackage[];
+  customPackages: CustomEquipmentPackage[];
+  onCreateCustomPackage?: () => void;
+}) {
+  const [activePackageTab, setActivePackageTab] = useState<'regular' | 'custom'>('regular');
+
   const calculateEquipmentPrice = () => {
     let total = 0;
     formData.selectedEquipmentPackages.forEach(packageId => {
       const pkg = equipmentPackages.find(p => p._id === packageId);
       if (pkg) {
         total += pkg.totalPrice;
+      }
+    });
+    formData.selectedCustomPackages.forEach(packageId => {
+      const customPkg = (Array.isArray(customPackages) ? customPackages : []).find(p => p._id === packageId);
+      if (customPkg) {
+        total += customPkg.totalPricePerDay;
       }
     });
     return total;
@@ -1000,6 +1076,22 @@ function EquipmentStep({ formData, setFormData, equipmentPackages, errors }: Ste
     });
   };
 
+  const toggleCustomPackageSelection = (packageId: string) => {
+    const currentSelection = [...formData.selectedCustomPackages];
+    const index = currentSelection.indexOf(packageId);
+    
+    if (index > -1) {
+      currentSelection.splice(index, 1);
+    } else {
+      currentSelection.push(packageId);
+    }
+    
+    setFormData({
+      ...formData,
+      selectedCustomPackages: currentSelection
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -1011,16 +1103,44 @@ function EquipmentStep({ formData, setFormData, equipmentPackages, errors }: Ste
       </div>
       
       <p className="text-gray-600">
-        Enhance your event with professional equipment packages. All equipment will be delivered and set up at your venue.
+        Enhance your event with professional equipment packages. Choose from provider packages or your custom combinations.
       </p>
+
+      {/* Package Type Tabs */}
+      <div className="flex bg-gray-100 rounded-xl p-1 max-w-md">
+        <button
+          onClick={() => setActivePackageTab('regular')}
+          className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            activePackageTab === 'regular'
+              ? 'bg-white text-purple-600 shadow-sm'
+              : 'text-gray-600 hover:text-gray-800'
+          }`}
+        >
+          <Package className="w-4 h-4" />
+          Provider Packages ({equipmentPackages.length})
+        </button>
+        <button
+          onClick={() => setActivePackageTab('custom')}
+          className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            activePackageTab === 'custom'
+              ? 'bg-white text-purple-600 shadow-sm'
+              : 'text-gray-600 hover:text-gray-800'
+          }`}
+        >
+          <Plus className="w-4 h-4" />
+          Custom Packages ({Array.isArray(customPackages) ? customPackages.length : 0})
+        </button>
+      </div>
       
-      {equipmentPackages.length === 0 ? (
-        <div className="text-center py-8">
-          <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500">No equipment packages available at the moment.</p>
-        </div>
-      ) : (
-        <div className="grid md:grid-cols-2 gap-6">
+      {activePackageTab === 'regular' ? (
+        /* Provider Packages */
+        equipmentPackages.length === 0 ? (
+          <div className="text-center py-8">
+            <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500">No equipment packages available at the moment.</p>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-6">
           {equipmentPackages.map((pkg) => (
             <div
               key={pkg._id}
@@ -1081,17 +1201,109 @@ function EquipmentStep({ formData, setFormData, equipmentPackages, errors }: Ste
             </div>
           ))}
         </div>
+        )
+      ) : (
+        /* Custom Packages */
+        <div className="space-y-4">
+          {/* Create Custom Package Button */}
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-medium text-gray-900">Your Custom Packages</h3>
+            <button
+              onClick={() => onCreateCustomPackage?.()}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white rounded-lg hover:from-[#5B2C87] hover:to-[#391C71] font-medium transition-all duration-200 shadow-md hover:shadow-lg"
+            >
+              <Plus className="w-4 h-4" />
+              Create Package
+            </button>
+          </div>
+
+          {(Array.isArray(customPackages) ? customPackages : []).length === 0 ? (
+            <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+              <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500 mb-4">No custom packages yet.</p>
+              <button
+                onClick={() => onCreateCustomPackage?.()}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white rounded-xl hover:from-[#5B2C87] hover:to-[#391C71] font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                <Plus className="w-5 h-5" />
+                Create Your First Custom Package
+              </button>
+            </div>
+          ) : (
+          <div className="grid md:grid-cols-2 gap-6">
+            {(Array.isArray(customPackages) ? customPackages : []).map((pkg) => (
+              <div
+                key={pkg._id}
+                className={`border-2 rounded-lg p-6 cursor-pointer transition-all ${
+                  formData.selectedCustomPackages.includes(pkg._id)
+                    ? 'border-purple-500 bg-purple-50'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+                onClick={() => toggleCustomPackageSelection(pkg._id)}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <h3 className="text-lg font-semibold text-gray-900">{pkg.name}</h3>
+                  <div className="flex items-center">
+                    {formData.selectedCustomPackages.includes(pkg._id) ? (
+                      <CheckCircle className="w-5 h-5 text-purple-600" />
+                    ) : (
+                      <div className="w-5 h-5 border-2 border-gray-300 rounded-full"></div>
+                    )}
+                  </div>
+                </div>
+                
+                <p className="text-gray-600 text-sm mb-4">{pkg.description}</p>
+                
+                <div className="space-y-2">
+                  <p className="text-lg font-bold text-purple-600">${pkg.totalPricePerDay}/day</p>
+                  <p className="text-xs text-gray-500">
+                    {pkg.items.length} items included
+                  </p>
+                </div>
+                
+                {/* Package Items Preview */}
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <p className="text-sm font-medium text-gray-700 mb-2">Equipment:</p>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    {pkg.items.slice(0, 3).map((item, index) => (
+                      <li key={index} className="flex items-center">
+                        <span className="w-1 h-1 bg-gray-400 rounded-full mr-2"></span>
+                        {item.quantity}x {item.equipmentId.name}
+                      </li>
+                    ))}
+                    {pkg.items.length > 3 && (
+                      <li className="text-purple-600">
+                        +{pkg.items.length - 3} more items
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        </div>
       )}
       
-      {formData.selectedEquipmentPackages.length > 0 && (
+      {(formData.selectedEquipmentPackages.length > 0 || formData.selectedCustomPackages.length > 0) && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <div className="flex items-center mb-2">
             <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
             <p className="text-green-800 font-medium">
-              {formData.selectedEquipmentPackages.length} package(s) selected
+              {formData.selectedEquipmentPackages.length + formData.selectedCustomPackages.length} package(s) selected
             </p>
           </div>
-          <p className="text-green-700 text-sm">
+          {formData.selectedEquipmentPackages.length > 0 && (
+            <p className="text-green-700 text-sm">
+              Provider packages: {formData.selectedEquipmentPackages.length}
+            </p>
+          )}
+          {formData.selectedCustomPackages.length > 0 && (
+            <p className="text-green-700 text-sm">
+              Custom packages: {formData.selectedCustomPackages.length}
+            </p>
+          )}
+          <p className="text-green-700 text-sm font-medium">
             Total equipment cost: ${calculateEquipmentPrice()}
           </p>
         </div>
@@ -1100,10 +1312,11 @@ function EquipmentStep({ formData, setFormData, equipmentPackages, errors }: Ste
   );
 }
 
-function ReviewStep({ formData, artist, equipmentPackages }: { 
+function ReviewStep({ formData, artist, equipmentPackages, customPackages }: { 
   formData: BookingFormData; 
   artist: Artist; 
-  equipmentPackages: EquipmentPackage[] 
+  equipmentPackages: EquipmentPackage[];
+  customPackages: CustomEquipmentPackage[]
 }) {
   const startHour = parseInt(formData.startTime.split(':')[0]);
   const endHour = parseInt(formData.endTime.split(':')[0]);
@@ -1115,8 +1328,15 @@ function ReviewStep({ formData, artist, equipmentPackages }: {
   const selectedPackages = equipmentPackages.filter(pkg => 
     formData.selectedEquipmentPackages.includes(pkg._id)
   );
+  const selectedCustomPackages = (Array.isArray(customPackages) ? customPackages : []).filter(pkg => 
+    formData.selectedCustomPackages.includes(pkg._id)
+  );
+  
   selectedPackages.forEach(pkg => {
     equipmentPrice += pkg.totalPrice;
+  });
+  selectedCustomPackages.forEach(pkg => {
+    equipmentPrice += pkg.totalPricePerDay;
   });
   
   const totalPrice = artistPrice + equipmentPrice;
@@ -1162,13 +1382,19 @@ function ReviewStep({ formData, artist, equipmentPackages }: {
             <span>Artist Fee ({hours} hours × ${artist.pricePerHour}/hour):</span>
             <span className="font-medium">${artistPrice}</span>
           </div>
-          {selectedPackages.length > 0 && (
+          {(selectedPackages.length > 0 || selectedCustomPackages.length > 0) && (
             <div className="space-y-2">
               <div className="font-medium text-gray-700">Equipment Packages:</div>
               {selectedPackages.map(pkg => (
                 <div key={pkg._id} className="flex justify-between text-sm pl-4">
-                  <span>• {pkg.name}:</span>
+                  <span>• {pkg.name} (Provider):</span>
                   <span>${pkg.totalPrice}</span>
+                </div>
+              ))}
+              {selectedCustomPackages.map(pkg => (
+                <div key={pkg._id} className="flex justify-between text-sm pl-4">
+                  <span>• {pkg.name} (Custom):</span>
+                  <span>${pkg.totalPricePerDay}</span>
                 </div>
               ))}
               <div className="flex justify-between font-medium text-purple-600">

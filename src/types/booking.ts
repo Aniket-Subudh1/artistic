@@ -91,6 +91,7 @@ export interface Booking {
   eventDescription?: string;
   specialRequests?: string;
   selectedEquipmentPackages?: EquipmentPackage[];
+  selectedCustomPackages?: string[]; // IDs of custom packages
   paymentStatus?: 'pending' | 'paid' | 'refunded' | 'failed';
   cancellationReason?: string;
   cancelledAt?: string;

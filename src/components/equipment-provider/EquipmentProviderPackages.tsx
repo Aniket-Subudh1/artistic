@@ -53,7 +53,7 @@ const EquipmentProviderPackages: React.FC<Props> = ({ isModal = false }) => {
   // Equipment selection state
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, Infinity]);
 
   // Get unique categories from available equipment
   const categories = ['all', ...Array.from(new Set(availableEquipment.map(eq => eq.category)))];
@@ -62,9 +62,10 @@ const EquipmentProviderPackages: React.FC<Props> = ({ isModal = false }) => {
   const filteredEquipment = availableEquipment.filter(equipment => {
     const matchesSearch = equipment.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          equipment.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || equipment.category === selectedCategory;
-    const matchesPrice = equipment.pricePerDay >= priceRange[0] && equipment.pricePerDay <= priceRange[1];
-    return matchesSearch && matchesCategory && matchesPrice;
+    const matchesCategory = selectedCategory === 'all' || equipment.category.toLowerCase() === selectedCategory.toLowerCase();
+    // No price filtering - show all equipment regardless of price
+    
+    return matchesSearch && matchesCategory;
   });
 
   useEffect(() => {
@@ -94,9 +95,12 @@ const EquipmentProviderPackages: React.FC<Props> = ({ isModal = false }) => {
   const fetchAvailableEquipment = async () => {
     try {
       const equipment = await EquipmentService.getMyEquipment();
+      console.log('Fetched equipment:', equipment);
+      console.log('Total equipment count:', equipment.length);
       setAvailableEquipment(equipment);
     } catch (err) {
       console.error('Failed to fetch equipment:', err);
+      setError('Failed to fetch equipment. Please try again.');
     }
   };
 
@@ -112,6 +116,11 @@ const EquipmentProviderPackages: React.FC<Props> = ({ isModal = false }) => {
     setModal({ isOpen: true, type, data });
     setError('');
     setSuccess('');
+
+    // Refresh equipment data when opening create/edit modals
+    if (type === 'create' || type === 'edit') {
+      fetchAvailableEquipment();
+    }
 
     if (type === 'create') {
       setFormData({ 
@@ -673,16 +682,15 @@ const EquipmentProviderPackages: React.FC<Props> = ({ isModal = false }) => {
                       className="flex-1 min-w-[200px] px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="all">All Categories</option>
-                      <option value="camera">Camera</option>
-                      <option value="lighting">Lighting</option>
-                      <option value="audio">Audio</option>
-                      <option value="drone">Drone</option>
-                      <option value="accessories">Accessories</option>
-                      <option value="other">Other</option>
+                      {categories.filter(cat => cat !== 'all').map(category => (
+                        <option key={category} value={category}>
+                          {category.charAt(0).toUpperCase() + category.slice(1).toLowerCase()}
+                        </option>
+                      ))}
                     </select>
 
                     <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <span>Price: ${priceRange[0]} - ${priceRange[1]}</span>
+                      <span className="text-blue-600">({availableEquipment.length} total, {filteredEquipment.length} showing)</span>
                     </div>
                   </div>
                 </div>
@@ -690,6 +698,10 @@ const EquipmentProviderPackages: React.FC<Props> = ({ isModal = false }) => {
                 {/* Equipment Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto border border-gray-200 rounded-lg p-4">
                   {filteredEquipment.map((equipment) => {
+                    if (!equipment || !equipment._id) {
+                      console.warn('Invalid equipment data:', equipment);
+                      return null;
+                    }
                     const selectedQuantity = getSelectedQuantity(equipment._id);
                     const isSelected = selectedQuantity > 0;
 
@@ -784,8 +796,17 @@ const EquipmentProviderPackages: React.FC<Props> = ({ isModal = false }) => {
                   {filteredEquipment.length === 0 && (
                     <div className="col-span-full text-center py-8">
                       <Package className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-gray-500">No equipment found</p>
-                      <p className="text-sm text-gray-400">Try adjusting your search or filters</p>
+                      {availableEquipment.length === 0 ? (
+                        <>
+                          <p className="text-gray-500">No equipment available</p>
+                          <p className="text-sm text-gray-400">Add equipment to your inventory first</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-gray-500">No equipment found</p>
+                          <p className="text-sm text-gray-400">Try adjusting your search or filters</p>
+                        </>
+                      )}
                     </div>
                   )}
                 </div>

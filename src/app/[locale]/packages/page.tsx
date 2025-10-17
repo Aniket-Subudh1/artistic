@@ -2,6 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { equipmentPackagesService, EquipmentPackage } from '@/services/equipment-packages.service';
+import { 
+  customEquipmentPackagesService, 
+  CustomEquipmentPackage 
+} from '@/services/custom-equipment-packages.service';
 import { Link } from '@/i18n/routing';
 import Image from 'next/image';
 import { 
@@ -11,14 +15,21 @@ import {
   User,
   SlidersHorizontal,
   X,
-  Tag
+  Tag,
+  Plus,
+  Wrench
 } from 'lucide-react';
 import { Navbar } from '@/components/main/Navbar';
 import { Footer } from '@/components/main/Footer';
+import { CustomEquipmentPackages } from '@/components/equipment-provider/CustomEquipmentPackages';
+import { useAuthLogic } from '@/hooks/useAuth';
 
 export default function PackagesPage() {
+  const { isAuthenticated } = useAuthLogic();
+  const [activeTab, setActiveTab] = useState<'regular' | 'custom'>('regular');
   const [packages, setPackages] = useState<EquipmentPackage[]>([]);
   const [filteredPackages, setFilteredPackages] = useState<EquipmentPackage[]>([]);
+  const [customPackages, setCustomPackages] = useState<CustomEquipmentPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   
@@ -51,6 +62,20 @@ export default function PackagesPage() {
       );
       const uniqueCategories = [...new Set(allCategories)].filter(Boolean);
       setCategories(uniqueCategories);
+
+      // Also fetch custom packages (user's own + public if authenticated, or just public if not)
+      try {
+        if (isAuthenticated) {
+          const customData = await customEquipmentPackagesService.getAllCustomPackages();
+          setCustomPackages(Array.isArray(customData) ? customData : []);
+        } else {
+          const customData = await customEquipmentPackagesService.getPublicCustomPackages();
+          setCustomPackages(Array.isArray(customData) ? customData : []);
+        }
+      } catch (customError) {
+        console.error('Error fetching custom packages:', customError);
+        setCustomPackages([]);
+      }
     } catch (error: any) {
       setError('Failed to load equipment packages');
       console.error('Error fetching packages:', error);
@@ -175,104 +200,143 @@ export default function PackagesPage() {
                   Equipment Packages
                 </h1>
                 <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                  Complete equipment solutions for your events. Browse professionally curated packages at competitive rates.
+                  Complete equipment solutions for your events. Browse professionally curated packages or create your own custom combinations.
                 </p>
                 <div className="mt-4 text-sm text-[#391C71] font-semibold">
-                  {filteredPackages.length} of {packages.length} packages
+                  {activeTab === 'regular' 
+                    ? `${filteredPackages.length} of ${packages.length} packages`
+                    : `${customPackages.length} custom packages`
+                  }
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Search and Filters */}
+          {/* Package Type Tabs */}
           <div className="mb-8">
-            <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-[#391C71]/10 to-transparent rounded-br-full"></div>
-              <div className="relative z-10">
-                
-                {/* Search Bar */}
-                <div className="flex flex-col lg:flex-row gap-4 mb-6">
-                  <div className="flex-1 relative">
-                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Search packages by name, description, or equipment..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-12 pr-4 py-3 bg-white/80 border border-[#391C71]/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#391C71]/50 focus:border-transparent"
-                    />
-                  </div>
-                  <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white rounded-2xl hover:from-[#5B2C87] hover:to-[#391C71] transition-all duration-300 shadow-lg"
-                  >
-                    <SlidersHorizontal className="w-5 h-5" />
-                    Filters
-                  </button>
-                </div>
+            <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-2 max-w-md mx-auto">
+              <div className="flex bg-gray-100 rounded-2xl p-1">
+                <button
+                  onClick={() => setActiveTab('regular')}
+                  className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                    activeTab === 'regular'
+                      ? 'bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white shadow-lg'
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                >
+                  <Package className="w-4 h-4" />
+                  Provider Packages
+                </button>
+                <button
+                  onClick={() => setActiveTab('custom')}
+                  className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                    activeTab === 'custom'
+                      ? 'bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white shadow-lg'
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                >
+                  <Wrench className="w-4 h-4" />
+                  Custom Packages
+                </button>
+              </div>
+            </div>
+          </div>
 
-                {/* Filter Panel */}
-                {showFilters && (
-                  <div className="bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-2xl p-6 border border-[#391C71]/20">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      
-                      {/* Category Filter */}
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Equipment Category</label>
-                        <select
-                          value={selectedCategory}
-                          onChange={(e) => setSelectedCategory(e.target.value)}
-                          className="w-full px-4 py-2 bg-white/80 border border-[#391C71]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#391C71]/50"
-                        >
-                          <option value="">All Categories</option>
-                          {categories.map(category => (
-                            <option key={category} value={category}>{category}</option>
-                          ))}
-                        </select>
+
+
+          {/* Content Based on Active Tab */}
+          {activeTab === 'regular' ? (
+            /* Regular Packages */
+            <div>
+              {/* Search and Filters */}
+              <div className="mb-8">
+                <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-[#391C71]/10 to-transparent rounded-br-full"></div>
+                  <div className="relative z-10">
+                    
+                    {/* Search Bar */}
+                    <div className="flex flex-col lg:flex-row gap-4 mb-6">
+                      <div className="flex-1 relative">
+                        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <input
+                          type="text"
+                          placeholder="Search packages by name, description, or equipment..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="w-full pl-12 pr-4 py-3 bg-white/80 border border-[#391C71]/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#391C71]/50 focus:border-transparent"
+                        />
                       </div>
+                      <button
+                        onClick={() => setShowFilters(!showFilters)}
+                        className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white rounded-2xl hover:from-[#5B2C87] hover:to-[#391C71] transition-all duration-300 shadow-lg"
+                      >
+                        <SlidersHorizontal className="w-5 h-5" />
+                        Filters
+                      </button>
+                    </div>
 
-                      {/* Price Range */}
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Price Range (KWD/day)
-                        </label>
-                        <div className="flex gap-2">
-                          <input
-                            type="number"
-                            placeholder="Min"
-                            value={priceRange.min}
-                            onChange={(e) => setPriceRange(prev => ({ ...prev, min: Number(e.target.value) }))}
-                            className="w-full px-3 py-2 bg-white/80 border border-[#391C71]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#391C71]/50"
-                          />
-                          <input
-                            type="number"
-                            placeholder="Max"
-                            value={priceRange.max}
-                            onChange={(e) => setPriceRange(prev => ({ ...prev, max: Number(e.target.value) }))}
-                            className="w-full px-3 py-2 bg-white/80 border border-[#391C71]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#391C71]/50"
-                          />
+                    {/* Filter Panel */}
+                    {showFilters && (
+                      <div className="bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-2xl p-6 border border-[#391C71]/20">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          
+                          {/* Category Filter */}
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Equipment Category</label>
+                            <select
+                              value={selectedCategory}
+                              onChange={(e) => setSelectedCategory(e.target.value)}
+                              className="w-full px-4 py-2 bg-white/80 border border-[#391C71]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#391C71]/50"
+                            >
+                              <option value="">All Categories</option>
+                              {categories.map(category => (
+                                <option key={category} value={category}>{category}</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          {/* Price Range */}
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                              Price Range (KWD/day)
+                            </label>
+                            <div className="flex gap-2">
+                              <input
+                                type="number"
+                                placeholder="Min"
+                                value={priceRange.min}
+                                onChange={(e) => setPriceRange(prev => ({ ...prev, min: Number(e.target.value) }))}
+                                className="w-full px-3 py-2 bg-white/80 border border-[#391C71]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#391C71]/50"
+                              />
+                              <input
+                                type="number"
+                                placeholder="Max"
+                                value={priceRange.max}
+                                onChange={(e) => setPriceRange(prev => ({ ...prev, max: Number(e.target.value) }))}
+                                className="w-full px-3 py-2 bg-white/80 border border-[#391C71]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#391C71]/50"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Clear Filters */}
+                          <div className="flex items-end">
+                            <button
+                              onClick={clearFilters}
+                              className="w-full px-4 py-2 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition-colors duration-300 flex items-center justify-center gap-2"
+                            >
+                              <X className="w-4 h-4" />
+                              Clear
+                            </button>
+                          </div>
                         </div>
                       </div>
-
-                      {/* Clear Filters */}
-                      <div className="flex items-end">
-                        <button
-                          onClick={clearFilters}
-                          className="w-full px-4 py-2 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition-colors duration-300 flex items-center justify-center gap-2"
-                        >
-                          <X className="w-4 h-4" />
-                          Clear
-                        </button>
-                      </div>
-                    </div>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
-            </div>
-          </div>
 
-          {/* Packages Grid */}
-          {filteredPackages.length === 0 ? (
+              {/* Packages Grid */}
+              {filteredPackages.length === 0 ? (
             <div className="text-center py-12">
               <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-12">
                 <Package className="h-16 w-16 mx-auto text-gray-400 mb-4" />
@@ -377,6 +441,29 @@ export default function PackagesPage() {
                   </div>
                 </Link>
               ))}
+            </div>
+          )}
+            </div>
+          ) : (
+            /* Custom Packages */
+            <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-8">
+              {isAuthenticated ? (
+                <CustomEquipmentPackages showCreateButton={true} />
+              ) : (
+                <div className="text-center py-12">
+                  <Wrench className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Sign In to Access Custom Packages</h3>
+                  <p className="text-gray-600 mb-6">
+                    Create your own custom equipment packages by combining individual equipment items.
+                  </p>
+                  <Link
+                    href="/auth/login"
+                    className="inline-flex items-center gap-2 bg-[#391C71] text-white px-6 py-3 rounded-lg hover:bg-[#2d1659] transition-colors"
+                  >
+                    Sign In
+                  </Link>
+                </div>
+              )}
             </div>
           )}
         </div>

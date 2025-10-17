@@ -477,14 +477,7 @@ export const getSidebarItems = (): SidebarItem[] => [
     icon: 'CreditCard',
     roles: ['super_admin', 'admin', 'venue_owner', 'equipment_provider', 'artist', 'user'],
     children: [
-      {
-        id: 'payment-history',
-        label: 'Payment History',
-        labelAr: 'تاريخ المدفوعات',
-        icon: 'Receipt',
-        href: '/dashboard/payments',
-        roles: ['super_admin', 'admin', 'venue_owner', 'equipment_provider', 'artist', 'user'],
-      },
+      
       {
         id: 'payment-methods',
         label: 'Payment Methods',
@@ -493,28 +486,13 @@ export const getSidebarItems = (): SidebarItem[] => [
         href: '/dashboard/payments/methods',
         roles: ['venue_owner', 'equipment_provider', 'artist', 'user'],
       },
-      {
-        id: 'all-transactions',
-        label: 'All Transactions',
-        labelAr: 'جميع المعاملات',
-        icon: 'ArrowLeftRight',
-        href: '/dashboard/payments/transactions',
-        roles: ['super_admin', 'admin'],
-      },
+      
       {
         id: 'artist-payments',
-        label: 'Artist Payments',
+        label: 'All Payments',
         labelAr: 'مدفوعات الفنانين',
         icon: 'Users',
         href: '/dashboard/admin/payments/artists',
-        roles: ['super_admin', 'admin'],
-      },
-      {
-        id: 'provider-payments',
-        label: 'Provider Payments',
-        labelAr: 'مدفوعات الموردين',
-        icon: 'Package',
-        href: '/dashboard/admin/payments/providers',
         roles: ['super_admin', 'admin'],
       },
     ],

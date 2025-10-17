@@ -82,6 +82,18 @@ export const API_CONFIG = {
       TOGGLE_VISIBILITY: (id: string) => `/equipment-packages/visibility/${id}`,
       UPLOAD_IMAGES: (id: string) => `/equipment-packages/upload-images/${id}`,
       UPLOAD_COVER_IMAGE: (id: string) => `/equipment-packages/upload-cover-image/${id}`,
+      // Custom package endpoints
+      CUSTOM: {
+        CREATE: '/custom-equipment-packages',
+        MY_PACKAGES: '/custom-equipment-packages/my-packages',
+        ALL_PACKAGES: '/custom-equipment-packages/all',
+        PUBLIC: '/custom-equipment-packages/public',
+        AVAILABLE_EQUIPMENT: '/custom-equipment-packages/available-equipment',
+        GET_BY_ID: (id: string) => `/custom-equipment-packages/${id}`,
+        UPDATE: (id: string) => `/custom-equipment-packages/${id}`,
+        DELETE: (id: string) => `/custom-equipment-packages/${id}`,
+        SHARE: (id: string, userId: string) => `/custom-equipment-packages/${id}/share/${userId}`,
+      },
     },
     EQUIPMENT_PACKAGE_BOOKING: {
       CREATE: '/equipment-package-booking/create',
