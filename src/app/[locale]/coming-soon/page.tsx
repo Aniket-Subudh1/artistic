@@ -75,10 +75,10 @@ export default function ComingSoonPage() {
       {/* Main Content */}
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20 pb-8">
         {/* Logo Section */}
-        <div className="mb-8 sm:mb-12 w-full max-w-sm sm:max-w-md">
-          <div className="bg-white/70 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl border border-white/30 p-4 sm:p-6 lg:p-8 relative overflow-hidden">
+        <div className="mb-8 sm:mb-12 w-full flex justify-center">
+          <div className="bg-white/70 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl border border-white/30 p-4 sm:p-6 lg:p-8 relative overflow-hidden max-w-sm sm:max-w-md">
             <div className="absolute top-0 right-0 w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-bl from-[#391C71]/10 to-transparent rounded-bl-full"></div>
-            <div className="relative z-10 text-center">
+            <div className="relative z-10 flex items-center justify-center">
               <div className="relative group">
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition-all duration-500" />
                 <Image
@@ -86,7 +86,7 @@ export default function ComingSoonPage() {
                   alt="Artistic Logo"
                   height={50}
                   width={120}
-                  className="relative transform group-hover:scale-105 transition-transform duration-300 sm:w-[140px] sm:h-[60px]"
+                  className="relative transform group-hover:scale-105 transition-transform duration-300 sm:w-[140px] sm:h-[60px] mx-auto"
                 />
               </div>
             </div>
