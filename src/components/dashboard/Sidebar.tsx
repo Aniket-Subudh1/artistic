@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { usePathname } from 'next/navigation';
 import { Link } from '@/i18n/routing';
@@ -96,15 +96,95 @@ export function Sidebar({ user, isCollapsed, onToggleCollapse, onLogout }: Sideb
   const locale = useLocale();
   const pathname = usePathname();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const sidebarScrollRef = useRef<HTMLDivElement>(null);
 
   const sidebarItems = filterSidebarItems(getSidebarItems(), user.role);
 
+  // Effect to ensure dropdown scrolling works properly on mount
+  useEffect(() => {
+    if (sidebarScrollRef.current) {
+      sidebarScrollRef.current.style.scrollBehavior = 'smooth';
+    }
+  }, []);
+
   const toggleExpanded = (itemId: string) => {
-    setExpandedItems(prev => 
-      prev.includes(itemId) 
+    setExpandedItems(prev => {
+      const isCurrentlyExpanded = prev.includes(itemId);
+      const newExpanded = isCurrentlyExpanded 
         ? prev.filter(id => id !== itemId)
-        : [...prev, itemId]
-    );
+        : [...prev, itemId];
+      
+      // If we're expanding an item, scroll it into view after a brief delay
+      if (!isCurrentlyExpanded) {
+        // Try multiple timing approaches to ensure it works
+        setTimeout(() => scrollToExpandedItem(itemId), 50);
+        setTimeout(() => scrollToExpandedItem(itemId), 150);
+        setTimeout(() => scrollToExpandedItem(itemId), 300);
+      }
+      
+      return newExpanded;
+    });
+  };
+
+  const scrollToExpandedItem = (itemId: string) => {
+    if (!sidebarScrollRef.current) return;
+    
+    const expandedButton = document.querySelector(`[data-item-id="${itemId}"]`);
+    const dropdownContent = document.querySelector(`[data-dropdown-content="${itemId}"]`);
+    
+    if (expandedButton && dropdownContent) {
+      const sidebarContainer = sidebarScrollRef.current;
+      
+      // Wait for dropdown to render, then calculate its actual height
+      setTimeout(() => {
+        const buttonRect = expandedButton.getBoundingClientRect();
+        const dropdownRect = dropdownContent.getBoundingClientRect();
+        const containerRect = sidebarContainer.getBoundingClientRect();
+        
+        const dropdownHeight = dropdownRect.height;
+        const buttonTopInContainer = buttonRect.top - containerRect.top;
+        const buttonBottomInContainer = buttonRect.bottom - containerRect.top;
+        
+        // Calculate where the dropdown will end
+        const dropdownEndPosition = buttonBottomInContainer + dropdownHeight;
+        const containerHeight = containerRect.height;
+        
+        // If dropdown extends beyond the visible area
+        if (dropdownEndPosition > containerHeight) {
+          // Calculate how much we need to scroll
+          const overflowAmount = dropdownEndPosition - containerHeight;
+          const currentScrollTop = sidebarContainer.scrollTop;
+          const newScrollTop = currentScrollTop + overflowAmount + 20; // 20px padding
+          
+          sidebarContainer.scrollTo({
+            top: Math.max(0, newScrollTop),
+            behavior: 'smooth'
+          });
+        }
+        // If the button itself is not visible (too high), scroll up to show it
+        else if (buttonTopInContainer < 0) {
+          const currentScrollTop = sidebarContainer.scrollTop;
+          const newScrollTop = currentScrollTop + buttonTopInContainer - 20; // 20px padding
+          
+          sidebarContainer.scrollTo({
+            top: Math.max(0, newScrollTop),
+            behavior: 'smooth'
+          });
+        }
+      }, 150); // Wait for CSS transition to start
+    } else {
+      // Fallback: simple scroll into view
+      setTimeout(() => {
+        const button = document.querySelector(`[data-item-id="${itemId}"]`);
+        if (button) {
+          button.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'nearest',
+            inline: 'nearest'
+          });
+        }
+      }, 200);
+    }
   };
 
   const isActive = (href?: string) => {
@@ -186,6 +266,7 @@ export function Sidebar({ user, isCollapsed, onToggleCollapse, onLogout }: Sideb
         <button
           onClick={() => hasChildren && toggleExpanded(item.id)}
           className={itemClasses}
+          data-item-id={item.id}
         >
           {getIcon(item.icon, iconSize)}
           {!isCollapsed && (
@@ -212,7 +293,10 @@ export function Sidebar({ user, isCollapsed, onToggleCollapse, onLogout }: Sideb
         </button>
 
         {hasChildren && (isExpanded || isCollapsed) && !isCollapsed && (
-          <div className="mt-1 space-y-1 overflow-hidden max-w-full">
+          <div 
+            className="mt-1 space-y-1 overflow-hidden max-w-full transition-all duration-300 ease-in-out"
+            data-dropdown-content={item.id}
+          >
             {item.children.map((child: any) => renderSidebarItem(child, level + 1))}
           </div>
         )}
@@ -222,7 +306,10 @@ export function Sidebar({ user, isCollapsed, onToggleCollapse, onLogout }: Sideb
 
   return (
     <div className="h-full sidebar-layout">
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 py-2 space-y-1 smooth-scroll">
+      <div 
+        ref={sidebarScrollRef}
+        className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 py-2 space-y-1 sidebar-scroll-container"
+      >
         {sidebarItems.map(item => renderSidebarItem(item))}
       </div>
 
