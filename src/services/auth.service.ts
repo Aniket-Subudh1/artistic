@@ -86,4 +86,25 @@ export class AuthService {
     // Also store in cookie for middleware access
     document.cookie = `authToken=${token}; path=/; max-age=${60 * 60 * 24 * 7}`; // 7 days
   }
+
+  static async sendPasswordChangeOtp(email: string): Promise<{ message: string; email: string }> {
+    return apiRequest<{ message: string; email: string }>(API_CONFIG.ENDPOINTS.AUTH.SEND_PASSWORD_CHANGE_OTP, {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  static async verifyPasswordChangeOtp(email: string, otp: string): Promise<{ message: string; changePasswordToken: string }> {
+    return apiRequest<{ message: string; changePasswordToken: string }>(API_CONFIG.ENDPOINTS.AUTH.VERIFY_PASSWORD_CHANGE_OTP, {
+      method: 'POST',
+      body: JSON.stringify({ email, otp }),
+    });
+  }
+
+  static async changePasswordWithOtp(email: string, otp: string, newPassword: string): Promise<{ message: string }> {
+    return apiRequest<{ message: string }>(API_CONFIG.ENDPOINTS.AUTH.CHANGE_PASSWORD, {
+      method: 'POST',
+      body: JSON.stringify({ email, otp, newPassword }),
+    });
+  }
 }

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuthLogic } from '@/hooks/useAuth';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { ButtonSpinner } from '@/components/ui/ButtonSpinner';
 import { ImageCropper } from '@/components/ui/ImageCropper';
 import { ArtistService, Artist, UpdateArtistProfileRequest } from '@/services/artist.service';
 import { 
@@ -755,7 +755,7 @@ export function ArtistProfileUpdateModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium h-12 flex items-center justify-center"
               >
                 Cancel
               </button>
@@ -763,12 +763,12 @@ export function ArtistProfileUpdateModal({
                 type="submit"
                 form="profile-update-form"
                 disabled={submitting}
-                className="flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm min-w-[200px] justify-center"
+                className="flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm min-w-[200px] justify-center h-12"
               >
                 {submitting ? (
                   <>
-                    <LoadingSpinner />
-                    <span className="ml-2">Submitting...</span>
+                    <ButtonSpinner className="mr-2" />
+                    <span>Submitting...</span>
                   </>
                 ) : (
                   <>
