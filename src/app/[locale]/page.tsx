@@ -40,7 +40,7 @@ export default function HomePage() {
       subtitle:
         'Feel the rhythm and energy of live performances from world-class artists and emerging talents.',
       ctaText: 'Book Concert',
-      ctaLink: '/events',
+      ctaLink: '/coming-soon',
       category: 'Music',
     },
     {
@@ -50,7 +50,7 @@ export default function HomePage() {
       subtitle:
         'Discover contemporary and classical artworks from renowned galleries and independent artists.',
       ctaText: 'Explore Art',
-      ctaLink: '/events',
+      ctaLink: '/coming-soon',
       category: 'Art',
     },
     {
@@ -60,17 +60,17 @@ export default function HomePage() {
       subtitle:
         'Learn new skills and techniques from expert instructors in hands-on creative sessions.',
       ctaText: 'Join Workshop',
-      ctaLink: '/events',
+      ctaLink: '/coming-soon',
       category: 'Workshop',
     },
     {
       image: '/8.jpg',
-      title: 'Stream Movies',
+      title: 'Concerts',
       titleHighlight: 'At Home!',
       subtitle:
-        'Watch the latest blockbusters and indie films from the comfort of your home.',
+        'Enjoy live concert experiences from the comfort',
       ctaText: 'Stream Now',
-      ctaLink: '/stream',
+      ctaLink: '/coming-soon',
       category: 'Movies',
     },
   ];
@@ -78,7 +78,7 @@ export default function HomePage() {
   const featuredEvents = [
     {
       id: 1,
-      image: '/assets/images/event1.jpg',
+      image: '/25.jpg',
       category: t('categories.music'),
       title: 'Jazz Fusion Night',
       description:
@@ -89,7 +89,7 @@ export default function HomePage() {
     },
     {
       id: 2,
-      image: '/assets/images/event2.jpg',
+      image: '/29.jpg',
       category: t('categories.artExhibition'),
       title: 'Contemporary Visions',
       description:
@@ -100,7 +100,7 @@ export default function HomePage() {
     },
     {
       id: 3,
-      image: '/assets/images/event3.jpg',
+      image: '/13.jpg',
       category: t('categories.theater'),
       title: 'The Silent Echo',
       description:
@@ -111,7 +111,7 @@ export default function HomePage() {
     },
     {
       id: 4,
-      image: '/assets/images/event4.jpg',
+      image: '/56.jpg',
       category: t('categories.workshop'),
       title: 'Pottery Masterclass',
       description: 'Learn pottery techniques from expert ceramic artists',
@@ -121,48 +121,6 @@ export default function HomePage() {
     },
   ];
 
-  const equipment = [
-    {
-      id: 1,
-      image: '/assets/images/equipment1.jpg',
-      category: t('categories.music'),
-      name: 'Grand Piano',
-      description: 'Professional Steinway concert grand piano',
-      location: 'Music Hall',
-      price: 50,
-      rating: 4.9,
-    },
-    {
-      id: 2,
-      image: '/assets/images/equipment2.jpg',
-      category: t('categories.audio'),
-      name: 'Sound System',
-      description: 'Professional PA system with mixing console',
-      location: 'Audio Studio',
-      price: 35,
-      rating: 4.8,
-    },
-    {
-      id: 3,
-      image: '/assets/images/equipment3.jpg',
-      category: t('categories.lighting'),
-      name: 'Stage Lighting',
-      description: 'Complete LED stage lighting setup',
-      location: 'Event Center',
-      price: 40,
-      rating: 4.7,
-    },
-    {
-      id: 4,
-      image: '/assets/images/equipment4.jpg',
-      category: t('categories.camera'),
-      name: 'Professional Camera',
-      description: 'High-end video recording equipment',
-      location: 'Media Studio',
-      price: 45,
-      rating: 4.8,
-    },
-  ];
 
   return (
     <div className="min-h-screen bg-white relative">
@@ -196,12 +154,18 @@ export default function HomePage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
           {featuredEvents.map((event, index) => (
-            <Link key={event.id} href={`/events/${event.id}`} className="block group">
+            <Link key={event.id} href={`/coming-soon`} className="block group">
               <div
                 className="bg-white rounded-3xl border border-gray-100 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-[#391C71]/10 cursor-pointer transform hover:-translate-y-2 hover:scale-105"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 <div className="relative h-56 bg-gradient-to-br from-[#391C71] to-[#5B2C87] overflow-hidden">
+                  <Image
+                    src={event.image}
+                    alt={event.title}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                   <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full flex items-center shadow-lg border border-white/20">
                     <Star className="w-4 h-4 text-yellow-500 fill-current mr-1" />
@@ -241,7 +205,7 @@ export default function HomePage() {
 
         <div className="text-center">
           <Link
-            href="/events"
+            href="/coming-soon"
             className="inline-block bg-white border-2 border-[#391C71] text-[#391C71] px-10 py-4 rounded-full hover:bg-[#391C71] hover:text-white transition-all duration-500 font-medium shadow-xl hover:shadow-2xl hover:shadow-[#391C71]/20 hover:scale-105"
           >
             {t('home.viewAllEvents')}

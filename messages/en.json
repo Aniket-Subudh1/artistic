@@ -169,5 +169,36 @@
     "loading": "Loading...",
     "loadingDashboard": "Loading dashboard...",
     "redirectingLogin": "Redirecting to login..."
+  },
+  "comingSoon": {
+    "title": "Coming Soon",
+    "subtitle": "Something Amazing is on the Way",
+    "description": "We're crafting an extraordinary experience that will revolutionize how you discover and book artistic events. Get ready for something spectacular!",
+    "launchCountdown": "Launch Countdown",
+    "days": "Days",
+    "hours": "Hours", 
+    "minutes": "Minutes",
+    "seconds": "Seconds",
+    "beFirstToKnow": "Be the First to Know",
+    "getNotified": "Get notified when we launch and receive exclusive early access",
+    "emailPlaceholder": "Enter your email address",
+    "notifyMe": "Notify Me",
+    "allSet": "You're All Set!",
+    "thanksSubscribing": "Thanks for subscribing! We'll notify you as soon as we launch.",
+    "features": {
+      "artisticEvents": {
+        "title": "Artistic Events",
+        "description": "Discover unique artistic experiences and cultural events"
+      },
+      "equipmentPackages": {
+        "title": "Equipment Packages", 
+        "description": "Professional equipment rentals for your events"
+      },
+      "premiumExperience": {
+        "title": "Premium Experience",
+        "description": "Seamless booking with exceptional customer service"
+      }
+    },
+    "backToHome": "Back to Home"
   }
 }

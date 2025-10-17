@@ -87,18 +87,18 @@ export function Navbar() {
         }
       ]
     },
-    { href: "/book-ticket", label: t('bookTicket') },
+    { href: "/coming-soon", label: t('bookTicket') },
     {
       label: t('createEvent'),
       dropdown: [
         {
-          href: "/create-event",
+          href: "/coming-soon",
           label: t('createEvent'),
           icon: Calendar,
           description: t('createEventDesc')
         },
         {
-          href: "/book-artist",
+          href: "/artist",
           label: t('bookArtist'),
           icon: Mic,
           description: t('bookArtistDesc')
