@@ -19,6 +19,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { isValidYouTubeUrl, getYouTubeThumbnail } from '@/lib/youtube';
 
 interface ArtistProfileUpdateModalProps {
   isOpen: boolean;
@@ -67,12 +68,12 @@ export function ArtistProfileUpdateModal({
     awards: artist?.awards || [],
     category: artist?.category || '',
     performPreference: artist?.performPreference || [],
+    youtubeLink: artist?.youtubeLink ?? '',
   });
 
   const [files, setFiles] = useState<{
     profileImage?: File;
     profileCoverImage?: File;
-    demoVideo?: File;
   }>({});
 
   const [previewImages, setPreviewImages] = useState<{
@@ -142,13 +143,6 @@ export function ArtistProfileUpdateModal({
     }));
 
     setImageCropper(prev => ({ ...prev, isOpen: false }));
-  };
-
-  const handleVideoChange = (file: File | null) => {
-    setFiles(prev => ({
-      ...prev,
-      demoVideo: file || undefined
-    }));
   };
 
   const addSkill = () => {
@@ -264,7 +258,8 @@ export function ArtistProfileUpdateModal({
         (formData.musicLanguages && formData.musicLanguages.length > 0) ||
         (formData.awards && formData.awards.length > 0) ||
         (formData.performPreference && formData.performPreference.length > 0) ||
-        files.profileImage || files.profileCoverImage || files.demoVideo;
+        (formData.youtubeLink && formData.youtubeLink.trim()) ||
+        files.profileImage || files.profileCoverImage;
 
       if (!hasChanges) {
         setError('Please make at least one change before submitting the update request.');
@@ -436,31 +431,38 @@ export function ArtistProfileUpdateModal({
                   </div>
                 </div>
 
-                {/* Demo Video */}
+                {/* YouTube Demo Video */}
                 <div className="mt-6">
                   <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Demo Video
+                    YouTube Demo Video Link
                   </label>
                   <div className="space-y-3">
-                    {artist.demoVideo && (
-                      <video 
-                        src={artist.demoVideo} 
-                        controls
-                        className="w-full h-48 rounded-lg border border-gray-200"
-                      >
-                        Your browser does not support the video tag.
-                      </video>
+                    {formData.youtubeLink && isValidYouTubeUrl(formData.youtubeLink) && (
+                      <div className="relative">
+                        <img 
+                          src={getYouTubeThumbnail(formData.youtubeLink) || '/placeholder-video.jpg'} 
+                          alt="YouTube video thumbnail"
+                          className="w-full h-48 rounded-lg border border-gray-200 object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center rounded-lg">
+                          <Video className="h-12 w-12 text-white" />
+                        </div>
+                      </div>
                     )}
                     <div className="flex items-center space-x-3">
                       <input
-                        type="file"
-                        accept="video/*"
-                        onChange={(e) => handleVideoChange(e.target.files?.[0] || null)}
+                        type="url"
+                        placeholder="https://www.youtube.com/watch?v=..."
+                        value={formData.youtubeLink}
+                        onChange={(e) => setFormData(prev => ({ ...prev, youtubeLink: e.target.value }))}
                         className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                       <Video className="h-5 w-5 text-gray-400" />
                     </div>
-                    <p className="text-xs text-gray-500">MP4, MOV up to 50MB</p>
+                    {formData.youtubeLink && !isValidYouTubeUrl(formData.youtubeLink) && (
+                      <p className="text-xs text-red-500">Please enter a valid YouTube URL</p>
+                    )}
+                    <p className="text-xs text-gray-500">Add a YouTube link to showcase your demo video</p>
                   </div>
                 </div>
               </div>

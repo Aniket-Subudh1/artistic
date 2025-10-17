@@ -20,6 +20,7 @@ import {
   Play
 } from 'lucide-react';
 import { ArtistService, Artist } from '@/services/artist.service';
+import { getYouTubeEmbedUrl } from '@/lib/youtube';
 
 interface ArtistProfileProps {
   artistId?: string;
@@ -183,20 +184,21 @@ export function ArtistProfile({ artistId, isOwnProfile = false }: ArtistProfileP
           </div>
 
           {/* Demo Video */}
-          {artist.demoVideo && (
+          {artist.youtubeLink && getYouTubeEmbedUrl(artist.youtubeLink) && (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
                 <Play className="h-5 w-5" />
                 <span>Demo Video</span>
               </h2>
               <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
-                <video 
-                  src={artist.demoVideo} 
-                  controls 
-                  className="w-full h-full object-cover"
-                >
-                  Your browser does not support the video tag.
-                </video>
+                <iframe 
+                  src={getYouTubeEmbedUrl(artist.youtubeLink)!} 
+                  className="w-full h-full"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  title="Artist Demo Video"
+                />
               </div>
             </div>
           )}

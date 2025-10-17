@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useRouter as useI18nRouter } from '@/i18n/routing';
 import { useAuthLogic } from '@/hooks/useAuth';
 import { ArtistService, Artist, PortfolioItem } from '@/services/artist.service';
+import { getYouTubeEmbedUrl } from '@/lib/youtube';
 import Image from 'next/image';
 import { 
   MapPin, 
@@ -479,7 +480,7 @@ export default function ArtistProfilePage() {
             </div>
 
             {/* Video */}
-            {artist.demoVideo && (
+            {artist.youtubeLink && getYouTubeEmbedUrl(artist.youtubeLink) && (
               <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-[#391C71]/20 to-transparent rounded-br-full"></div>
                 <div className="relative z-10">
@@ -490,14 +491,14 @@ export default function ArtistProfilePage() {
                     Demo Video
                   </h3>
                   <div className="relative aspect-video bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl overflow-hidden shadow-inner border-4 border-white">
-                    <video
-                      src={artist.demoVideo}
-                      controls
-                      className="w-full h-full object-cover"
-                      poster={artist.profileCoverImage || artist.profileImage}
-                    >
-                      Your browser does not support the video tag.
-                    </video>
+                    <iframe
+                      src={getYouTubeEmbedUrl(artist.youtubeLink)!}
+                      className="w-full h-full"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      title="Artist Demo Video"
+                    />
                   </div>
                 </div>
               </div>

@@ -5,6 +5,7 @@ import { RoleBasedRoute } from '@/components/dashboard/RoleBasedRoute';
 import { useAuthLogic } from '@/hooks/useAuth';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ArtistProfileUpdateModal } from '@/components/artist/ArtistProfileUpdateModal';
+import { getYouTubeEmbedUrl } from '@/lib/youtube';
 import { ArtistService, Artist } from '@/services/artist.service';
 import { UserService, User as UserProfile } from '@/services/user.service';
 import { 
@@ -509,29 +510,30 @@ export default function ArtistProfilePage() {
                     )}
 
                     {/* Demo Video */}
-                    {artist.demoVideo && (
+                    {artist.youtubeLink && getYouTubeEmbedUrl(artist.youtubeLink) && (
                       <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                           <Play className="h-5 w-5 mr-2 text-[#391C71]" />
                           Demo Video
                         </h3>
                         <div className="relative group overflow-hidden rounded-xl">
-                          <video 
-                            src={artist.demoVideo} 
-                            controls
-                            className="w-full rounded-xl"
-                          >
-                            Your browser does not support the video tag.
-                          </video>
+                          <iframe 
+                            src={getYouTubeEmbedUrl(artist.youtubeLink)!} 
+                            className="w-full aspect-video rounded-xl"
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            title="Artist Demo Video"
+                          />
                         </div>
                       </div>
                     )}
 
-                    {!artist.profileCoverImage && !artist.demoVideo && (
+                    {!artist.profileCoverImage && !artist.youtubeLink && (
                       <div className="lg:col-span-2 bg-gray-50 border-2 border-dashed border-gray-300 rounded-2xl p-12 text-center">
                         <Camera className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                         <h3 className="text-lg font-medium text-gray-900 mb-2">No Media Uploaded</h3>
-                        <p className="text-gray-500 mb-4">Upload your cover image and demo video to showcase your work</p>
+                        <p className="text-gray-500 mb-4">Upload your cover image and add YouTube demo video to showcase your work</p>
                         <button
                           onClick={() => setIsUpdateModalOpen(true)}
                           className="inline-flex items-center px-4 py-2 bg-[#391C71] text-white rounded-lg hover:bg-[#4A1F85] transition-colors"

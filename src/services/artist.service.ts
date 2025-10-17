@@ -61,6 +61,7 @@ export interface CreateArtistRequest {
   category: string;
   country: string;
   performPreference: string[];
+  youtubeLink?: string;
 }
 
 export interface UpdateArtistProfileRequest {
@@ -73,6 +74,7 @@ export interface UpdateArtistProfileRequest {
   awards?: string[];
   category?: string;
   performPreference?: string[];
+  youtubeLink?: string;
 }
 
 export interface Artist {
@@ -95,7 +97,7 @@ export interface Artist {
   pricePerHour: number;
   profileImage: string;
   profileCoverImage: string;
-  demoVideo: string;
+  youtubeLink?: string;
   likeCount: number;
   category: string;
   country: string;
@@ -124,7 +126,6 @@ export class ArtistService {
     files?: {
       profileImage?: File;
       profileCoverImage?: File;
-      demoVideo?: File;
     }
   ): Promise<CreateArtistResponse> {
     const formData = new FormData();
@@ -144,9 +145,6 @@ export class ArtistService {
     }
     if (files?.profileCoverImage) {
       formData.append('profileCoverImage', files.profileCoverImage);
-    }
-    if (files?.demoVideo) {
-      formData.append('demoVideo', files.demoVideo);
     }
 
     const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ARTIST.ONBOARD}`, {
@@ -206,7 +204,6 @@ export class ArtistService {
     files?: {
       profileImage?: File;
       profileCoverImage?: File;
-      demoVideo?: File;
     }
   ): Promise<{ message: string }> {
     const formData = new FormData();
@@ -239,6 +236,9 @@ export class ArtistService {
     if (updateData.performPreference && updateData.performPreference.length > 0) {
       formData.append('performPreference', JSON.stringify(updateData.performPreference));
     }
+    if (updateData.youtubeLink && updateData.youtubeLink.trim()) {
+      formData.append('youtubeLink', updateData.youtubeLink);
+    }
 
     // Add files if provided
     if (files?.profileImage) {
@@ -246,9 +246,6 @@ export class ArtistService {
     }
     if (files?.profileCoverImage) {
       formData.append('profileCoverImage', files.profileCoverImage);
-    }
-    if (files?.demoVideo) {
-      formData.append('demoVideo', files.demoVideo);
     }
 
     // Debug: Log what's being sent

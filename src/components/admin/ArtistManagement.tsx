@@ -55,7 +55,8 @@ export function ArtistManagement() {
     artistType: '',
     category: '',
     country: '',
-    performPreference: [] as string[]
+    performPreference: [] as string[],
+    youtubeLink: ''
   });
 
   const [newSkill, setNewSkill] = useState('');
@@ -161,7 +162,8 @@ export function ArtistManagement() {
         artistType: '',
         category: '',
         country: '',
-        performPreference: []
+        performPreference: [],
+        youtubeLink: ''
       });
       setNewSkill('');
       setNewLanguage('');
@@ -854,6 +856,21 @@ export function ArtistManagement() {
                       </div>
                     </div>
                   </div>
+                </div>
+
+                {/* YouTube Demo Video Link */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    YouTube Demo Video Link
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    value={createArtistForm.youtubeLink}
+                    onChange={(e) => setCreateArtistForm(prev => ({ ...prev, youtubeLink: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <p className="text-xs text-gray-500">Add a YouTube link to showcase the artist's demo video</p>
                 </div>
 
                 {/* Artist Information */}

@@ -5,6 +5,7 @@ import { RoleBasedRoute } from '@/components/dashboard/RoleBasedRoute';
 import { useAuthLogic } from '@/hooks/useAuth';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ArtistService } from '@/services/artist.service';
+import { getYouTubeEmbedUrl, isValidYouTubeUrl } from '@/lib/youtube';
 import { 
   Clock, 
   CheckCircle, 
@@ -44,7 +45,7 @@ interface UpdateRequest {
     genres?: string[];
     profileImage?: string;
     profileCoverImage?: string;
-    demoVideo?: string;
+    youtubeLink?: string;
   };
   status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
   createdAt: string;
@@ -75,7 +76,7 @@ export default function ArtistUpdateRequestsPage() {
       'performPreference': 'Performance Preferences',
       'profileImage': 'Profile Image',
       'profileCoverImage': 'Cover Image',
-      'demoVideo': 'Demo Video',
+      'youtubeLink': 'YouTube Demo Video',
       'stageName': 'Stage Name',
       'category': 'Category',
       'skills': 'Skills',
@@ -365,21 +366,17 @@ export default function ArtistUpdateRequestsPage() {
                                     View Full Size
                                   </a>
                                 </div>
-                              ) : key === 'demoVideo' && typeof value === 'string' && value && (value.includes('http') || value.includes('amazonaws.com') || value.includes('s3')) ? (
+                              ) : key === 'youtubeLink' && typeof value === 'string' && value && isValidYouTubeUrl(value) ? (
                                 <div className="space-y-2">
                                   <div className="relative">
-                                    <video 
-                                      src={value} 
-                                      controls
-                                      className="max-w-full h-auto max-h-64 rounded-lg border border-gray-200 shadow-sm"
-                                      onError={(e) => {
-                                        (e.target as HTMLVideoElement).style.display = 'none';
-                                        (e.target as HTMLVideoElement).nextElementSibling!.className = 'block text-red-600 text-xs';
-                                      }}
-                                    >
-                                      Your browser does not support the video tag.
-                                    </video>
-                                    <p className="hidden">Failed to load video. <a href={value} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Download Video</a></p>
+                                    <iframe 
+                                      src={getYouTubeEmbedUrl(value)!}
+                                      className="max-w-full h-auto max-h-64 rounded-lg border border-gray-200 shadow-sm aspect-video w-full"
+                                      frameBorder="0"
+                                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                      allowFullScreen
+                                      title="Demo Video"
+                                    />
                                   </div>
                                   <div className="flex gap-2">
                                     <a 
