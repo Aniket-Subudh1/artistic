@@ -44,9 +44,18 @@ export interface PricingCalculationResponse {
 export interface BookingRequest {
   artistId: string;
   eventType: 'private' | 'public';
-  eventDate: string;
-  startTime: string;
-  endTime: string;
+  // Multi-day booking support
+  isMultiDay?: boolean;
+  eventDates?: Array<{
+    date: string;
+    startTime: string;
+    endTime: string;
+  }>;
+  totalHours?: number;
+  // Legacy single-day fields (for backward compatibility)
+  eventDate?: string;
+  startTime?: string;
+  endTime?: string;
   artistPrice: number;
   equipmentPrice?: number;
   totalPrice: number;

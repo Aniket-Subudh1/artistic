@@ -317,9 +317,7 @@ export default function ArtistProfilePage() {
                     <h1 className="text-5xl font-bold text-gray-900 mb-3 tracking-tight">
                       {artist.stageName}
                     </h1>
-                    <p className="text-xl text-gray-600 mb-4 font-medium">
-                      {artist.user.firstName} {artist.user.lastName}
-                    </p>
+                    
                     
                     {/* Category Badge */}
                     <div className="inline-flex items-center bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white px-6 py-3 rounded-full text-sm font-semibold shadow-lg">

@@ -206,22 +206,48 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancel }: Book
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Date and Time */}
               <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <Calendar className="h-5 w-5 text-gray-400" />
+                {booking.isMultiDay && booking.eventDates && booking.eventDates.length > 1 ? (
                   <div>
-                    <p className="font-medium text-gray-900">Event Date</p>
-                    <p className="text-gray-600">{format(eventDate, 'EEEE, MMMM d, yyyy')}</p>
+                    <div className="flex items-center gap-3 mb-3">
+                      <Calendar className="h-5 w-5 text-purple-500" />
+                      <div>
+                        <p className="font-medium text-gray-900">Multi-Day Event</p>
+                        <p className="text-purple-600 text-sm font-medium">
+                          {booking.eventDates.length} days total
+                        </p>
+                      </div>
+                    </div>
+                    <div className="bg-purple-50 rounded-lg p-3 space-y-2 max-h-32 overflow-y-auto">
+                      {booking.eventDates.map((eventDay, index) => (
+                        <div key={index} className="flex justify-between text-sm">
+                          <span className="text-gray-700">Day {index + 1}:</span>
+                          <span className="font-medium">
+                            {format(new Date(eventDay.date), 'MMM d')} • {formatTime(eventDay.startTime)} - {formatTime(eventDay.endTime)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Clock className="h-5 w-5 text-gray-400" />
-                  <div>
-                    <p className="font-medium text-gray-900">Event Time</p>
-                    <p className="text-gray-600">
-                      {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
-                    </p>
-                  </div>
-                </div>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-3">
+                      <Calendar className="h-5 w-5 text-gray-400" />
+                      <div>
+                        <p className="font-medium text-gray-900">Event Date</p>
+                        <p className="text-gray-600">{format(eventDate, 'EEEE, MMMM d, yyyy')}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Clock className="h-5 w-5 text-gray-400" />
+                      <div>
+                        <p className="font-medium text-gray-900">Event Time</p>
+                        <p className="text-gray-600">
+                          {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Location */}
@@ -302,40 +328,96 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancel }: Book
           )}
 
           {/* Equipment Packages */}
-          {booking.selectedEquipmentPackages && booking.selectedEquipmentPackages.length > 0 && (
+          {((booking.selectedEquipmentPackages && booking.selectedEquipmentPackages.length > 0) ||
+            (booking.selectedCustomPackages && booking.selectedCustomPackages.length > 0)) && (
             <div className="p-6 border-b border-gray-100">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Equipment Packages</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {booking.selectedEquipmentPackages.map((pkg) => (
-                  <div key={pkg._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-start gap-3">
-                      <Package className="h-5 w-5 text-gray-400 mt-1 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-gray-900 truncate">{pkg.name}</h4>
-                        {pkg.description && (
-                          <p className="text-sm text-gray-600 mt-1 line-clamp-2">{pkg.description}</p>
-                        )}
-                        <div className="flex items-center justify-between mt-3">
-                          <span className="text-lg font-semibold text-gray-900">
-                            {formatCurrency((pkg.totalPrice || 0) * bookingHours)}
-                          </span>
-                          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                            {bookingHours} hour{bookingHours !== 1 ? 's' : ''}
-                          </span>
+              
+              {/* Standard Equipment Packages */}
+              {booking.selectedEquipmentPackages && booking.selectedEquipmentPackages.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="text-md font-medium text-gray-900 mb-3 flex items-center gap-2">
+                    <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm">📦 Standard Packages</span>
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {booking.selectedEquipmentPackages.map((pkg) => (
+                      <div key={pkg._id} className="border border-blue-200 rounded-lg p-4 bg-blue-50 hover:shadow-md transition-shadow">
+                        <div className="flex items-start gap-3">
+                          <Package className="h-5 w-5 text-blue-500 mt-1 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <h5 className="font-medium text-gray-900 truncate">{pkg.name}</h5>
+                            {pkg.description && (
+                              <p className="text-sm text-gray-600 mt-1 line-clamp-2">{pkg.description}</p>
+                            )}
+                            
+                            {/* Equipment Items in Package */}
+                            {pkg.items && pkg.items.length > 0 && (
+                              <div className="mt-2">
+                                <p className="text-xs font-medium text-gray-700 mb-1">Equipment Included:</p>
+                                <div className="space-y-1 max-h-20 overflow-y-auto">
+                                  {pkg.items.map((item, idx) => (
+                                    <div key={idx} className="text-xs text-gray-600 flex justify-between">
+                                      <span>{item.equipmentId?.name || 'Equipment Item'}</span>
+                                      <span>×{item.quantity}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            <div className="flex items-center justify-between mt-3">
+                              <span className="text-lg font-semibold text-gray-900">
+                                {formatCurrency((pkg.totalPrice || 0) * bookingHours)}
+                              </span>
+                              <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded-full border">
+                                {bookingHours} hour{bookingHours !== 1 ? 's' : ''}
+                              </span>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
+
+              {/* Custom Equipment Packages */}
+              {booking.selectedCustomPackages && booking.selectedCustomPackages.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="text-md font-medium text-gray-900 mb-3 flex items-center gap-2">
+                    <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-sm">🛠️ Custom Packages</span>
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {booking.selectedCustomPackages.map((packageId, index) => (
+                      <div key={packageId} className="border border-purple-200 rounded-lg p-4 bg-purple-50 hover:shadow-md transition-shadow">
+                        <div className="flex items-start gap-3">
+                          <Package className="h-5 w-5 text-purple-500 mt-1 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <h5 className="font-medium text-gray-900">Custom Package #{index + 1}</h5>
+                            <p className="text-sm text-gray-600 mt-1">
+                              Tailored equipment selection based on your specific requirements
+                            </p>
+                            <div className="flex items-center justify-between mt-3">
+                              <span className="text-sm text-purple-600 font-medium">Custom Pricing</span>
+                              <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded-full border">
+                                {bookingHours} hour{bookingHours !== 1 ? 's' : ''}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               
               {/* Equipment Total */}
-              {booking.selectedEquipmentPackages.length > 1 && (
+              {booking.equipmentPrice && booking.equipmentPrice > 0 && (
                 <div className="mt-4 p-3 bg-gray-50 rounded-lg">
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium text-gray-700">Equipment Subtotal:</span>
                     <span className="text-lg font-semibold text-gray-900">
-                      {formatCurrency(booking.equipmentPrice || 0)}
+                      {formatCurrency(booking.equipmentPrice)}
                     </span>
                   </div>
                 </div>

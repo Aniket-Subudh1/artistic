@@ -66,6 +66,14 @@ export interface Booking {
   artist?: Artist;
   bookedBy: string;
   eventType: 'private' | 'public';
+  // Multi-day booking support
+  eventDates?: Array<{
+    date: string;
+    startTime: string;
+    endTime: string;
+  }>;
+  isMultiDay?: boolean;
+  // Legacy single-day fields (for backward compatibility)
   eventDate: string;
   startTime: string;
   endTime: string;

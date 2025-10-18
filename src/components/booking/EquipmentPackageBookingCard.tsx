@@ -141,19 +141,24 @@ export const EquipmentPackageBookingCard: React.FC<EquipmentPackageBookingCardPr
 
         {/* Equipment Items */}
         <div className="mb-4">
-          <p className="text-sm font-medium text-gray-700 mb-2">Equipment Included:</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {booking.packageId.items.slice(0, 4).map((item, index) => (
-              <div key={index} className="flex items-center text-sm text-gray-600">
-                <div className="w-2 h-2 bg-purple-600 rounded-full mr-2 flex-shrink-0"></div>
-                <span className="truncate">
-                  {item.quantity}x {item.equipmentId.name}
+          <p className="text-sm font-medium text-gray-700 mb-2">Equipment Included ({booking.packageId.items.length} items):</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-24 overflow-y-auto">
+            {booking.packageId.items.slice(0, 6).map((item, index) => (
+              <div key={index} className="flex items-center justify-between text-sm p-2 bg-gray-50 rounded border">
+                <div className="flex items-center flex-1 min-w-0">
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mr-2 flex-shrink-0"></div>
+                  <span className="truncate font-medium text-gray-800">
+                    {item.equipmentId?.name || 'Equipment Item'}
+                  </span>
+                </div>
+                <span className="text-xs text-gray-500 ml-2 flex-shrink-0">
+                  ×{item.quantity}
                 </span>
               </div>
             ))}
-            {booking.packageId.items.length > 4 && (
-              <div className="text-sm text-gray-500">
-                +{booking.packageId.items.length - 4} more items
+            {booking.packageId.items.length > 6 && (
+              <div className="text-sm text-purple-600 font-medium col-span-full text-center py-1">
+                +{booking.packageId.items.length - 6} more items • Click "View Details" to see all
               </div>
             )}
           </div>

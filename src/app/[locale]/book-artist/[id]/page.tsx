@@ -217,12 +217,7 @@ export default function BookArtistPage() {
   };
 
   const fetchAvailability = async (month: number, year: number) => {
-    // For dynamic pricing with artistProfileId, we don't need to pre-fetch month availability
-    // The AvailabilityCalendar component will handle per-date availability fetching
-    console.log('🔍 Using dynamic availability for artist:', artistId, 'month:', month, 'year:', year);
-    console.log('📋 Dynamic pricing will handle date-specific availability');
-    
-    // Set empty availability to let dynamic pricing take over
+   
     setAvailability({});
   };
 
@@ -243,7 +238,6 @@ export default function BookArtistPage() {
   };
 
   const handleMonthChange = async (month: number, year: number) => {
-    // No need to fetch data on month change, data will be fetched when dates are clicked
   };
 
   const validateStep = (stepNumber: number): boolean => {
@@ -502,13 +496,7 @@ export default function BookArtistPage() {
       bookingData.equipmentPrice = pricingResponse.equipmentFee.amount;
       bookingData.totalPrice = pricingResponse.totalAmount;
       
-      console.log('📋 Final optimized booking data:', {
-        artistPrice: pricingResponse.artistFee.amount,
-        equipmentPrice: pricingResponse.equipmentFee.amount,
-        totalPrice: pricingResponse.totalAmount,
-        totalHours: pricingResponse.artistFee.totalHours,
-        isMultiDay: isMultiDayBooking
-      });
+    
 
       const response = await BookingService.createArtistBooking(bookingData);
       
