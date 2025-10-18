@@ -1,4 +1,4 @@
-import { API_CONFIG, apiRequest, getMultipartAuthHeaders } from '@/lib/api-config';
+import { API_CONFIG, apiRequest, getMultipartAuthHeaders, publicApiRequest } from '@/lib/api-config';
 
 export interface CreatePortfolioItemRequest {
   title: string;
@@ -225,14 +225,14 @@ export class ArtistService {
     return response.json();
   }
 
-  static async getPublicArtists(): Promise<Artist[]> {
-    return apiRequest<Artist[]>(API_CONFIG.ENDPOINTS.ARTIST.LIST_PUBLIC, {
+  static async getAllArtists(): Promise<Artist[]> {
+    return publicApiRequest<Artist[]>(API_CONFIG.ENDPOINTS.ARTIST.LIST_PUBLIC, {
       method: 'GET',
     });
   }
 
   static async getArtistById(artistId: string): Promise<Artist> {
-    return apiRequest<Artist>(API_CONFIG.ENDPOINTS.ARTIST.GET_BY_ID(artistId), {
+    return publicApiRequest<Artist>(API_CONFIG.ENDPOINTS.ARTIST.GET_BY_ID(artistId), {
       method: 'GET',
     });
   }
@@ -397,7 +397,7 @@ export class ArtistService {
   }
 
   static async getPublicPortfolioItems(artistProfileId: string): Promise<PortfolioItem[]> {
-    return apiRequest<PortfolioItem[]>(API_CONFIG.ENDPOINTS.ARTIST.PORTFOLIO.PUBLIC(artistProfileId), {
+    return publicApiRequest<PortfolioItem[]>(API_CONFIG.ENDPOINTS.ARTIST.PORTFOLIO.PUBLIC(artistProfileId), {
       method: 'GET',
     });
   }
@@ -409,13 +409,13 @@ export class ArtistService {
   }
 
   static async incrementPortfolioViews(portfolioItemId: string): Promise<void> {
-    return apiRequest(API_CONFIG.ENDPOINTS.ARTIST.PORTFOLIO.VIEW(portfolioItemId), {
+    return publicApiRequest(API_CONFIG.ENDPOINTS.ARTIST.PORTFOLIO.VIEW(portfolioItemId), {
       method: 'POST',
     });
   }
 
   static async togglePortfolioLike(portfolioItemId: string, increment: boolean): Promise<void> {
-    return apiRequest(API_CONFIG.ENDPOINTS.ARTIST.PORTFOLIO.LIKE(portfolioItemId), {
+    return publicApiRequest(API_CONFIG.ENDPOINTS.ARTIST.PORTFOLIO.LIKE(portfolioItemId), {
       method: 'POST',
       body: JSON.stringify({ increment }),
     });
@@ -453,7 +453,7 @@ export class ArtistService {
 
   static async getArtistPricing(artistProfileId: string): Promise<ArtistPricingData | null> {
     try {
-      return await apiRequest<ArtistPricingData>(`/artist-pricing/${artistProfileId}`, {
+      return await publicApiRequest<ArtistPricingData>(`/artist-pricing/${artistProfileId}`, {
         method: 'GET',
       });
     } catch (error) {

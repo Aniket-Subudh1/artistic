@@ -1,4 +1,4 @@
-import { API_CONFIG, apiRequest } from '@/lib/api-config';
+import { API_CONFIG, apiRequest, uploadRequest, publicApiRequest } from '@/lib/api-config';
 
 export interface PackageItem {
   equipmentId: string;
@@ -182,7 +182,7 @@ class EquipmentPackagesService {
   // Public endpoints
   async getPublicPackages(): Promise<EquipmentPackage[]> {
     try {
-      return await apiRequest(API_CONFIG.ENDPOINTS.EQUIPMENT_PACKAGES.PUBLIC, {
+      return await publicApiRequest(API_CONFIG.ENDPOINTS.EQUIPMENT_PACKAGES.PUBLIC, {
         method: 'GET',
       });
     } catch (error: any) {
@@ -193,7 +193,7 @@ class EquipmentPackagesService {
 
   async getPackageById(packageId: string): Promise<EquipmentPackage> {
     try {
-      return await apiRequest(`${API_CONFIG.BASE_URL}/equipment-packages/${packageId}`, {
+      return await publicApiRequest(`${API_CONFIG.BASE_URL}/equipment-packages/${packageId}`, {
         method: 'GET',
       });
     } catch (error: any) {

@@ -41,8 +41,8 @@ export function UserBookingsDashboard() {
     try {
       setError(null);
       const data = await BookingService.getUserBookings();
-      setBookings(data);
-      calculateSummary(data);
+      setBookings(data || []);
+      calculateSummary(data || []);
     } catch (error) {
       console.error('Error fetching bookings:', error);
       setError('Failed to load bookings. Please try again.');

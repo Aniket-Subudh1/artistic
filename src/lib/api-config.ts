@@ -228,7 +228,8 @@ const handleUnauthorized = () => {
 
 export const apiRequest = async <T>(
   url: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  requireAuth: boolean = true
 ): Promise<T> => {
   const fullUrl = url.startsWith('http') ? url : `${API_CONFIG.BASE_URL}${url}`;
   
@@ -236,14 +237,16 @@ export const apiRequest = async <T>(
     const response = await fetch(fullUrl, {
       ...options,
       headers: {
-        ...getAuthHeaders(),
+        ...(requireAuth ? getAuthHeaders() : { 'Content-Type': 'application/json' }),
         ...options.headers,
       },
     });
 
     if (response.status === 401) {
-      handleUnauthorized();
-      throw new APIError(401, 'Unauthorized - Please login again');
+      if (requireAuth) {
+        handleUnauthorized();
+      }
+      throw new APIError(401, requireAuth ? 'Unauthorized - Please login again' : 'Authentication required for this resource');
     }
 
     if (!response.ok) {
@@ -273,6 +276,13 @@ export const apiRequest = async <T>(
     }
     throw new APIError(0, 'Network error or server unavailable');
   }
+};
+
+export const publicApiRequest = async <T>(
+  url: string,
+  options: RequestInit = {}
+): Promise<T> => {
+  return apiRequest<T>(url, options, false);
 };
 
 export const uploadRequest = async <T>(
