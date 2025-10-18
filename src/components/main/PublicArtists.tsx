@@ -20,7 +20,7 @@ export default function PublicArtists({ limit = 8, showHeader = true }: PublicAr
     const fetchArtists = async () => {
       try {
         setLoading(true);
-        const response = await ArtistService.getPublicArtists();
+        const response = await ArtistService.getAllArtists();
         // Filter only active and visible artists
         const activeArtists = response.filter(
           (artist) => 

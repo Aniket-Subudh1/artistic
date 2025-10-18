@@ -40,7 +40,7 @@ export function ArtistProfile({ artistId, isOwnProfile = false }: ArtistProfileP
         setError('');
         
         // For now, we'll fetch from the public list since there's no direct profile endpoint
-        const artists = await ArtistService.getPublicArtists();
+        const artists = await ArtistService.getAllArtists();
         
         if (isOwnProfile && user?.id) {
           const ownProfile = artists.find(a => a.user && a.user._id === user.id);
