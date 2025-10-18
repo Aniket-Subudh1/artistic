@@ -19,6 +19,8 @@ interface TranslatableTextProps {
 
 /**
  * Component that automatically translates text when language is switched to Arabic
+ * Works for both authenticated and public content
+ * Falls back to original text if translation fails
  * Usage: <TranslatableText>Hello World</TranslatableText>
  */
 export const TranslatableText: React.FC<TranslatableTextProps> = ({

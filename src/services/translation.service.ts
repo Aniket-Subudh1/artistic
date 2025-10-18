@@ -22,6 +22,8 @@ export interface TranslationServiceHealth {
 class TranslationService {
   /**
    * Translate single text from English to Arabic
+   * Note: This endpoint is public and doesn't require authentication
+   * to support translation on public pages like homepage
    */
   async translateText(request: TranslateRequest): Promise<TranslateResponse> {
     try {
@@ -38,7 +40,7 @@ class TranslationService {
             targetLanguage: request.targetLanguage || 'ar',
           }),
         },
-        true
+        false // Translation doesn't require auth - it's available for public content
       );
     } catch (error) {
       console.error('Translation service error:', error);
@@ -60,7 +62,7 @@ class TranslationService {
           },
           body: JSON.stringify(texts),
         },
-        true
+        false // Translation doesn't require auth - it's available for public content
       );
     } catch (error) {
       console.error('Bulk translation service error:', error);
