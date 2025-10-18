@@ -37,7 +37,7 @@ export default function ArtistsPage() {
   const fetchArtists = async () => {
     try {
       setLoading(true);
-      const data = await ArtistService.getPublicArtists();
+      const data = await ArtistService.getAllArtists();
       const visibleArtists = data.filter(artist => artist.user.isActive);
       setArtists(visibleArtists);
       
