@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useRouter as useI18nRouter } from '@/i18n/routing';
+import { useTranslations } from 'next-intl';
 import { useAuthLogic } from '@/hooks/useAuth';
 import { ArtistService, Artist, PortfolioItem, ArtistPricingData } from '@/services/artist.service';
 import { getYouTubeEmbedUrl } from '@/lib/youtube';
@@ -34,6 +35,7 @@ export default function ArtistProfilePage() {
   const params = useParams();
   const router = useRouter();
   const i18nRouter = useI18nRouter();
+  const t = useTranslations();
   const { isAuthenticated, isLoading: authLoading } = useAuthLogic();
   const artistId = params.id as string;
   
@@ -125,7 +127,7 @@ export default function ArtistProfilePage() {
         }
       } catch (err) {
         console.error('Error fetching artist:', err);
-        setError('Failed to load artist profile');
+        setError(t('artistProfile.failedToLoad'));
       } finally {
         setLoading(false);
       }
@@ -218,12 +220,12 @@ export default function ArtistProfilePage() {
         <Navbar />
         <div className="relative z-10 text-center py-20">
           <div className="max-w-md mx-auto bg-white/60 backdrop-blur-md rounded-3xl shadow-2xl border border-white/20 p-8">
-            <p className="text-red-500 text-xl mb-4">{error || 'Artist not found'}</p>
+            <p className="text-red-500 text-xl mb-4">{error || t('artistProfile.artistNotFound')}</p>
             <button
               onClick={() => router.back()}
               className="bg-[#391C71] text-white px-6 py-3 rounded-full hover:bg-[#5B2C87] transition-colors"
             >
-              Go Back
+              {t('artistProfile.goBack')}
             </button>
           </div>
         </div>
@@ -266,9 +268,9 @@ export default function ArtistProfilePage() {
           {/* Back Button */}
           <button
             onClick={() => router.back()}
-            className="absolute top-6 left-6 bg-white/90 backdrop-blur-sm p-3 rounded-full hover:bg-white transition-colors shadow-lg"
+            className="absolute top-6 left-6 rtl:left-auto rtl:right-6 bg-white/90 backdrop-blur-sm p-3 rounded-full hover:bg-white transition-colors shadow-lg"
           >
-            <ChevronLeft className="w-6 h-6 text-gray-700" />
+            <ChevronLeft className="w-6 h-6 text-gray-700 rtl:rotate-180" />
           </button>
         </div>
       </div>
@@ -283,8 +285,8 @@ export default function ArtistProfilePage() {
             {/* Profile Card */}
             <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-8 relative overflow-hidden">
               {/* Decorative Elements */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#391C71]/10 to-transparent rounded-bl-full"></div>
-              <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-purple-100/50 to-transparent rounded-tr-full"></div>
+              <div className="absolute top-0 right-0 rtl:right-auto rtl:left-0 w-32 h-32 bg-gradient-to-bl rtl:bg-gradient-to-br from-[#391C71]/10 to-transparent rounded-bl-full rtl:rounded-bl-none rtl:rounded-br-full"></div>
+              <div className="absolute bottom-0 left-0 rtl:left-auto rtl:right-0 w-24 h-24 bg-gradient-to-tr rtl:bg-gradient-to-tl from-purple-100/50 to-transparent rounded-tr-full rtl:rounded-tr-none rtl:rounded-tl-full"></div>
               
               <div className="flex flex-col lg:flex-row items-start gap-8 relative z-10">
                 
@@ -306,7 +308,7 @@ export default function ArtistProfilePage() {
                     </div>
                   )}
                   {/* Verified Badge */}
-                  <div className="absolute -top-2 -right-2 bg-[#391C71] rounded-full p-2 shadow-lg z-20">
+                  <div className="absolute -top-2 -right-2 rtl:-right-auto rtl:-left-2 bg-[#391C71] rounded-full p-2 shadow-lg z-20">
                     <Sparkles className="w-4 h-4 text-white" />
                   </div>
                 </div>
@@ -329,7 +331,7 @@ export default function ArtistProfilePage() {
                   {/* Performance Modes */}
                   <div className="mb-8">
                     <h3 className="text-base font-semibold text-gray-800 mb-4 flex items-center">
-                      <Music className="w-4 h-4 mr-2 text-[#391C71]" />
+                      <Music className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2 text-[#391C71]" />
                       Performance Modes
                     </h3>
                     <div className="flex flex-wrap gap-3">
@@ -441,10 +443,10 @@ export default function ArtistProfilePage() {
                           : 'bg-gradient-to-r from-[#391C71] to-[#5B2C87] hover:from-[#5B2C87] hover:to-[#391C71] hover:shadow-2xl hover:scale-105'
                       } text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 shadow-xl flex items-center justify-center gap-3 relative overflow-hidden group`}
                     >
-                      <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r rtl:bg-gradient-to-l from-white/0 via-white/20 to-white/0 transform -skew-x-12 rtl:skew-x-12 -translate-x-full rtl:translate-x-full group-hover:translate-x-full rtl:group-hover:-translate-x-full transition-transform duration-1000"></div>
                       <Calendar className="w-6 h-6 relative z-10" />
                       <span className="relative z-10">
-                        {authLoading ? 'Loading...' : 'Book Now'}
+                        {authLoading ? t('artistProfile.loading') : t('artistProfile.bookNow')}
                       </span>
                     </button>
                   </div>
@@ -455,13 +457,13 @@ export default function ArtistProfilePage() {
             {/* About Section */}
             {artist.about && (
               <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-[#391C71]/20 to-transparent rounded-br-full"></div>
+                <div className="absolute top-0 left-0 rtl:left-auto rtl:right-0 w-20 h-20 bg-gradient-to-br rtl:bg-gradient-to-bl from-[#391C71]/20 to-transparent rounded-br-full rtl:rounded-br-none rtl:rounded-bl-full"></div>
                 <div className="relative z-10">
                   <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-                    <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3">
+                    <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3 rtl:mr-0 rtl:ml-3">
                       <Users className="w-4 h-4 text-white" />
                     </div>
-                    About {artist.stageName}
+                    {t('artistProfile.about')} {artist.stageName}
                   </h2>
                   <div className="bg-gradient-to-r from-[#391C71]/10 to-purple-100 rounded-2xl p-4 border border-[#391C71]/20">
                     <p className="text-gray-700 leading-relaxed text-sm">{artist.about}</p>
@@ -476,13 +478,13 @@ export default function ArtistProfilePage() {
               {/* Skills */}
               {artist.skills && artist.skills.length > 0 && (
                 <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#391C71]/20 to-transparent rounded-bl-full"></div>
+                  <div className="absolute top-0 right-0 rtl:right-auto rtl:left-0 w-16 h-16 bg-gradient-to-bl rtl:bg-gradient-to-br from-[#391C71]/20 to-transparent rounded-bl-full rtl:rounded-bl-none rtl:rounded-br-full"></div>
                   <div className="relative z-10">
                     <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                      <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3">
+                      <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3 rtl:mr-0 rtl:ml-3">
                         <Music className="w-4 h-4 text-white" />
                       </div>
-                      Skills
+                      {t('artistProfile.skills')}
                     </h3>
                     <div className="flex flex-wrap gap-3">
                       {artist.skills.map((skill, index) => (
@@ -501,13 +503,13 @@ export default function ArtistProfilePage() {
               {/* Languages */}
               {artist.musicLanguages && artist.musicLanguages.length > 0 && (
                 <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#391C71]/20 to-transparent rounded-bl-full"></div>
+                  <div className="absolute top-0 right-0 rtl:right-auto rtl:left-0 w-16 h-16 bg-gradient-to-bl rtl:bg-gradient-to-br from-[#391C71]/20 to-transparent rounded-bl-full rtl:rounded-bl-none rtl:rounded-br-full"></div>
                   <div className="relative z-10">
                     <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                      <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3">
+                      <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3 rtl:mr-0 rtl:ml-3">
                         <Globe className="w-4 h-4 text-white" />
                       </div>
-                      Languages
+                      {t('artistProfile.languages')}
                     </h3>
                     <div className="flex flex-wrap gap-3">
                       {artist.musicLanguages.map((language, index) => (
@@ -526,13 +528,13 @@ export default function ArtistProfilePage() {
               {/* Genres */}
               {artist.genres && artist.genres.length > 0 && (
                 <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#391C71]/20 to-transparent rounded-bl-full"></div>
+                  <div className="absolute top-0 right-0 rtl:right-auto rtl:left-0 w-16 h-16 bg-gradient-to-bl rtl:bg-gradient-to-br from-[#391C71]/20 to-transparent rounded-bl-full rtl:rounded-bl-none rtl:rounded-br-full"></div>
                   <div className="relative z-10">
                     <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                      <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3">
+                      <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3 rtl:mr-0 rtl:ml-3">
                         <Users className="w-4 h-4 text-white" />
                       </div>
-                      Genres
+                      {t('artistProfile.genres')}
                     </h3>
                     <div className="flex flex-wrap gap-3">
                       {artist.genres.map((genre, index) => (
@@ -554,19 +556,19 @@ export default function ArtistProfilePage() {
                   <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#391C71]/20 to-transparent rounded-bl-full"></div>
                   <div className="relative z-10">
                     <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                      <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3">
+                      <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3 rtl:mr-0 rtl:ml-3">
                         <Award className="w-4 h-4 text-white" />
                       </div>
-                      Awards & Recognition
+                      {t('artistProfile.awards')}
                     </h3>
                     <div className="space-y-3">
                       {artist.awards.map((award, index) => (
                         <div
                           key={index}
-                          className="bg-gradient-to-r from-[#391C71]/10 to-purple-100 border-l-4 border-[#391C71] p-3 rounded-r-2xl shadow-sm hover:shadow-md transition-shadow duration-200"
+                          className="bg-gradient-to-r from-[#391C71]/10 to-purple-100 border-l-4 rtl:border-l-0 rtl:border-r-4 border-[#391C71] p-3 rounded-r-2xl rtl:rounded-r-none rtl:rounded-l-2xl shadow-sm hover:shadow-md transition-shadow duration-200"
                         >
                           <p className="text-gray-800 font-semibold text-sm flex items-center">
-                            <Award className="w-3 h-3 text-[#391C71] mr-2" />
+                            <Award className="w-3 h-3 text-[#391C71] mr-2 rtl:mr-0 rtl:ml-2" />
                             {award}
                           </p>
                         </div>
@@ -580,13 +582,13 @@ export default function ArtistProfilePage() {
             {/* Video */}
             {artist.youtubeLink && getYouTubeEmbedUrl(artist.youtubeLink) && (
               <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-[#391C71]/20 to-transparent rounded-br-full"></div>
+                <div className="absolute top-0 left-0 rtl:left-auto rtl:right-0 w-24 h-24 bg-gradient-to-br rtl:bg-gradient-to-bl from-[#391C71]/20 to-transparent rounded-br-full rtl:rounded-br-none rtl:rounded-bl-full"></div>
                 <div className="relative z-10">
                   <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-                    <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3">
+                    <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3 rtl:mr-0 rtl:ml-3">
                       <Music className="w-4 h-4 text-white" />
                     </div>
-                    Demo Video
+                    {t('artistProfile.demoVideo')}
                   </h3>
                   <div className="relative aspect-video bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl overflow-hidden shadow-inner border-4 border-white">
                     <iframe
@@ -605,14 +607,14 @@ export default function ArtistProfilePage() {
             {/* Portfolio Section */}
             {portfolioItems.length > 0 && (
               <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-[#391C71]/20 to-transparent rounded-br-full"></div>
+                <div className="absolute top-0 left-0 rtl:left-auto rtl:right-0 w-24 h-24 bg-gradient-to-br rtl:bg-gradient-to-bl from-[#391C71]/20 to-transparent rounded-br-full rtl:rounded-br-none rtl:rounded-bl-full"></div>
                 <div className="relative z-10">
                   <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-                    <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3">
+                    <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3 rtl:mr-0 rtl:ml-3">
                       <Camera className="w-4 h-4 text-white" />
                     </div>
-                    Portfolio
-                    <span className="ml-3 bg-gradient-to-r from-[#391C71]/10 to-purple-100 text-[#391C71] px-3 py-1 rounded-full text-xs font-semibold">
+                    {t('artistProfile.portfolio')}
+                    <span className="ml-3 rtl:ml-0 rtl:mr-3 bg-gradient-to-r from-[#391C71]/10 to-purple-100 text-[#391C71] px-3 py-1 rounded-full text-xs font-semibold">
                       {portfolioItems.length} items
                     </span>
                   </h3>
@@ -620,7 +622,7 @@ export default function ArtistProfilePage() {
                   {portfolioLoading ? (
                     <div className="flex justify-center items-center py-8">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#391C71]"></div>
-                      <span className="ml-2 text-gray-600">Loading portfolio...</span>
+                      <span className="ml-2 rtl:ml-0 rtl:mr-2 text-gray-600">{t('artistProfile.loading')}</span>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -639,7 +641,7 @@ export default function ArtistProfilePage() {
                                 className="object-cover group-hover:scale-105 transition-transform duration-300"
                               />
                               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
-                              <div className="absolute top-2 left-2 bg-[#391C71] text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                              <div className="absolute top-2 left-2 rtl:left-auto rtl:right-2 bg-[#391C71] text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
                                 <Camera className="w-3 h-3" />
                                 Image
                               </div>
@@ -657,7 +659,7 @@ export default function ArtistProfilePage() {
                                   <Video className="w-6 h-6 text-[#391C71]" />
                                 </div>
                               </div>
-                              <div className="absolute top-2 left-2 bg-[#391C71] text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                              <div className="absolute top-2 left-2 rtl:left-auto rtl:right-2 bg-[#391C71] text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
                                 <Video className="w-3 h-3" />
                                 Video
                               </div>
@@ -665,7 +667,7 @@ export default function ArtistProfilePage() {
                           ) : (
                             <div className="aspect-square bg-gradient-to-br from-[#391C71]/20 to-purple-200 flex items-center justify-center">
                               <Music className="w-12 h-12 text-[#391C71]" />
-                              <div className="absolute top-2 left-2 bg-[#391C71] text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                              <div className="absolute top-2 left-2 rtl:left-auto rtl:right-2 bg-[#391C71] text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
                                 <Music className="w-3 h-3" />
                                 Audio
                               </div>
@@ -722,7 +724,7 @@ export default function ArtistProfilePage() {
                     <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3">
                       <Share2 className="w-4 h-4 text-white" />
                     </div>
-                    Share Profile
+                    {t('artistProfile.shareProfile')}
                   </h3>
                   <button
                     onClick={handleShare}
@@ -730,14 +732,14 @@ export default function ArtistProfilePage() {
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                     <Share2 className="w-4 h-4 relative z-10" />
-                    <span className="relative z-10 text-sm">Share Profile</span>
+                    <span className="relative z-10 text-sm">{t('artistProfile.shareProfile')}</span>
                   </button>
                 </div>
 
                 {/* QR Code Section */}
                 <div className="text-center">
                   <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center justify-center">
-                    <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3">
+                    <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3 rtl:mr-0 rtl:ml-3">
                       <QrCode className="w-4 h-4 text-white" />
                     </div>
                     QR Code
@@ -764,7 +766,7 @@ export default function ArtistProfilePage() {
                       className="w-full bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white px-4 py-3 rounded-2xl font-semibold hover:from-[#5B2C87] hover:to-[#391C71] transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-2"
                     >
                       <Download className="w-3 h-3" />
-                      <span className="text-sm">Download QR</span>
+                      <span className="text-sm">{t('artistProfile.downloadQR')}</span>
                     </button>
                     <button
                       onClick={() => {
@@ -783,7 +785,7 @@ export default function ArtistProfilePage() {
                 {/* Additional Info */}
                 <div className="mt-8 pt-6 border-t border-gray-200">
                   <div className="text-center bg-gradient-to-r from-[#391C71]/10 to-purple-100 p-4 rounded-2xl border border-[#391C71]/20">
-                    <p className="text-xs text-gray-600 mb-2 font-medium">🎭 Member since</p>
+                    <p className="text-xs text-gray-600 mb-2 font-medium">🎭 {t('artistProfile.memberSince')}</p>
                     <p className="font-bold text-gray-900 text-sm">
                       {new Date(artist.createdAt).toLocaleDateString('en-US', {
                         month: 'long',

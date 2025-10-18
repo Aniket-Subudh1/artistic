@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useRouter as useI18nRouter } from '@/i18n/routing';
+import { useTranslations } from 'next-intl';
 import { useAuthLogic } from '@/hooks/useAuth';
 import { ArtistService, Artist } from '@/services/artist.service';
 import { BookingService } from '@/services/booking.service';
@@ -74,6 +75,7 @@ export default function BookArtistPage() {
   const params = useParams();
   const router = useRouter();
   const i18nRouter = useI18nRouter();
+  const t = useTranslations();
   const { user, isAuthenticated, isLoading: authLoading } = useAuthLogic();
   const artistId = params.id as string;
 
@@ -650,10 +652,10 @@ export default function BookArtistPage() {
               </div>
               
               <div className="flex-1">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">Book {artist.stageName}</h1>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">{t('bookArtist.title')} {artist.stageName}</h1>
                 <div className="flex flex-wrap items-center gap-4 mb-3">
                   <div className="inline-flex items-center bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
-                    <User className="w-4 h-4 mr-2" />
+                    <User className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
                     {artist.category || 'Artist'}
                   </div>
                   <div className="bg-gradient-to-r from-[#391C71]/10 to-purple-100 text-[#391C71] px-4 py-2 rounded-full text-sm font-bold border border-[#391C71]/20">
@@ -668,10 +670,10 @@ export default function BookArtistPage() {
 
         {/* Progress Steps */}
         <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-8 mb-8 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-[#391C71]/20 to-transparent rounded-br-full"></div>
+          <div className="absolute top-0 left-0 rtl:left-auto rtl:right-0 w-20 h-20 bg-gradient-to-br rtl:bg-gradient-to-bl from-[#391C71]/20 to-transparent rounded-br-full rtl:rounded-br-none rtl:rounded-bl-full"></div>
           <div className="relative z-10">
             <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-              <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3">
+              <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3 rtl:mr-0 rtl:ml-3">
                 <Calendar className="w-5 h-5 text-white" />
               </div>
               Booking Progress
@@ -695,14 +697,14 @@ export default function BookArtistPage() {
                       stepNumber
                     )}
                   </div>
-                  <div className="ml-4 hidden sm:block">
+                  <div className="ml-4 rtl:ml-0 rtl:mr-4 hidden sm:block">
                     <p className={`text-sm font-bold ${
                       stepNumber <= step ? 'text-[#391C71]' : 'text-gray-500'
                     }`}>
-                      {stepNumber === 1 && 'Date & Time'}
-                      {stepNumber === 2 && 'Event Details'}
-                      {stepNumber === 3 && 'Equipment'}
-                      {stepNumber === 4 && 'Review & Book'}
+                      {stepNumber === 1 && t('bookArtist.step1')}
+                      {stepNumber === 2 && t('bookArtist.step2')}
+                      {stepNumber === 3 && t('bookArtist.step3')}
+                      {stepNumber === 4 && t('bookArtist.step4')}
                     </p>
                   </div>
                   {stepNumber < 4 && (
@@ -722,7 +724,7 @@ export default function BookArtistPage() {
 
         {/* Step Content */}
         <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-8 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-28 h-28 bg-gradient-to-bl from-[#391C71]/10 to-transparent rounded-bl-full"></div>
+          <div className="absolute top-0 right-0 rtl:right-auto rtl:left-0 w-28 h-28 bg-gradient-to-bl rtl:bg-gradient-to-br from-[#391C71]/10 to-transparent rounded-bl-full rtl:rounded-bl-none rtl:rounded-br-full"></div>
           <div className="relative z-10">
             {step === 1 && (
               <DateTimeStep
@@ -737,6 +739,7 @@ export default function BookArtistPage() {
                 artistId={artistId}
                 artist={artist}
                 fetchDateAvailability={fetchDateAvailability}
+                t={t}
               />
             )}
             
@@ -745,6 +748,7 @@ export default function BookArtistPage() {
                 formData={formData}
                 setFormData={setFormData}
                 errors={errors}
+                t={t}
               />
             )}
             
@@ -756,6 +760,7 @@ export default function BookArtistPage() {
                 customPackages={customPackages}
                 errors={errors}
                 onCreateCustomPackage={() => setShowCreatePackageModal(true)}
+                t={t}
               />
             )}
             
@@ -765,6 +770,7 @@ export default function BookArtistPage() {
                 artist={artist}
                 equipmentPackages={equipmentPackages}
                 customPackages={customPackages}
+                t={t}
               />
             )}
 
@@ -776,7 +782,7 @@ export default function BookArtistPage() {
                 className="px-8 py-3 bg-white/50 backdrop-blur-sm border border-gray-200 rounded-2xl text-gray-700 hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Previous
+                {t('bookArtist.previous')}
               </button>
               
               {step < 4 ? (
@@ -785,7 +791,7 @@ export default function BookArtistPage() {
                   className="px-8 py-3 bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white rounded-2xl hover:from-[#5B2C87] hover:to-[#391C71] hover:shadow-xl hover:scale-105 font-bold transition-all duration-300 shadow-lg flex items-center justify-center gap-2 relative overflow-hidden group"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                  <span className="relative z-10">Next Step</span>
+                  <span className="relative z-10">{t('bookArtist.next')}</span>
                   <ArrowLeft className="w-4 h-4 rotate-180 relative z-10" />
                 </button>
               ) : (
@@ -798,12 +804,12 @@ export default function BookArtistPage() {
                   {submitting ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white relative z-10"></div>
-                      <span className="relative z-10">Booking...</span>
+                      <span className="relative z-10">{t('bookArtist.processing')}</span>
                     </>
                   ) : (
                     <>
                       <CheckCircle className="w-5 h-5 relative z-10" />
-                      <span className="relative z-10">Confirm Booking</span>
+                      <span className="relative z-10">{t('bookArtist.submitBooking')}</span>
                     </>
                   )}
                 </button>
@@ -885,9 +891,10 @@ interface StepProps {
   formData: BookingFormData;
   setFormData: (data: BookingFormData) => void;
   errors: { [key: string]: string };
+  t: any; // Translation function
 }
 
-function DateTimeStep({ formData, setFormData, availability, errors, setErrors, isMultiDayBooking, setIsMultiDayBooking, onMonthChange, artistId, artist, fetchDateAvailability }: StepProps & { 
+function DateTimeStep({ formData, setFormData, availability, errors, setErrors, isMultiDayBooking, setIsMultiDayBooking, onMonthChange, artistId, artist, fetchDateAvailability, t }: StepProps & { 
   availability: AvailabilityData;
   setErrors: (errors: { [key: string]: string }) => void;
   isMultiDayBooking: boolean;
@@ -1214,18 +1221,18 @@ function DateTimeStep({ formData, setFormData, availability, errors, setErrors, 
   );
 }
 
-function EventDetailsStep({ formData, setFormData, errors }: StepProps) {
+function EventDetailsStep({ formData, setFormData, errors, t }: StepProps) {
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold text-gray-900">Event Details</h2>
+      <h2 className="text-xl font-bold text-gray-900">{t('bookArtist.eventDetails')}</h2>
       
       {/* User Details */}
       <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Contact Information</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">{t('bookArtist.userDetails')}</h3>
         <div className="grid md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Full Name
+              {t('bookArtist.name')}
             </label>
             <input
               type="text"
@@ -1241,7 +1248,7 @@ function EventDetailsStep({ formData, setFormData, errors }: StepProps) {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email
+              {t('bookArtist.email')}
             </label>
             <input
               type="email"
@@ -1257,7 +1264,7 @@ function EventDetailsStep({ formData, setFormData, errors }: StepProps) {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Phone
+              {t('bookArtist.phone')}
             </label>
             <input
               type="tel"
@@ -1275,11 +1282,11 @@ function EventDetailsStep({ formData, setFormData, errors }: StepProps) {
       
       {/* Venue Details */}
       <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Venue Information</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">{t('bookArtist.venueDetails')}</h3>
         <div className="grid md:grid-cols-2 gap-4">
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Address
+              {t('bookArtist.address')}
             </label>
             <input
               type="text"
@@ -1399,7 +1406,8 @@ function EquipmentStep({
   equipmentPackages, 
   customPackages, 
   errors,
-  onCreateCustomPackage 
+  onCreateCustomPackage,
+  t
 }: StepProps & { 
   equipmentPackages: EquipmentPackage[];
   customPackages: CustomEquipmentPackage[];
@@ -1676,11 +1684,12 @@ function EquipmentStep({
   );
 }
 
-function ReviewStep({ formData, artist, equipmentPackages, customPackages }: { 
+function ReviewStep({ formData, artist, equipmentPackages, customPackages, t }: { 
   formData: BookingFormData; 
   artist: Artist; 
   equipmentPackages: EquipmentPackage[];
-  customPackages: CustomEquipmentPackage[]
+  customPackages: CustomEquipmentPackage[];
+  t: any;
 }) {
   const [artistPrice, setArtistPrice] = useState<number>(0);
   const [isDynamicPricing, setIsDynamicPricing] = useState<boolean>(false);
@@ -1885,7 +1894,7 @@ function ReviewStep({ formData, artist, equipmentPackages, customPackages }: {
           <div className="flex justify-between">
             {loadingPrice ? (
               <span className="flex items-center">
-                <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin -ml-1 rtl:-ml-0 rtl:-mr-1 mr-3 rtl:mr-0 rtl:ml-3 h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
@@ -1950,7 +1959,7 @@ function ReviewStep({ formData, artist, equipmentPackages, customPackages }: {
       {/* Important Notice */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div className="flex items-start">
-          <Info className="w-5 h-5 text-blue-600 mr-2 mt-0.5" />
+          <Info className="w-5 h-5 text-blue-600 mr-2 rtl:mr-0 rtl:ml-2 mt-0.5" />
           <div>
             <p className="text-blue-800 font-medium mb-2">Important Notice</p>
             <ul className="text-blue-700 text-sm space-y-1">
