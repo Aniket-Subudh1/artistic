@@ -1054,11 +1054,11 @@ function DateTimeStep({ formData, setFormData, availability, errors, setErrors, 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">Select Date & Time</h2>
+        <h2 className="text-xl font-bold text-gray-900">{t('bookArtist.dateTime')}</h2>
         
         {/* Multi-day booking toggle */}
-        <div className="flex items-center space-x-3">
-          <span className="text-sm font-medium text-gray-700">Single Day</span>
+        <div className="flex items-center space-x-3 rtl:space-x-reverse">
+          <span className="text-sm font-medium text-gray-700">{t('bookArtist.singleDay')}</span>
           <button
             onClick={handleMultiDayToggle}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
@@ -1067,11 +1067,11 @@ function DateTimeStep({ formData, setFormData, availability, errors, setErrors, 
           >
             <span
               className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                isMultiDay ? 'translate-x-6' : 'translate-x-1'
+                isMultiDay ? 'translate-x-6 rtl:-translate-x-6' : 'translate-x-1 rtl:-translate-x-1'
               }`}
             />
           </button>
-          <span className="text-sm font-medium text-gray-700">Multiple Days</span>
+          <span className="text-sm font-medium text-gray-700">{t('bookArtist.multipleDays')}</span>
         </div>
       </div>
 
@@ -1079,11 +1079,11 @@ function DateTimeStep({ formData, setFormData, availability, errors, setErrors, 
       {isMultiDay && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex items-start">
-            <Info className="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
+            <Info className="w-5 h-5 text-blue-600 mr-2 rtl:mr-0 rtl:ml-2 mt-0.5 flex-shrink-0" />
             <div>
-              <p className="text-blue-800 font-medium">Multi-Day Booking</p>
+              <p className="text-blue-800 font-medium">{t('bookArtist.multiDayBooking')}</p>
               <p className="text-blue-700 text-sm mt-1">
-                You can book multiple days. Each day can have up to {artist?.maximumPerformanceHours || 4} hours of performance.
+                {t('bookArtist.multiDayInfo', { hours: artist?.maximumPerformanceHours || 4 })}
               </p>
             </div>
           </div>
@@ -1110,8 +1110,8 @@ function DateTimeStep({ formData, setFormData, availability, errors, setErrors, 
             >
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-4 rtl:space-x-reverse">
+                    <div className="flex items-center space-x-2 rtl:space-x-reverse">
                       <span className={`font-medium ${focusedDate === dateItem.date ? 'text-purple-900' : 'text-gray-900'}`}>
                         Day {index + 1}: {dateItem.date}
                       </span>
@@ -1121,7 +1121,7 @@ function DateTimeStep({ formData, setFormData, availability, errors, setErrors, 
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 rtl:space-x-reverse">
                       <select
                         value={dateItem.startTime ? dateItem.startTime.split(':')[0] : ''}
                         onChange={(e) => updateMultiDayTime(dateItem.date, `${e.target.value}:00`, dateItem.endTime)}

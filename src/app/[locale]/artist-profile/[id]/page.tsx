@@ -323,7 +323,7 @@ export default function ArtistProfilePage() {
                     
                     {/* Category Badge */}
                     <div className="inline-flex items-center bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white px-6 py-3 rounded-full text-sm font-semibold shadow-lg">
-                      <Music className="w-4 h-4 mr-2" />
+                      <Music className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
                       {artist.category || 'Artist'}
                     </div>
                   </div>
@@ -332,7 +332,7 @@ export default function ArtistProfilePage() {
                   <div className="mb-8">
                     <h3 className="text-base font-semibold text-gray-800 mb-4 flex items-center">
                       <Music className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2 text-[#391C71]" />
-                      Performance Modes
+                      {t('artistProfile.performanceModes')}
                     </h3>
                     <div className="flex flex-wrap gap-3">
                       {artist.performPreference?.map((pref, index) => (
@@ -352,12 +352,12 @@ export default function ArtistProfilePage() {
                   <div className="grid grid-cols-3 gap-4 mb-8">
                     <div className="text-center p-3 bg-gradient-to-r from-[#391C71]/10 to-purple-100 rounded-2xl border border-[#391C71]/20">
                       <div className="text-2xl font-bold text-[#391C71] mb-1">{artist.yearsOfExperience}</div>
-                      <div className="text-xs text-gray-600 font-medium">Years Experience</div>
+                      <div className="text-xs text-gray-600 font-medium">{t('artistProfile.yearsExperienceLabel')}</div>
                       <Clock className="w-4 h-4 text-[#391C71] mx-auto mt-2" />
                     </div>
                     <div className="text-center p-3 bg-gradient-to-r from-[#391C71]/10 to-purple-100 rounded-2xl border border-[#391C71]/20">
                       <div className="text-2xl font-bold text-[#391C71] mb-1">{artist.likeCount || 0}</div>
-                      <div className="text-xs text-gray-600 font-medium">Likes</div>
+                      <div className="text-xs text-gray-600 font-medium">{t('artistProfile.likesLabel')}</div>
                       <Star className="w-4 h-4 text-[#391C71] mx-auto mt-2" />
                     </div>
                     <div className="text-center p-3 bg-gradient-to-r from-[#391C71]/10 to-purple-100 rounded-2xl border border-[#391C71]/20">
@@ -365,20 +365,20 @@ export default function ArtistProfilePage() {
                         {getPricingDisplay().mainPrice}
                       </div>
                       <div className="text-xs text-gray-600 font-medium">
-                        KWD Per Hour
+                        {t('artistProfile.kwdPerHour')}
                       </div>
-                      <div className="text-xs text-[#391C71] font-medium mt-1">Price</div>
+                      <div className="text-xs text-[#391C71] font-medium mt-1">{t('artistProfile.priceLabel')}</div>
                     </div>
                   </div>
 
                   {/* Location */}
                   <div className="mb-8">
                     <div className="flex items-center bg-gradient-to-r from-[#391C71]/10 to-purple-100 border border-[#391C71]/20 rounded-2xl p-3">
-                      <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3">
+                      <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3 rtl:mr-0 rtl:ml-3">
                         <MapPin className="w-4 h-4 text-white" />
                       </div>
                       <div>
-                        <div className="text-xs font-medium text-gray-600 uppercase tracking-wide">Based in</div>
+                        <div className="text-xs font-medium text-gray-600 uppercase tracking-wide">{t('artistProfile.basedIn')}</div>
                         <div className="text-base font-bold text-gray-900">{artist.country || 'Kuwait'}</div>
                       </div>
                     </div>
@@ -388,10 +388,10 @@ export default function ArtistProfilePage() {
                   {hasDynamicPricing && pricingData && (pricingData.privatePricing || pricingData.privateTimeSlotPricing || pricingData.basePrivateRate) && (
                     <div className="mb-8">
                       <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                        <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3">
+                        <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3 rtl:mr-0 rtl:ml-3">
                           <Star className="w-4 h-4 text-white" />
                         </div>
-                        Pricing Details
+                        {t('artistProfile.pricingDetails')}
                       </h3>
                       <div className="bg-gradient-to-r from-[#391C71]/10 to-purple-100 rounded-2xl p-4 border border-[#391C71]/20">
                         <div className="grid grid-cols-1 gap-4">
@@ -742,7 +742,7 @@ export default function ArtistProfilePage() {
                     <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3 rtl:mr-0 rtl:ml-3">
                       <QrCode className="w-4 h-4 text-white" />
                     </div>
-                    QR Code
+                    {t('artistProfile.qrCode')}
                   </h4>
                   {qrCodeUrl && (
                     <div className="bg-white p-6 rounded-2xl shadow-inner mb-6 border-4 border-gray-100">
@@ -756,7 +756,7 @@ export default function ArtistProfilePage() {
                     </div>
                   )}
                   <p className="text-xs text-gray-600 mb-4 bg-gradient-to-r from-[#391C71]/10 to-purple-100 p-3 rounded-xl border border-[#391C71]/20">
-                    📱 Scan to view this profile instantly
+                    📱 {t('artistProfile.scanInstruction')}
                   </p>
                   
                   {/* QR Actions */}
@@ -777,7 +777,7 @@ export default function ArtistProfilePage() {
                       className="w-full bg-gradient-to-r from-gray-500 to-gray-600 text-white px-4 py-3 rounded-2xl font-semibold hover:from-gray-600 hover:to-gray-500 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-2"
                     >
                       <QrCode className="w-3 h-3" />
-                      <span className="text-sm">Copy Link</span>
+                      <span className="text-sm">{t('artistProfile.copyLink')}</span>
                     </button>
                   </div>
                 </div>
