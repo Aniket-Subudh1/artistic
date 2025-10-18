@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { Navbar } from '@/components/main/Navbar';
 import { Footer } from '@/components/main/Footer';
+import { TranslatedDataWrapper } from '@/components/ui/TranslatedDataWrapper';
 import { CustomEquipmentPackages } from '@/components/equipment-provider/CustomEquipmentPackages';
 import { useAuthLogic } from '@/hooks/useAuth';
 
@@ -345,8 +346,15 @@ export default function PackagesPage() {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {filteredPackages.map((pkg, index) => (
+            <TranslatedDataWrapper 
+              data={filteredPackages}
+              translateFields={['name', 'description', 'category', 'features', 'specifications', 'adminNotes']}
+              preserveFields={['totalPrice', 'coverImage', 'imageUrl', '_id', 'createdBy', 'status', 'visibility', 'roleRef', 'createdAt', 'updatedAt', 'pricePerDay', 'quantity', 'images']}
+              showLoadingOverlay={false}
+            >
+              {(translatedPackages, isTranslating) => (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                  {(translatedPackages as EquipmentPackage[]).map((pkg, index) => (
                 <Link 
                   key={pkg._id} 
                   href={`/package-details/${pkg._id}`}
@@ -440,12 +448,13 @@ export default function PackagesPage() {
                     </div>
                   </div>
                 </Link>
-              ))}
-            </div>
+                  ))}
+                </div>
+              )}
+            </TranslatedDataWrapper>
           )}
             </div>
           ) : (
-            /* Custom Packages */
             <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-8">
               {isAuthenticated ? (
                 <CustomEquipmentPackages showCreateButton={true} />

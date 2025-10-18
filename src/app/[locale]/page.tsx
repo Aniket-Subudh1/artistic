@@ -17,6 +17,27 @@ export default function HomePage() {
   const t = useTranslations();
   const [scrollY, setScrollY] = useState(0);
 
+  const testimonials = [
+    {
+      name: t('home.testimonialsData.sarah.name'),
+      role: t('home.testimonialsData.sarah.role'),
+      content: t('home.testimonialsData.sarah.content'),
+      avatar: '/assets/images/testimonial1.jpg',
+    },
+    {
+      name: t('home.testimonialsData.michael.name'),
+      role: t('home.testimonialsData.michael.role'),
+      content: t('home.testimonialsData.michael.content'),
+      avatar: '/assets/images/testimonial2.jpg',
+    },
+    {
+      name: t('home.testimonialsData.emma.name'),
+      role: t('home.testimonialsData.emma.role'),
+      content: t('home.testimonialsData.emma.content'),
+      avatar: '/assets/images/testimonial3.jpg',
+    },
+  ];
+
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener('scroll', handleScroll);
@@ -35,41 +56,37 @@ export default function HomePage() {
     },
     {
       image: '/3.jpg',
-      title: 'Experience Live',
-      titleHighlight: 'Music Concerts!',
-      subtitle:
-        'Feel the rhythm and energy of live performances from world-class artists and emerging talents.',
-      ctaText: 'Book Concert',
+      title: t('home.carousel.slide2.title'),
+      titleHighlight: t('home.carousel.slide2.titleHighlight'),
+      subtitle: t('home.carousel.slide2.subtitle'),
+      ctaText: t('home.carousel.slide2.ctaText'),
       ctaLink: '/coming-soon',
       category: 'Music',
     },
     {
       image: '/5.jpg',
-      title: 'Immerse in',
-      titleHighlight: 'Art Exhibitions!',
-      subtitle:
-        'Discover contemporary and classical artworks from renowned galleries and independent artists.',
-      ctaText: 'Explore Art',
+      title: t('home.carousel.slide3.title'),
+      titleHighlight: t('home.carousel.slide3.titleHighlight'),
+      subtitle: t('home.carousel.slide3.subtitle'),
+      ctaText: t('home.carousel.slide3.ctaText'),
       ctaLink: '/coming-soon',
       category: 'Art',
     },
     {
       image: '/7.jpg',
-      title: 'Join Creative',
-      titleHighlight: 'Workshops!',
-      subtitle:
-        'Learn new skills and techniques from expert instructors in hands-on creative sessions.',
-      ctaText: 'Join Workshop',
+      title: t('home.carousel.slide4.title'),
+      titleHighlight: t('home.carousel.slide4.titleHighlight'),
+      subtitle: t('home.carousel.slide4.subtitle'),
+      ctaText: t('home.carousel.slide4.ctaText'),
       ctaLink: '/coming-soon',
       category: 'Workshop',
     },
     {
       image: '/8.jpg',
-      title: 'Concerts',
-      titleHighlight: 'At Home!',
-      subtitle:
-        'Enjoy live concert experiences from the comfort',
-      ctaText: 'Stream Now',
+      title: t('home.carousel.slide5.title'),
+      titleHighlight: t('home.carousel.slide5.titleHighlight'),
+      subtitle: t('home.carousel.slide5.subtitle'),
+      ctaText: t('home.carousel.slide5.ctaText'),
       ctaLink: '/coming-soon',
       category: 'Movies',
     },
@@ -80,10 +97,9 @@ export default function HomePage() {
       id: 1,
       image: '/25.jpg',
       category: t('categories.music'),
-      title: 'Jazz Fusion Night',
-      description:
-        'Experience an evening of innovative jazz fusion from international artists',
-      place: 'Blue Note Hall',
+      title: t('home.featuredEventsData.jazzFusionNight.title'),
+      description: t('home.featuredEventsData.jazzFusionNight.description'),
+      place: t('home.featuredEventsData.jazzFusionNight.place'),
       price: 25,
       rating: 4.8,
     },
@@ -91,10 +107,9 @@ export default function HomePage() {
       id: 2,
       image: '/29.jpg',
       category: t('categories.artExhibition'),
-      title: 'Contemporary Visions',
-      description:
-        'A groundbreaking exhibition featuring works from emerging artists',
-      place: 'Modern Art Gallery',
+      title: t('home.featuredEventsData.contemporaryVisions.title'),
+      description: t('home.featuredEventsData.contemporaryVisions.description'),
+      place: t('home.featuredEventsData.contemporaryVisions.place'),
       price: 15,
       rating: 4.9,
     },
@@ -102,10 +117,9 @@ export default function HomePage() {
       id: 3,
       image: '/13.jpg',
       category: t('categories.theater'),
-      title: 'The Silent Echo',
-      description:
-        'A powerful performance exploring themes of identity and connection',
-      place: 'Aurora Theatre',
+      title: t('home.featuredEventsData.silentEcho.title'),
+      description: t('home.featuredEventsData.silentEcho.description'),
+      place: t('home.featuredEventsData.silentEcho.place'),
       price: 30,
       rating: 4.7,
     },
@@ -113,9 +127,9 @@ export default function HomePage() {
       id: 4,
       image: '/56.jpg',
       category: t('categories.workshop'),
-      title: 'Pottery Masterclass',
-      description: 'Learn pottery techniques from expert ceramic artists',
-      place: 'Creative Studio',
+      title: t('home.featuredEventsData.potteryMasterclass.title'),
+      description: t('home.featuredEventsData.potteryMasterclass.description'),
+      place: t('home.featuredEventsData.potteryMasterclass.place'),
       price: 40,
       rating: 4.6,
     },
@@ -192,7 +206,7 @@ export default function HomePage() {
                     {event.place}
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="font-bold text-gray-900 text-xl">KD {event.price}</span>
+                    <span className="font-bold text-gray-900 text-xl">{t('currency')} {event.price}</span>
                     <span className="bg-[#391C71] text-white px-5 py-2 rounded-full text-sm font-medium group-hover:bg-[#5B2C87] transition-all duration-300 shadow-lg">
                       {t('home.bookNow')}
                     </span>
@@ -223,11 +237,11 @@ export default function HomePage() {
       <section className="py-20 max-w-7xl mx-auto px-6 relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-5xl font-bold text-gray-900 mb-6 relative">
-            Book Equipment Packages
+            {t('home.equipmentPackages.title')}
             <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 h-1 bg-[#391C71] rounded-full" />
           </h2>
           <p className="text-gray-600 text-xl max-w-3xl mx-auto leading-relaxed">
-            Complete equipment solutions for your events - professionally curated packages at discounted rates
+            {t('home.equipmentPackages.description')}
           </p>
         </div>
 
@@ -241,7 +255,7 @@ export default function HomePage() {
             href="/packages"
             className="inline-block bg-white border-2 border-[#391C71] text-[#391C71] px-10 py-4 rounded-full hover:bg-[#391C71] hover:text-white transition-all duration-500 font-medium shadow-xl hover:shadow-2xl hover:shadow-[#391C71]/20 hover:scale-105"
           >
-            View All Packages
+            {t('home.equipmentPackages.viewAllPackages')}
           </Link>
         </div>
       </section>
@@ -298,29 +312,7 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                name: 'Sarah Johnson',
-                role: 'Corporate Event Planner',
-                content:
-                  'Artistic transformed our annual corporate gala into something truly memorable. The attention to detail and flawless execution exceeded our expectations.',
-                avatar: '/assets/images/testimonial1.jpg',
-              },
-              {
-                name: 'Michael Chen',
-                role: 'Wedding Organizer',
-                content:
-                  'Our wedding day was absolute perfection thanks to the Artistic team. Every moment was captured beautifully.',
-                avatar: '/assets/images/testimonial2.jpg',
-              },
-              {
-                name: 'Emma Rodriguez',
-                role: 'Art Gallery Director',
-                content:
-                  'Artistic not only met but exceeded our standards. The space design complemented our artwork perfectly.',
-                avatar: '/assets/images/testimonial3.jpg',
-              },
-            ].map((testimonial, idx) => (
+            {testimonials.map((testimonial, idx) => (
               <div
                 key={idx}
                 className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl hover:shadow-2xl hover:shadow-[#391C71]/10 transition-all duration-500 transform hover:-translate-y-1 group"

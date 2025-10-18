@@ -8,6 +8,7 @@ import { useAuthLogic } from '@/hooks/useAuth';
 import { ArtistService, Artist, PortfolioItem, ArtistPricingData } from '@/services/artist.service';
 import { getYouTubeEmbedUrl } from '@/lib/youtube';
 import Image from 'next/image';
+import { TranslatedDataWrapper } from '@/components/ui/TranslatedDataWrapper';
 import { 
   MapPin, 
   Star, 
@@ -277,7 +278,14 @@ export default function ArtistProfilePage() {
 
       {/* Main Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-6 -mt-20">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <TranslatedDataWrapper 
+          data={artist}
+          translateFields={['bio', 'description', 'specialization', 'skills', 'experience', 'about', 'genre', 'style', 'stageName', 'category', 'performPreference', 'musicLanguages', 'awards', 'genres']}
+          preserveFields={['pricePerHour', 'profileImage', 'country', 'contactNumber', 'email', '_id', 'user', 'yearsOfExperience', 'youtubeLink', 'createdAt', 'updatedAt']}
+          showLoadingOverlay={false}
+        >
+          {(translatedArtist, isTranslating) => (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Left Column - Main Info */}
           <div className="lg:col-span-2 space-y-6">
@@ -296,14 +304,14 @@ export default function ArtistProfilePage() {
                   {artist.profileImage ? (
                     <Image
                       src={artist.profileImage}
-                      alt={artist.stageName}
+                      alt={(translatedArtist as Artist).stageName}
                       fill
                       className="object-cover rounded-3xl border-4 border-white shadow-lg relative z-10"
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-blue-500 to-[#391C71] rounded-3xl flex items-center justify-center border-4 border-white shadow-lg relative z-10">
                       <span className="text-5xl font-bold text-white">
-                        {artist.stageName.charAt(0).toUpperCase()}
+                        {(translatedArtist as Artist).stageName.charAt(0).toUpperCase()}
                       </span>
                     </div>
                   )}
@@ -317,14 +325,14 @@ export default function ArtistProfilePage() {
                 <div className="flex-1 min-w-0">
                   <div className="mb-6">
                     <h1 className="text-5xl font-bold text-gray-900 mb-3 tracking-tight">
-                      {artist.stageName}
+                      {(translatedArtist as Artist).stageName}
                     </h1>
                     
                     
                     {/* Category Badge */}
                     <div className="inline-flex items-center bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white px-6 py-3 rounded-full text-sm font-semibold shadow-lg">
                       <Music className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                      {artist.category || 'Artist'}
+                      {(translatedArtist as Artist).category || 'Artist'}
                     </div>
                   </div>
 
@@ -335,7 +343,7 @@ export default function ArtistProfilePage() {
                       {t('artistProfile.performanceModes')}
                     </h3>
                     <div className="flex flex-wrap gap-3">
-                      {artist.performPreference?.map((pref, index) => (
+                      {(translatedArtist as Artist).performPreference?.map((pref, index) => (
                         <div
                           key={index}
                           className="group relative"
@@ -397,7 +405,7 @@ export default function ArtistProfilePage() {
                         <div className="grid grid-cols-1 gap-4">
                           {/* Private Performance Only */}
                           <div className="bg-white/50 rounded-xl p-3">
-                            <h4 className="text-sm font-semibold text-[#391C71] mb-2">Private Performance</h4>
+                            <h4 className="text-sm font-semibold text-[#391C71] mb-2">{t('artistProfile.privatePerformance')}</h4>
                             {pricingData.pricingMode === 'duration' ? (
                               <div className="space-y-1">
                                 {pricingData.privatePricing?.map((price, index) => (
@@ -426,7 +434,7 @@ export default function ArtistProfilePage() {
                           </div>
                         </div>
                         <div className="mt-3 text-xs text-gray-600 text-center">
-                          Pricing mode: {pricingData.pricingMode === 'duration' ? 'Duration-based' : 'Time slot-based'}
+                          {t('artistProfile.pricingMode')}: {pricingData.pricingMode === 'duration' ? t('artistProfile.durationBased') : t('artistProfile.timeSlotBased')}
                         </div>
                       </div>
                     </div>
@@ -455,7 +463,7 @@ export default function ArtistProfilePage() {
             </div>
 
             {/* About Section */}
-            {artist.about && (
+            {(translatedArtist as Artist).about && (
               <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 relative overflow-hidden">
                 <div className="absolute top-0 left-0 rtl:left-auto rtl:right-0 w-20 h-20 bg-gradient-to-br rtl:bg-gradient-to-bl from-[#391C71]/20 to-transparent rounded-br-full rtl:rounded-br-none rtl:rounded-bl-full"></div>
                 <div className="relative z-10">
@@ -463,10 +471,10 @@ export default function ArtistProfilePage() {
                     <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3 rtl:mr-0 rtl:ml-3">
                       <Users className="w-4 h-4 text-white" />
                     </div>
-                    {t('artistProfile.about')} {artist.stageName}
+                    {t('artistProfile.about')} {(translatedArtist as Artist).stageName}
                   </h2>
                   <div className="bg-gradient-to-r from-[#391C71]/10 to-purple-100 rounded-2xl p-4 border border-[#391C71]/20">
-                    <p className="text-gray-700 leading-relaxed text-sm">{artist.about}</p>
+                    <p className="text-gray-700 leading-relaxed text-sm">{(translatedArtist as Artist).about}</p>
                   </div>
                 </div>
               </div>
@@ -476,7 +484,7 @@ export default function ArtistProfilePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
               {/* Skills */}
-              {artist.skills && artist.skills.length > 0 && (
+              {(translatedArtist as Artist).skills && (translatedArtist as Artist).skills.length > 0 && (
                 <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 relative overflow-hidden">
                   <div className="absolute top-0 right-0 rtl:right-auto rtl:left-0 w-16 h-16 bg-gradient-to-bl rtl:bg-gradient-to-br from-[#391C71]/20 to-transparent rounded-bl-full rtl:rounded-bl-none rtl:rounded-br-full"></div>
                   <div className="relative z-10">
@@ -487,7 +495,7 @@ export default function ArtistProfilePage() {
                       {t('artistProfile.skills')}
                     </h3>
                     <div className="flex flex-wrap gap-3">
-                      {artist.skills.map((skill, index) => (
+                      {(translatedArtist as Artist).skills.map((skill, index) => (
                         <span
                           key={index}
                           className="bg-gradient-to-r from-[#391C71]/10 to-purple-100 text-[#391C71] px-3 py-2 rounded-2xl text-sm font-semibold border border-[#391C71]/20 hover:scale-105 transition-transform duration-200 shadow-sm"
@@ -501,7 +509,7 @@ export default function ArtistProfilePage() {
               )}
 
               {/* Languages */}
-              {artist.musicLanguages && artist.musicLanguages.length > 0 && (
+              {(translatedArtist as Artist).musicLanguages && (translatedArtist as Artist).musicLanguages.length > 0 && (
                 <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 relative overflow-hidden">
                   <div className="absolute top-0 right-0 rtl:right-auto rtl:left-0 w-16 h-16 bg-gradient-to-bl rtl:bg-gradient-to-br from-[#391C71]/20 to-transparent rounded-bl-full rtl:rounded-bl-none rtl:rounded-br-full"></div>
                   <div className="relative z-10">
@@ -512,7 +520,7 @@ export default function ArtistProfilePage() {
                       {t('artistProfile.languages')}
                     </h3>
                     <div className="flex flex-wrap gap-3">
-                      {artist.musicLanguages.map((language, index) => (
+                      {(translatedArtist as Artist).musicLanguages.map((language, index) => (
                         <span
                           key={index}
                           className="bg-gradient-to-r from-[#391C71]/10 to-purple-100 text-[#391C71] px-3 py-2 rounded-2xl text-sm font-semibold border border-[#391C71]/20 hover:scale-105 transition-transform duration-200 shadow-sm"
@@ -526,7 +534,7 @@ export default function ArtistProfilePage() {
               )}
 
               {/* Genres */}
-              {artist.genres && artist.genres.length > 0 && (
+              {(translatedArtist as Artist).genres && (translatedArtist as Artist).genres.length > 0 && (
                 <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 relative overflow-hidden">
                   <div className="absolute top-0 right-0 rtl:right-auto rtl:left-0 w-16 h-16 bg-gradient-to-bl rtl:bg-gradient-to-br from-[#391C71]/20 to-transparent rounded-bl-full rtl:rounded-bl-none rtl:rounded-br-full"></div>
                   <div className="relative z-10">
@@ -537,7 +545,7 @@ export default function ArtistProfilePage() {
                       {t('artistProfile.genres')}
                     </h3>
                     <div className="flex flex-wrap gap-3">
-                      {artist.genres.map((genre, index) => (
+                      {(translatedArtist as Artist).genres.map((genre, index) => (
                         <span
                           key={index}
                           className="bg-gradient-to-r from-[#391C71]/10 to-purple-100 text-[#391C71] px-3 py-2 rounded-2xl text-sm font-semibold border border-[#391C71]/20 hover:scale-105 transition-transform duration-200 shadow-sm"
@@ -551,7 +559,7 @@ export default function ArtistProfilePage() {
               )}
 
               {/* Awards */}
-              {artist.awards && artist.awards.length > 0 && (
+              {(translatedArtist as Artist).awards && (translatedArtist as Artist).awards.length > 0 && (
                 <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#391C71]/20 to-transparent rounded-bl-full"></div>
                   <div className="relative z-10">
@@ -562,7 +570,7 @@ export default function ArtistProfilePage() {
                       {t('artistProfile.awards')}
                     </h3>
                     <div className="space-y-3">
-                      {artist.awards.map((award, index) => (
+                      {(translatedArtist as Artist).awards.map((award, index) => (
                         <div
                           key={index}
                           className="bg-gradient-to-r from-[#391C71]/10 to-purple-100 border-l-4 rtl:border-l-0 rtl:border-r-4 border-[#391C71] p-3 rounded-r-2xl rtl:rounded-r-none rtl:rounded-l-2xl shadow-sm hover:shadow-md transition-shadow duration-200"
@@ -615,7 +623,7 @@ export default function ArtistProfilePage() {
                     </div>
                     {t('artistProfile.portfolio')}
                     <span className="ml-3 rtl:ml-0 rtl:mr-3 bg-gradient-to-r from-[#391C71]/10 to-purple-100 text-[#391C71] px-3 py-1 rounded-full text-xs font-semibold">
-                      {portfolioItems.length} items
+                      {portfolioItems.length} {t('artistProfile.items')}
                     </span>
                   </h3>
                   
@@ -643,7 +651,7 @@ export default function ArtistProfilePage() {
                               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
                               <div className="absolute top-2 left-2 rtl:left-auto rtl:right-2 bg-[#391C71] text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
                                 <Camera className="w-3 h-3" />
-                                Image
+                                {t('artistProfile.image')}
                               </div>
                             </div>
                           ) : item.type === 'video' ? (
@@ -661,7 +669,7 @@ export default function ArtistProfilePage() {
                               </div>
                               <div className="absolute top-2 left-2 rtl:left-auto rtl:right-2 bg-[#391C71] text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
                                 <Video className="w-3 h-3" />
-                                Video
+                                {t('artistProfile.video')}
                               </div>
                             </div>
                           ) : (
@@ -669,7 +677,7 @@ export default function ArtistProfilePage() {
                               <Music className="w-12 h-12 text-[#391C71]" />
                               <div className="absolute top-2 left-2 rtl:left-auto rtl:right-2 bg-[#391C71] text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
                                 <Music className="w-3 h-3" />
-                                Audio
+                                {t('artistProfile.audio')}
                               </div>
                             </div>
                           )}
@@ -797,7 +805,9 @@ export default function ArtistProfilePage() {
               </div>
             </div>
           </div>
-        </div>
+            </div>
+          )}
+        </TranslatedDataWrapper>
       </div>
 
       <div className="mt-20">

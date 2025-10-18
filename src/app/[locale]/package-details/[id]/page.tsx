@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Navbar } from '@/components/main/Navbar';
 import { Footer } from '@/components/main/Footer';
+import { TranslatedDataWrapper } from '@/components/ui/TranslatedDataWrapper';
 import QRCode from 'qrcode';
 
 export default function PackageDetailsPage() {
@@ -150,10 +151,17 @@ export default function PackageDetailsPage() {
           <span className="text-gray-700 font-medium">Back</span>
         </button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* Left Column - Main Info */}
-          <div className="lg:col-span-2 space-y-6">
+        <TranslatedDataWrapper 
+          data={packageData}
+          translateFields={['name', 'description', 'category', 'features', 'specifications', 'adminNotes']}
+          preserveFields={['totalPrice', 'coverImage', 'imageUrl', '_id', 'createdBy', 'status', 'visibility', 'roleRef', 'createdAt', 'updatedAt', 'pricePerDay', 'quantity', 'images']}
+          showLoadingOverlay={false}
+        >
+          {(translatedPackage, isTranslating) => (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              
+              {/* Left Column - Main Info */}
+              <div className="lg:col-span-2 space-y-6">
             
             {/* Package Profile Card */}
             <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-8 relative overflow-hidden">
@@ -165,10 +173,10 @@ export default function PackageDetailsPage() {
                   
                   {/* Package Image */}
                   <div className="lg:w-48 lg:h-48 w-32 h-32 mx-auto lg:mx-0 relative overflow-hidden rounded-3xl shadow-2xl border-4 border-white group">
-                    {packageData.coverImage || packageData.imageUrl ? (
+                    {translatedPackage.coverImage || translatedPackage.imageUrl ? (
                       <Image
-                        src={packageData.coverImage || packageData.imageUrl || ''}
-                        alt={packageData.name}
+                        src={translatedPackage.coverImage || translatedPackage.imageUrl || ''}
+                        alt={translatedPackage.name}
                         fill
                         className="object-cover group-hover:scale-110 transition-transform duration-500"
                       />
@@ -182,11 +190,11 @@ export default function PackageDetailsPage() {
                   {/* Package Info */}
                   <div className="flex-1 text-center lg:text-left">
                     <h1 className="text-3xl font-bold text-gray-900 mb-3">
-                      {packageData.name}
+                      {translatedPackage.name}
                     </h1>
                     
                     <p className="text-gray-600 mb-4 text-base leading-relaxed">
-                      {packageData.description}
+                      {translatedPackage.description}
                     </p>
                     
                     {/* Category Badge */}
@@ -200,14 +208,14 @@ export default function PackageDetailsPage() {
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 gap-4 mb-8">
                   <div className="text-center p-3 bg-gradient-to-r from-[#391C71]/10 to-purple-100 rounded-2xl border border-[#391C71]/20">
-                    <div className="text-2xl font-bold text-[#391C71] mb-1">{packageData.items.length}</div>
+                    <div className="text-2xl font-bold text-[#391C71] mb-1">{translatedPackage.items.length}</div>
                     <div className="text-xs text-gray-600 font-medium">Equipment Items</div>
                     <Package className="w-4 h-4 text-[#391C71] mx-auto mt-2" />
                   </div>
                   <div className="text-center p-3 bg-gradient-to-r from-[#391C71]/10 to-purple-100 rounded-2xl border border-[#391C71]/20">
-                    <div className="text-2xl font-bold text-[#391C71] mb-1">{packageData.totalPrice}</div>
+                    <div className="text-2xl font-bold text-[#391C71] mb-1">{translatedPackage.totalPrice}</div>
                     <div className="text-xs text-gray-600 font-medium">KWD Per Day</div>
-                    <div className="text-base text-[#391C71] mx-auto mt-1">�</div>
+                    <div className="text-base text-[#391C71] mx-auto mt-1">💰</div>
                   </div>
                 </div>
 
@@ -220,7 +228,7 @@ export default function PackageDetailsPage() {
                     <div>
                       <div className="text-xs font-medium text-gray-600 uppercase tracking-wide">Created by</div>
                       <div className="text-base font-bold text-gray-900">
-                        {packageData.createdBy.firstName} {packageData.createdBy.lastName}
+                        {translatedPackage.createdBy.firstName} {translatedPackage.createdBy.lastName}
                       </div>
                     </div>
                   </div>
@@ -234,7 +242,7 @@ export default function PackageDetailsPage() {
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                     <Calendar className="w-6 h-6 relative z-10" />
-                    <span className="relative z-10">Book Package - {packageData.totalPrice} KWD/day</span>
+                    <span className="relative z-10">Book Package - {translatedPackage.totalPrice} KWD/day</span>
                   </button>
                 </div>
               </div>
@@ -248,10 +256,10 @@ export default function PackageDetailsPage() {
                   <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3">
                     <Package className="w-4 h-4 text-white" />
                   </div>
-                  Equipment Items ({packageData.items.length})
+                  Equipment Items ({translatedPackage.items.length})
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {packageData.items.map((item, index) => (
+                  {translatedPackage.items.map((item, index) => (
                     <div
                       key={index}
                       className="bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-2xl p-4 border border-[#391C71]/10 hover:shadow-md transition-shadow duration-200"
@@ -296,7 +304,7 @@ export default function PackageDetailsPage() {
             </div>
 
             {/* Package Images Gallery */}
-            {packageData.images && packageData.images.length > 0 && (
+            {translatedPackage.images && translatedPackage.images.length > 0 && (
               <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-[#391C71]/20 to-transparent rounded-br-full"></div>
                 <div className="relative z-10">
@@ -307,7 +315,7 @@ export default function PackageDetailsPage() {
                     Package Gallery
                   </h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {packageData.images.map((image, index) => (
+                    {translatedPackage.images.map((image, index) => (
                       <div
                         key={index}
                         className="aspect-square relative overflow-hidden rounded-2xl border-2 border-white shadow-lg hover:shadow-xl transition-shadow duration-300"
@@ -404,7 +412,7 @@ export default function PackageDetailsPage() {
                   <div className="text-center bg-gradient-to-r from-[#391C71]/10 to-purple-100 p-4 rounded-2xl border border-[#391C71]/20">
                     <p className="text-xs text-gray-600 mb-2 font-medium">📦 Created on</p>
                     <p className="font-bold text-gray-900 text-sm">
-                      {new Date(packageData.createdAt).toLocaleDateString('en-US', {
+                      {new Date(translatedPackage.createdAt).toLocaleDateString('en-US', {
                         month: 'long',
                         day: 'numeric',
                         year: 'numeric'
@@ -415,7 +423,9 @@ export default function PackageDetailsPage() {
               </div>
             </div>
           </div>
-        </div>
+            </div>
+          )}
+        </TranslatedDataWrapper>
       </div>
 
       <div className="mt-20">

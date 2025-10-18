@@ -135,8 +135,79 @@
     "ctaSubtitle": "Let our team of experts bring your vision to life. Book a consultation today.",
     "contactUs": "Contact Us",
     "testimonials": "What Our Clients Say",
-    "testimonialsDesc": "Hear from those who have experienced the Artistic difference"
+    "testimonialsDesc": "Hear from those who have experienced the Artistic difference",
+    "equipmentPackages": {
+      "title": "Book Equipment Packages",
+      "description": "Complete equipment solutions for your events - professionally curated packages at discounted rates",
+      "viewAllPackages": "View All Packages"
+    },
+    "carousel": {
+      "slide2": {
+        "title": "Experience Live",
+        "titleHighlight": "Music Concerts!",
+        "subtitle": "Feel the rhythm and energy of live performances from world-class artists and emerging talents.",
+        "ctaText": "Book Concert"
+      },
+      "slide3": {
+        "title": "Immerse in",
+        "titleHighlight": "Art Exhibitions!",
+        "subtitle": "Discover contemporary and classical artworks from renowned galleries and independent artists.",
+        "ctaText": "Explore Art"
+      },
+      "slide4": {
+        "title": "Join Creative",
+        "titleHighlight": "Workshops!",
+        "subtitle": "Learn new skills and techniques from expert instructors in hands-on creative sessions.",
+        "ctaText": "Join Workshop"
+      },
+      "slide5": {
+        "title": "Concerts",
+        "titleHighlight": "At Home!",
+        "subtitle": "Enjoy live concert experiences from the comfort",
+        "ctaText": "Stream Now"
+      }
+    },
+    "featuredEventsData": {
+      "jazzFusionNight": {
+        "title": "Jazz Fusion Night",
+        "description": "Experience an evening of innovative jazz fusion from international artists",
+        "place": "Blue Note Hall"
+      },
+      "contemporaryVisions": {
+        "title": "Contemporary Visions", 
+        "description": "A groundbreaking exhibition featuring works from emerging artists",
+        "place": "Modern Art Gallery"
+      },
+      "silentEcho": {
+        "title": "The Silent Echo",
+        "description": "A powerful performance exploring themes of identity and connection",
+        "place": "Aurora Theatre"
+      },
+      "potteryMasterclass": {
+        "title": "Pottery Masterclass",
+        "description": "Learn pottery techniques from expert ceramic artists",
+        "place": "Creative Studio"
+      }
+    },
+    "testimonialsData": {
+      "sarah": {
+        "name": "Sarah Johnson",
+        "role": "Corporate Event Planner",
+        "content": "Artistic transformed our annual corporate gala into something truly memorable. The attention to detail and flawless execution exceeded our expectations."
+      },
+      "michael": {
+        "name": "Michael Chen", 
+        "role": "Wedding Organizer",
+        "content": "Our wedding day was absolute perfection thanks to the Artistic team. Every moment was captured beautifully."
+      },
+      "emma": {
+        "name": "Emma Rodriguez",
+        "role": "Art Gallery Director", 
+        "content": "Artistic not only met but exceeded our standards. The space design complemented our artwork perfectly."
+      }
+    }
   },
+  "currency": "KD",
   "footer": {
     "tagline": "Connecting art lovers with extraordinary experiences.",
     "discover": "Discover",
@@ -278,9 +349,17 @@
     "likes": "likes",
     "views": "views",
     "loading": "Loading artist profile...",
-    "noDescription": "No description available"
+    "noDescription": "No description available",
+    "image": "Image",
+    "video": "Video",
+    "audio": "Audio",
+    "items": "items",
+    "pricingMode": "Pricing mode",
+    "durationBased": "Duration-based",
+    "timeSlotBased": "Time slot-based",
+    "privatePerformance": "Private Performance"
   },
-  "bookArtist": {
+  "bookArtistForm": {
     "title": "Book Artist",
     "step1": "Date & Time",
     "step2": "Event Details", 
@@ -349,6 +428,107 @@
     "loadingAvailability": "Loading availability...",
     "noAvailability": "No availability data found",
     "timeSlotUnavailable": "This time slot is not available",
-    "selectValidTimeSlot": "Please select a valid time slot"
+    "selectValidTimeSlot": "Please select a valid time slot",
+    "selectedDates": "Selected Dates",
+    "clickToEditTime": "Click on a date to edit its time slots on the calendar",
+    "day": "Day",
+    "editing": "Editing",
+    "startHour": "Start Hour",
+    "endHour": "End Hour",
+    "to": "to",
+    "hrs": "hrs",
+    "bookingProgress": "Booking Progress",
+    "backToProfile": "Back to Artist Profile",
+    "artistNotFound": "Artist Not Found",
+    "artistNotFoundDesc": "The artist you're looking for doesn't exist or is not available for booking.",
+    "goBack": "Go Back",
+    "close": "Close",
+    "errorLoading": "Error Loading Artist",
+    "errorMessage": "Unable to load artist information. Please try again or go back.",
+    "completeBooking": "Complete Booking",
+    "error": "Error",
+    "tryAgain": "Try Again",
+    "equipmentOptional": "Equipment Packages (Optional)",
+    "selectedEquipmentCost": "Selected equipment cost",
+    "enhanceEvent": "Enhance your event with professional equipment packages. Choose from provider packages or your custom combinations.",
+    "providerPackagesTab": "Provider Packages",
+    "customPackagesTab": "Custom Packages",
+    "noEquipmentAvailable": "No equipment packages available at the moment.",
+    "itemsIncluded": "items included",
+    "includes": "Includes:",
+    "moreItems": "more items",
+    "yourCustomPackages": "Your Custom Packages",
+    "createPackage": "Create Package",
+    "noCustomPackages": "No custom packages yet.",
+    "createFirstPackage": "Create Your First Custom Package",
+    "equipmentLabel": "Equipment:",
+    "packagesSelected": "package(s) selected",
+    "providerPackagesCount": "Provider packages:",
+    "customPackagesCount": "Custom packages:",
+    "totalEquipmentCostLabel": "Total equipment cost:",
+    "reviewYourBooking": "Review Your Booking",
+    "bookingSummary": "Booking Summary",
+    "artistLabel": "Artist:",
+    "bookingType": "Booking Type:",
+    "multiDay": "Multi-Day",
+    "daysLabel": "days",
+    "dayLabel": "Day",
+    "timeLabel": "Time:",
+    "durationLabel": "Duration:",
+    "totalDuration": "Total Duration:",
+    "dateLabel": "Date:",
+    "venueLabel": "Venue:",
+    "pricingLabel": "Pricing",
+    "calculatingArtistFee": "Calculating artist fee...",
+    "artistFeeLabel": "Artist Fee",
+    "hoursDynamicPricing": "hours - Dynamic Pricing",
+    "daysVariableRates": "days with variable rates",
+    "hoursVariableRates": "with variable rates",
+    "artistFeeHourly": "hours × {price} KWD/hour",
+    "equipmentPackagesLabel": "Equipment Packages:",
+    "providerLabel": "Provider",
+    "customLabel": "Custom",
+    "equipmentSubtotal": "Equipment Subtotal:",
+    "totalLabel": "Total:",
+    "contactDetailsLabel": "Contact Details",
+    "nameLabel": "Name:",
+    "emailLabel": "Email:",
+    "phoneLabel": "Phone:",
+    "importantNotice": "Important Notice",
+    "bookingSubjectApproval": "Your booking is subject to artist approval",
+    "paymentAfterConfirmation": "Payment will be processed after confirmation",
+    "cancellationPolicy": "Cancellation policy applies as per terms and conditions",
+    "confirmationEmail": "You will receive a confirmation email shortly"
+  },
+  "calendar": {
+    "selectDateTime": "Select Date & Time",
+    "chooseSlot": "Choose your preferred booking slot",
+    "availableSlots": "Available time slots for",
+    "sunday": "Sunday",
+    "monday": "Monday", 
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sun": "Sun",
+    "mon": "Mon",
+    "tue": "Tue", 
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "sat": "Sat",
+    "morning": "Morning",
+    "afternoon": "Afternoon",
+    "evening": "Evening",
+    "unavailable": "Unavailable",
+    "advanceNotice": "Bookings must be made at least 24 hours in advance",
+    "nightEarlyMorning": "Night/Early Morning (12:00 AM - 5:00 AM)",
+    "morningTime": "Morning (6:00 AM - 11:00 AM)",
+    "afternoonTime": "Afternoon (12:00 PM - 5:00 PM)",
+    "eveningTime": "Evening (6:00 PM - 9:00 PM)",
+    "lateNight": "Late Night (10:00 PM - 11:00 PM)",
+    "dynamicPricingInfo": "Dynamic pricing active - prices may vary by time slot. Artist availability includes performance constraints and cooldown periods.",
+    "loadingAvailability": "Loading availability and pricing..."
   }
 }

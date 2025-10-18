@@ -135,8 +135,79 @@
     "ctaSubtitle": "دع فريقنا من الخبراء يحقق رؤيتك. احجز استشارة اليوم.",
     "contactUs": "اتصل بنا",
     "testimonials": "ماذا يقول عملاؤنا",
-    "testimonialsDesc": "استمع من أولئك الذين اختبروا فرق Artistic"
+    "testimonialsDesc": "استمع من أولئك الذين اختبروا فرق Artistic",
+    "equipmentPackages": {
+      "title": "احجز حزم المعدات",
+      "description": "حلول معدات متكاملة لفعالياتك - حزم منسقة بشكل احترافي بأسعار مخفضة",
+      "viewAllPackages": "عرض جميع الحزم"
+    },
+    "carousel": {
+      "slide2": {
+        "title": "اختبر الحفلات",
+        "titleHighlight": "الموسيقية المباشرة!",
+        "subtitle": "اشعر بالإيقاع والطاقة من العروض المباشرة من فنانين عالميين ومواهب ناشئة.",
+        "ctaText": "احجز حفلة موسيقية"
+      },
+      "slide3": {
+        "title": "انغمس في",
+        "titleHighlight": "المعارض الفنية!",
+        "subtitle": "اكتشف الأعمال الفنية المعاصرة والكلاسيكية من المعارض المشهورة والفنانين المستقلين.",
+        "ctaText": "استكشف الفن"
+      },
+      "slide4": {
+        "title": "انضم إلى ورش",
+        "titleHighlight": "العمل الإبداعية!",
+        "subtitle": "تعلم مهارات وتقنيات جديدة من مدربين خبراء في جلسات إبداعية تطبيقية.",
+        "ctaText": "انضم للورشة"
+      },
+      "slide5": {
+        "title": "حفلات موسيقية",
+        "titleHighlight": "في المنزل!",
+        "subtitle": "استمتع بتجارب الحفلات المباشرة من الراحة",
+        "ctaText": "شاهد الآن"
+      }
+    },
+    "featuredEventsData": {
+      "jazzFusionNight": {
+        "title": "ليلة جاز فيوجن",
+        "description": "اختبر أمسية من جاز فيوجن المبتكر من فنانين عالميين",
+        "place": "قاعة النوتة الزرقاء"
+      },
+      "contemporaryVisions": {
+        "title": "رؤى معاصرة", 
+        "description": "معرض رائد يضم أعمالاً من فنانين ناشئين",
+        "place": "معرض الفن الحديث"
+      },
+      "silentEcho": {
+        "title": "الصدى الصامت",
+        "description": "عرض قوي يستكشف مواضيع الهوية والتواصل",
+        "place": "مسرح أورورا"
+      },
+      "potteryMasterclass": {
+        "title": "ورشة الفخار المتقدمة",
+        "description": "تعلم تقنيات الفخار من فناني السيراميك الخبراء",
+        "place": "الاستوديو الإبداعي"
+      }
+    },
+    "testimonialsData": {
+      "sarah": {
+        "name": "سارة جونسون",
+        "role": "منظمة فعاليات شركات",
+        "content": "حولت Artistic حفل الشركة السنوي إلى شيء لا يُنسى حقاً. الاهتمام بالتفاصيل والتنفيذ الخالي من العيوب فاق توقعاتنا."
+      },
+      "michael": {
+        "name": "مايكل تشن", 
+        "role": "منظم حفلات زفاف",
+        "content": "كان يوم زفافنا مثالياً تماماً بفضل فريق Artistic. تم التقاط كل لحظة بشكل جميل."
+      },
+      "emma": {
+        "name": "إيما رودريغيز",
+        "role": "مديرة معرض فني", 
+        "content": "لم تلبِ Artistic معاييرنا فحسب بل تجاوزتها. تصميم المساحة كمل أعمالنا الفنية بشكل مثالي."
+      }
+    }
   },
+  "currency": "د.ك",
   "footer": {
     "tagline": "ربط عشاق الفن بتجارب استثنائية.",
     "discover": "اكتشف",
@@ -278,9 +349,17 @@
     "likes": "إعجابات",
     "views": "مشاهدات",
     "loading": "جاري تحميل الملف الشخصي للفنان...",
-    "noDescription": "لا يوجد وصف متاح"
+    "noDescription": "لا يوجد وصف متاح",
+    "image": "صورة",
+    "video": "فيديو",
+    "audio": "صوت",
+    "items": "عناصر",
+    "pricingMode": "وضع التسعير",
+    "durationBased": "على أساس المدة",
+    "timeSlotBased": "على أساس الفترات الزمنية",
+    "privatePerformance": "أداء خاص"
   },
-  "bookArtist": {
+  "bookArtistForm": {
     "title": "حجز فنان",
     "step1": "التاريخ والوقت",
     "step2": "تفاصيل الحدث",
@@ -349,6 +428,107 @@
     "loadingAvailability": "جاري تحميل التوفر...",
     "noAvailability": "لم يتم العثور على بيانات التوفر",
     "timeSlotUnavailable": "هذا الوقت غير متاح",
-    "selectValidTimeSlot": "يرجى اختيار وقت صحيح"
+    "selectValidTimeSlot": "يرجى اختيار وقت صحيح",
+    "selectedDates": "التواريخ المختارة",
+    "clickToEditTime": "انقر على تاريخ لتعديل الأوقات المتاحة في التقويم",
+    "day": "يوم",
+    "editing": "تحرير",
+    "startHour": "ساعة البداية",
+    "endHour": "ساعة النهاية",
+    "to": "إلى",
+    "hrs": "ساعات",
+    "bookingProgress": "تقدم الحجز",
+    "backToProfile": "العودة لملف الفنان",
+    "artistNotFound": "لم يتم العثور على الفنان",
+    "artistNotFoundDesc": "الفنان الذي تبحث عنه غير موجود أو غير متاح للحجز.",
+    "goBack": "العودة",
+    "close": "إغلاق",
+    "errorLoading": "خطأ في تحميل الفنان",
+    "errorMessage": "غير قادر على تحميل معلومات الفنان. يرجى المحاولة مرة أخرى أو العودة.",
+    "completeBooking": "إتمام الحجز",
+    "error": "خطأ",
+    "tryAgain": "حاول مرة أخرى",
+    "equipmentOptional": "حزم المعدات (اختيارية)",
+    "selectedEquipmentCost": "تكلفة المعدات المحددة",
+    "enhanceEvent": "عزز حدثك بحزم المعدات المهنية. اختر من حزم المزودين أو مجموعاتك المخصصة.",
+    "providerPackagesTab": "حزم المزودين",
+    "customPackagesTab": "الحزم المخصصة",
+    "noEquipmentAvailable": "لا توجد حزم معدات متاحة في الوقت الحالي.",
+    "itemsIncluded": "عناصر مشمولة",
+    "includes": "يشمل:",
+    "moreItems": "عناصر إضافية",
+    "yourCustomPackages": "الحزم المخصصة الخاصة بك",
+    "createPackage": "إنشاء حزمة",
+    "noCustomPackages": "لا توجد حزم مخصصة بعد.",
+    "createFirstPackage": "إنشاء أول حزمة مخصصة لك",
+    "equipmentLabel": "المعدات:",
+    "packagesSelected": "حزمة محددة",
+    "providerPackagesCount": "حزم المزودين:",
+    "customPackagesCount": "الحزم المخصصة:",
+    "totalEquipmentCostLabel": "إجمالي تكلفة المعدات:",
+    "reviewYourBooking": "مراجعة حجزك",
+    "bookingSummary": "ملخص الحجز",
+    "artistLabel": "الفنان:",
+    "bookingType": "نوع الحجز:",
+    "multiDay": "متعدد الأيام",
+    "daysLabel": "أيام",
+    "dayLabel": "اليوم",
+    "timeLabel": "الوقت:",
+    "durationLabel": "المدة:",
+    "totalDuration": "إجمالي المدة:",
+    "dateLabel": "التاريخ:",
+    "venueLabel": "المكان:",
+    "pricingLabel": "التسعير",
+    "calculatingArtistFee": "حساب رسوم الفنان...",
+    "artistFeeLabel": "رسوم الفنان",
+    "hoursDynamicPricing": "ساعات - تسعير ديناميكي",
+    "daysVariableRates": "أيام بمعدلات متغيرة",
+    "hoursVariableRates": "بمعدلات متغيرة",
+    "artistFeeHourly": "ساعات × {price} دينار كويتي/ساعة",
+    "equipmentPackagesLabel": "حزم المعدات:",
+    "providerLabel": "المزود",
+    "customLabel": "مخصصة",
+    "equipmentSubtotal": "إجمالي المعدات:",
+    "totalLabel": "الإجمالي:",
+    "contactDetailsLabel": "تفاصيل التواصل",
+    "nameLabel": "الاسم:",
+    "emailLabel": "البريد الإلكتروني:",
+    "phoneLabel": "الهاتف:",
+    "importantNotice": "ملاحظة مهمة",
+    "bookingSubjectApproval": "حجزك خاضع لموافقة الفنان",
+    "paymentAfterConfirmation": "سيتم معالجة الدفع بعد التأكيد",
+    "cancellationPolicy": "تسري سياسة الإلغاء حسب الشروط والأحكام",
+    "confirmationEmail": "ستتلقى بريد إلكتروني للتأكيد قريباً"
+  },
+  "calendar": {
+    "selectDateTime": "اختر التاريخ والوقت",
+    "chooseSlot": "اختر الموعد المفضل للحجز",
+    "availableSlots": "الأوقات المتاحة لـ",
+    "sunday": "الأحد",
+    "monday": "الاثنين",
+    "tuesday": "الثلاثاء", 
+    "wednesday": "الأربعاء",
+    "thursday": "الخميس",
+    "friday": "الجمعة",
+    "saturday": "السبت",
+    "sun": "أحد",
+    "mon": "اثنين",
+    "tue": "ثلاثاء",
+    "wed": "أربعاء", 
+    "thu": "خميس",
+    "fri": "جمعة",
+    "sat": "سبت",
+    "morning": "صباح",
+    "afternoon": "بعد الظهر", 
+    "evening": "مساء",
+    "unavailable": "غير متاح",
+    "advanceNotice": "يجب إجراء الحجوزات قبل 24 ساعة على الأقل مقدماً",
+    "nightEarlyMorning": "الليل/الفجر المبكر (12:00 ص - 5:00 ص)",
+    "morningTime": "الصباح (6:00 ص - 11:00 ص)",
+    "afternoonTime": "بعد الظهر (12:00 م - 5:00 م)",
+    "eveningTime": "المساء (6:00 م - 9:00 م)",
+    "lateNight": "وقت متأخر من الليل (10:00 م - 11:00 م)",
+    "dynamicPricingInfo": "التسعير الديناميكي نشط - قد تختلف الأسعار حسب الفترة الزمنية. توفر الفنان يشمل قيود الأداء وفترات الراحة.",
+    "loadingAvailability": "جاري تحميل التوفر والأسعار..."
   }
 }

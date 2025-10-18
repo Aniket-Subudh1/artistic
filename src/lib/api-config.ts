@@ -179,6 +179,11 @@ export const API_CONFIG = {
       UPDATE_ACCOUNT: '/settings/account',
       CHANGE_PASSWORD: '/settings/change-password',
     },
+    TRANSLATION: {
+      TRANSLATE: '/translation/translate',
+      TRANSLATE_BULK: '/translation/translate-bulk',
+      HEALTH: '/translation/health',
+    },
   },
 };
 

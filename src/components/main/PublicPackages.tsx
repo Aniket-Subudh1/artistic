@@ -7,6 +7,8 @@ import {
 } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import { equipmentPackagesService, EquipmentPackage } from '@/services/equipment-packages.service';
+import { TranslatedDataWrapper } from '@/components/ui/TranslatedDataWrapper';
+import { TranslatableText } from '@/components/ui/TranslatableText';
 
 interface PublicPackagesProps {
   limit?: number;
@@ -98,17 +100,27 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({
 
   return (
     <div className={className}>
-      {showHeader && (
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Book Equipment Packages</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Discover professionally curated equipment packages perfect for your next event or project
-          </p>
-        </div>
-      )}
+      <TranslatedDataWrapper 
+        data={packages}
+        translateFields={['name', 'description', 'category', 'features', 'specifications', 'adminNotes', 'equipmentId']}
+        preserveFields={['totalPrice', 'coverImage', 'imageUrl', '_id', 'createdBy', 'status', 'visibility', 'roleRef', 'createdAt', 'updatedAt', 'pricePerDay', 'quantity', 'images']}
+        showLoadingOverlay={false}
+      >
+        {(translatedPackages, isTranslating) => (
+          <>
+            {showHeader && (
+              <div className="text-center mb-12">
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                  <TranslatableText>Book Equipment Packages</TranslatableText>
+                </h2>
+                <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                  <TranslatableText>Discover professionally curated equipment packages perfect for your next event or project</TranslatableText>
+                </p>
+              </div>
+            )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        {packages.map((pkg, index) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {(translatedPackages as EquipmentPackage[]).map((pkg, index) => (
           <Link 
             key={pkg._id} 
             href={`/package-details/${pkg._id}`}
@@ -142,7 +154,9 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({
                 {/* Items count overlay */}
                 <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full flex items-center shadow-lg border border-white/20">
                   <Package className="w-4 h-4 text-[#391C71] mr-1" />
-                  <span className="text-sm font-semibold text-gray-700">{pkg.items.length} items</span>
+                  <span className="text-sm font-semibold text-gray-700">
+                    {pkg.items && Array.isArray(pkg.items) ? pkg.items.length : 0} <TranslatableText>items</TranslatableText>
+                  </span>
                 </div>
                 
                 {/* Hover shimmer effect */}
@@ -155,7 +169,7 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({
               <div className="p-6">
                 {/* Category - generic label for equipment packages */}
                 <div className="text-xs text-[#391C71] font-bold mb-3 uppercase tracking-wider">
-                  Equipment Package
+                  <TranslatableText>Equipment Package</TranslatableText>
                 </div>
                 
                 {/* Title */}
@@ -171,18 +185,22 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({
                 {/* Equipment Categories Summary */}
                 <div className="mb-4">
                   <div className="flex flex-wrap gap-1">
-                    {[...new Set(pkg.items.slice(0, 3).map(item => item.equipmentId.category))].map((category, index) => (
-                      <span 
-                        key={index} 
-                        className="inline-block px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md"
-                      >
-                        {category}
-                      </span>
-                    ))}
-                    {pkg.items.length > 3 && (
-                      <span className="inline-block px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md">
-                        +{pkg.items.length - 3} more
-                      </span>
+                    {pkg.items && Array.isArray(pkg.items) && pkg.items.length > 0 && (
+                      <>
+                        {[...new Set(pkg.items.slice(0, 3).map(item => item.equipmentId?.category || 'Equipment'))].map((category, index) => (
+                          <span 
+                            key={index} 
+                            className="inline-block px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md"
+                          >
+                            <TranslatableText>{category}</TranslatableText>
+                          </span>
+                        ))}
+                        {pkg.items.length > 3 && (
+                          <span className="inline-block px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md">
+                            +{pkg.items.length - 3} <TranslatableText>more</TranslatableText>
+                          </span>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
@@ -190,33 +208,36 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({
                 {/* Provider Info */}
                 <div className="flex items-center text-sm text-gray-500 mb-5">
                   <User className="w-4 h-4 mr-2 text-[#391C71]" />
-                  <span>By {pkg.createdBy.firstName} {pkg.createdBy.lastName}</span>
+                  <span><TranslatableText>By</TranslatableText> {pkg.createdBy.firstName} {pkg.createdBy.lastName}</span>
                 </div>
                 
                 {/* Price and Action */}
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-gray-900 text-lg">
-                    {pkg.totalPrice} KWD/day
+                    {pkg.totalPrice} <TranslatableText>KWD/day</TranslatableText>
                   </span>
                   <span className="bg-[#391C71] text-white px-5 py-2 rounded-full text-sm font-medium group-hover:bg-[#5B2C87] transition-all duration-300 shadow-lg">
-                    Details
+                    <TranslatableText>Details</TranslatableText>
                   </span>
                 </div>
               </div>
             </div>
           </Link>
-        ))}
-      </div>
+              ))}
+            </div>
 
-      {/* Show More Button */}
-      {limit && packages.length >= limit && (
-        <div className="text-center mt-12">
-          <button className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl">
-            View All Packages
-            <ArrowRight className="h-5 w-5 ml-2" />
-          </button>
-        </div>
-      )}
+            {/* Show More Button */}
+            {limit && (translatedPackages as EquipmentPackage[]).length >= limit && (
+              <div className="text-center mt-12">
+                <button className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl">
+                  <TranslatableText>View All Packages</TranslatableText>
+                  <ArrowRight className="h-5 w-5 ml-2" />
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </TranslatedDataWrapper>
     </div>
   );
 };

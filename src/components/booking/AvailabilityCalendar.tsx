@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Calendar, Clock, DollarSign, AlertCircle, Info } from 'lucide-react';
+import { useTranslations, useLocale } from 'next-intl';
 import { ArtistService, DateAvailability, PerformanceType } from '@/services/artist.service';
 
 interface AvailabilityData {
@@ -48,6 +49,9 @@ export function AvailabilityCalendar({
   showPricing = true,
   userRole = 'user',
 }: AvailabilityCalendarProps) {
+  const t = useTranslations();
+  const locale = useLocale();
+  
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedTimeSlots, setSelectedTimeSlots] = useState<number[]>([]);
   const [dateAvailability, setDateAvailability] = useState<DateAvailability | null>(null);
@@ -382,9 +386,14 @@ export function AvailabilityCalendar({
   };
 
   const formatTimeSlot = (hour: number) => {
-    const period = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-    return `${displayHour}:00 ${period}`;
+    // For Arabic locale, we can use 24-hour format or localized 12-hour format
+    if (locale === 'ar') {
+      return `${String(hour).padStart(2, '0')}:00`;
+    } else {
+      const period = hour >= 12 ? 'PM' : 'AM';
+      const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+      return `${displayHour}:00 ${period}`;
+    }
   };
 
   const formatTime24 = (hour: number) => {
@@ -432,10 +441,10 @@ export function AvailabilityCalendar({
       <div className="p-6 bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-xl font-bold text-gray-900">Select Date & Time</h3>
-            <p className="text-sm text-gray-600 mt-1">Choose your preferred booking slot</p>
+            <h3 className="text-xl font-bold text-gray-900">{t('calendar.selectDateTime')}</h3>
+            <p className="text-sm text-gray-600 mt-1">{t('calendar.chooseSlot')}</p>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 rtl:space-x-reverse">
             <button
               onClick={() => navigateMonth('prev')}
               className="p-2 hover:bg-white hover:shadow-md rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
@@ -444,18 +453,18 @@ export function AvailabilityCalendar({
                 currentYear === today.getFullYear()
               }
             >
-              <ChevronLeft className="w-5 h-5 text-gray-600" />
+              <ChevronLeft className="w-5 h-5 text-gray-600 rtl:rotate-180" />
             </button>
             <div className="bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200">
               <span className="text-sm font-semibold text-gray-800">
-                {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                {currentDate.toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US', { month: 'long', year: 'numeric' })}
               </span>
             </div>
             <button
               onClick={() => navigateMonth('next')}
               className="p-2 hover:bg-white hover:shadow-md rounded-lg transition-all duration-200"
             >
-              <ChevronRight className="w-5 h-5 text-gray-600" />
+              <ChevronRight className="w-5 h-5 text-gray-600 rtl:rotate-180" />
             </button>
           </div>
         </div>
@@ -465,10 +474,18 @@ export function AvailabilityCalendar({
         {/* Calendar Grid */}
         <div className="mb-8">
           <div className="grid grid-cols-7 gap-1 mb-3">
-            {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => (
-              <div key={day} className="text-center text-sm font-semibold text-gray-600 py-3">
-                <div className="hidden sm:block">{day}</div>
-                <div className="sm:hidden">{day.slice(0, 3)}</div>
+            {[
+              { full: t('calendar.sunday'), short: t('calendar.sun') },
+              { full: t('calendar.monday'), short: t('calendar.mon') },
+              { full: t('calendar.tuesday'), short: t('calendar.tue') },
+              { full: t('calendar.wednesday'), short: t('calendar.wed') },
+              { full: t('calendar.thursday'), short: t('calendar.thu') },
+              { full: t('calendar.friday'), short: t('calendar.fri') },
+              { full: t('calendar.saturday'), short: t('calendar.sat') }
+            ].map((day, index) => (
+              <div key={index} className="text-center text-sm font-semibold text-gray-600 py-3">
+                <div className="hidden sm:block">{day.full}</div>
+                <div className="sm:hidden">{day.short}</div>
               </div>
             ))}
           </div>
@@ -532,15 +549,15 @@ export function AvailabilityCalendar({
             {useDynamicPricing && showPricing && (
               <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <div className="flex items-center">
-                  <Info className="w-4 h-4 text-blue-600 mr-2" />
+                  <Info className="w-4 h-4 text-blue-600 mr-2 rtl:mr-0 rtl:ml-2" />
                   <span className="text-sm text-blue-800">
-                    Dynamic pricing active - prices may vary by time slot. Artist availability includes performance constraints and cooldown periods.
+                    {t('calendar.dynamicPricingInfo')}
                   </span>
                 </div>
                 {isLoadingAvailability && (
                   <div className="mt-2 flex items-center text-sm text-blue-600">
-                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-2"></div>
-                    Loading availability and pricing...
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-2 rtl:mr-0 rtl:ml-2"></div>
+                    {t('calendar.loadingAvailability')}
                   </div>
                 )}
               </div>
@@ -550,27 +567,27 @@ export function AvailabilityCalendar({
               <div className="flex items-center">
                 <Clock className="w-4 h-4 text-gray-500 mr-2" />
                 <span className="text-sm font-medium text-gray-700">
-                  Available time slots for {new Date(selectedDate).toLocaleDateString()}
+                  {t('calendar.availableSlots')} {new Date(selectedDate).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US')}
                 </span>
               </div>
               
               {/* Legend */}
-              <div className="flex items-center space-x-3 text-xs">
+              <div className="flex items-center space-x-3 rtl:space-x-reverse text-xs">
                 <div className="flex items-center">
-                  <div className="w-3 h-3 bg-blue-100 border border-blue-200 rounded mr-1"></div>
-                  <span className="text-gray-600">Morning</span>
+                  <div className="w-3 h-3 bg-blue-100 border border-blue-200 rounded mr-1 rtl:mr-0 rtl:ml-1"></div>
+                  <span className="text-gray-600">{t('calendar.morning')}</span>
                 </div>
                 <div className="flex items-center">
-                  <div className="w-3 h-3 bg-green-100 border border-green-200 rounded mr-1"></div>
-                  <span className="text-gray-600">Afternoon</span>
+                  <div className="w-3 h-3 bg-green-100 border border-green-200 rounded mr-1 rtl:mr-0 rtl:ml-1"></div>
+                  <span className="text-gray-600">{t('calendar.afternoon')}</span>
                 </div>
                 <div className="flex items-center">
-                  <div className="w-3 h-3 bg-orange-100 border border-orange-200 rounded mr-1"></div>
-                  <span className="text-gray-600">Evening</span>
+                  <div className="w-3 h-3 bg-orange-100 border border-orange-200 rounded mr-1 rtl:mr-0 rtl:ml-1"></div>
+                  <span className="text-gray-600">{t('calendar.evening')}</span>
                 </div>
                 <div className="flex items-center">
-                  <div className="w-3 h-3 bg-red-100 border border-red-200 rounded mr-1"></div>
-                  <span className="text-gray-600">Unavailable</span>
+                  <div className="w-3 h-3 bg-red-100 border border-red-200 rounded mr-1 rtl:mr-0 rtl:ml-1"></div>
+                  <span className="text-gray-600">{t('calendar.unavailable')}</span>
                 </div>
               </div>
             </div>
@@ -578,9 +595,9 @@ export function AvailabilityCalendar({
             {/* 24-hour notice */}
             <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <div className="flex items-center text-blue-800">
-                <Clock className="w-4 h-4 mr-2" />
+                <Clock className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
                 <span className="text-sm font-medium">
-                  Bookings must be made at least 24 hours in advance
+                  {t('calendar.advanceNotice')}
                 </span>
               </div>
             </div>
@@ -591,7 +608,7 @@ export function AvailabilityCalendar({
               {/* Night/Early Morning (00:00 - 05:00) */}
               <div>
                 <h4 className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
-                  Night/Early Morning (12:00 AM - 5:00 AM)
+                  {t('calendar.nightEarlyMorning')}
                 </h4>
                 <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                   {timeSlots.slice(0, 6).map(hour => {
@@ -631,7 +648,7 @@ export function AvailabilityCalendar({
               {/* Morning (06:00 - 11:00) */}
               <div>
                 <h4 className="text-xs font-medium text-blue-600 mb-2 uppercase tracking-wide">
-                  Morning (6:00 AM - 11:00 AM)
+                  {t('calendar.morningTime')}
                 </h4>
                 <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                   {timeSlots.slice(6, 12).map(hour => {
@@ -668,7 +685,7 @@ export function AvailabilityCalendar({
               {/* Afternoon (12:00 - 17:00) */}
               <div>
                 <h4 className="text-xs font-medium text-green-600 mb-2 uppercase tracking-wide">
-                  Afternoon (12:00 PM - 5:00 PM)
+                  {t('calendar.afternoonTime')}
                 </h4>
                 <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                   {timeSlots.slice(12, 18).map(hour => {
@@ -705,7 +722,7 @@ export function AvailabilityCalendar({
               {/* Evening (18:00 - 21:00) */}
               <div>
                 <h4 className="text-xs font-medium text-orange-600 mb-2 uppercase tracking-wide">
-                  Evening (6:00 PM - 9:00 PM)
+                  {t('calendar.eveningTime')}
                 </h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {timeSlots.slice(18, 22).map(hour => {
@@ -742,7 +759,7 @@ export function AvailabilityCalendar({
               {/* Late Night (22:00 - 23:00) */}
               <div>
                 <h4 className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
-                  Late Night (10:00 PM - 11:00 PM)
+                  {t('calendar.lateNight')}
                 </h4>
                 <div className="grid grid-cols-2 gap-2">
                   {timeSlots.slice(22, 24).map(hour => {

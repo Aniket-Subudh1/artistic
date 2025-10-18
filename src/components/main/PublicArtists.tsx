@@ -5,6 +5,8 @@ import { Link } from '@/i18n/routing';
 import { MapPin, Star, Clock, Eye } from 'lucide-react';
 import { ArtistService, Artist } from '@/services/artist.service';
 import Image from 'next/image';
+import { TranslatedDataWrapper } from '@/components/ui/TranslatedDataWrapper';
+import { TranslatableText } from '@/components/ui/TranslatableText';
 
 interface PublicArtistsProps {
   limit?: number;
@@ -64,21 +66,28 @@ export default function PublicArtists({ limit = 8, showHeader = true }: PublicAr
   }
 
   return (
-    <>
-      {showHeader && (
-        <div className="text-center mb-16">
-          <h2 className="text-5xl font-bold text-gray-900 mb-6 relative">
-            Book Your Artist
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 h-1 bg-[#391C71] rounded-full" />
-          </h2>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
-            Discover talented artists ready to bring magic to your events
-          </p>
-        </div>
-      )}
+    <TranslatedDataWrapper 
+      data={artists}
+      translateFields={['bio', 'description', 'specialization', 'category', 'performPreference', 'skills', 'about', 'musicLanguages', 'awards', 'genres', 'stageName']}
+      preserveFields={['pricePerHour', 'country', 'profileImage', 'likeCount', '_id', 'user', 'yearsOfExperience', 'youtubeLink', 'createdAt', 'updatedAt']}
+      showLoadingOverlay={false}
+    >
+      {(translatedArtists, isTranslating) => (
+        <>
+          {showHeader && (
+            <div className="text-center mb-16">
+              <h2 className="text-5xl font-bold text-gray-900 mb-6 relative">
+                <TranslatableText>Book Your Artist</TranslatableText>
+                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 h-1 bg-[#391C71] rounded-full" />
+              </h2>
+              <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
+                <TranslatableText>Discover talented artists ready to bring magic to your events</TranslatableText>
+              </p>
+            </div>
+          )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        {artists.map((artist, index) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        {(translatedArtists as Artist[]).map((artist, index) => (
           <Link key={artist._id} href={`/artist-profile/${artist._id}`} className="block group">
             <div
               className="bg-white rounded-3xl border border-gray-100 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-[#391C71]/10 cursor-pointer transform hover:-translate-y-2 hover:scale-105"
@@ -122,7 +131,7 @@ export default function PublicArtists({ limit = 8, showHeader = true }: PublicAr
               <div className="p-6">
                 {/* Category Badge */}
                 <div className="text-xs text-[#391C71] font-bold mb-3 uppercase tracking-wider">
-                  {artist.category || 'Artist'}
+                  <TranslatableText>{artist.category || 'Artist'}</TranslatableText>
                 </div>
 
                 {/* Stage Name */}
@@ -135,43 +144,45 @@ export default function PublicArtists({ limit = 8, showHeader = true }: PublicAr
                   <Clock className="w-4 h-4 mr-2 text-[#391C71]" />
                   <span className="capitalize">
                     {artist.performPreference?.length > 0 
-                      ? artist.performPreference.join(', ') 
-                      : 'Available'}
+                      ? artist.performPreference.join(', ')
+                      : <TranslatableText>Available</TranslatableText>}
                   </span>
                 </div>
 
                 {/* Location */}
                 <div className="flex items-center text-sm text-gray-500 mb-5">
                   <MapPin className="w-4 h-4 mr-2 text-[#391C71]" />
-                  {artist.country || 'Kuwait'}
+                  <TranslatableText>{artist.country || 'Kuwait'}</TranslatableText>
                 </div>
 
                 {/* Price and Action */}
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-gray-900 text-lg">
-                    {artist.pricePerHour} KWD/hour
+                    {artist.pricePerHour} <TranslatableText>KWD/hour</TranslatableText>
                   </span>
                   <span className="text-sm text-[#391C71] hover:text-[#5B2C87] font-semibold transition-colors duration-300 flex items-center">
                     <Eye className="w-4 h-4 mr-1" />
-                    View Details
+                    <TranslatableText>View Details</TranslatableText>
                   </span>
                 </div>
               </div>
             </div>
           </Link>
         ))}
-      </div>
+          </div>
 
-      {showHeader && artists.length > 0 && (
-        <div className="text-center mt-12">
-          <Link
-            href="/artists"
-            className="inline-block bg-white border-2 border-[#391C71] text-[#391C71] px-10 py-4 rounded-full hover:bg-[#391C71] hover:text-white transition-all duration-500 font-medium shadow-xl hover:shadow-2xl hover:shadow-[#391C71]/20 hover:scale-105"
-          >
-            View All Artists
-          </Link>
-        </div>
+          {showHeader && (translatedArtists as Artist[]).length > 0 && (
+            <div className="text-center mt-12">
+              <Link
+                href="/artists"
+                className="inline-block bg-white border-2 border-[#391C71] text-[#391C71] px-10 py-4 rounded-full hover:bg-[#391C71] hover:text-white transition-all duration-500 font-medium shadow-xl hover:shadow-2xl hover:shadow-[#391C71]/20 hover:scale-105"
+              >
+                <TranslatableText>View All Artists</TranslatableText>
+              </Link>
+            </div>
+          )}
+        </>
       )}
-    </>
+    </TranslatedDataWrapper>
   );
 }

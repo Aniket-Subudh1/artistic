@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { Navbar } from '@/components/main/Navbar';
 import { Footer } from '@/components/main/Footer';
+import { TranslatedDataWrapper } from '@/components/ui/TranslatedDataWrapper';
 import { TermsAndConditionsModal } from '@/components/booking/TermsAndConditionsModal';
 import { TermsAndConditionsService, TermsAndConditions, TermsType } from '@/services/terms-and-conditions.service';
 
@@ -588,13 +589,13 @@ export default function BookArtistPage() {
         <div className="relative z-10 text-center py-20 pt-32">
           <div className="max-w-md mx-auto bg-white/60 backdrop-blur-md rounded-3xl shadow-2xl border border-white/20 p-8">
             <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Artist Not Found</h2>
-            <p className="text-gray-600 mb-4">The artist you're looking for doesn't exist or is not available for booking.</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('bookArtistForm.artistNotFound')}</h2>
+            <p className="text-gray-600 mb-4">{t('bookArtistForm.artistNotFoundDesc')}</p>
             <button
               onClick={() => router.back()}
               className="bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white px-6 py-3 rounded-full hover:from-[#5B2C87] hover:to-[#391C71] transition-colors shadow-lg"
             >
-              Go Back
+              {t('bookArtistForm.goBack')}
             </button>
           </div>
         </div>
@@ -631,40 +632,49 @@ export default function BookArtistPage() {
               className="flex items-center bg-white/90 backdrop-blur-sm text-[#391C71] hover:text-[#5B2C87] mb-6 px-4 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 font-semibold"
             >
               <ArrowLeft className="w-5 h-5 mr-2" />
-              Back to Artist Profile
+              {t('bookArtistForm.backToProfile')}
             </button>
             
-            <div className="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6">
-              {/* Artist Image */}
-              <div className="relative w-24 h-24 flex-shrink-0">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-2xl transform rotate-3"></div>
-                <Image
-                  src={artist.profileImage || '/default-avatar.png'}
-                  alt={artist.stageName}
-                  width={96}
-                  height={96}
-                  className="object-cover rounded-2xl border-4 border-white shadow-lg relative z-10"
-                />
-                {/* Verified Badge */}
-                <div className="absolute -top-2 -right-2 bg-[#391C71] rounded-full p-2 shadow-lg z-20">
-                  <CheckCircle className="w-4 h-4 text-white" />
-                </div>
-              </div>
-              
-              <div className="flex-1">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">{t('bookArtist.title')} {artist.stageName}</h1>
-                <div className="flex flex-wrap items-center gap-4 mb-3">
-                  <div className="inline-flex items-center bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
-                    <User className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                    {artist.category || 'Artist'}
+            <TranslatedDataWrapper 
+              data={artist}
+              translateFields={['stageName', 'category', 'bio', 'description', 'specialization', 'skills', 'experience', 'about', 'genre', 'style', 'performPreference', 'musicLanguages', 'awards', 'genres']}
+              preserveFields={['pricePerHour', 'profileImage', 'country', 'contactNumber', 'email', '_id', 'user', 'yearsOfExperience', 'youtubeLink', 'createdAt', 'updatedAt']}
+              showLoadingOverlay={false}
+            >
+              {(translatedArtist, isTranslating) => (
+                <div className="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6">
+                  {/* Artist Image */}
+                  <div className="relative w-24 h-24 flex-shrink-0">
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-2xl transform rotate-3"></div>
+                    <Image
+                      src={artist.profileImage || '/default-avatar.png'}
+                      alt={(translatedArtist as Artist).stageName}
+                      width={96}
+                      height={96}
+                      className="object-cover rounded-2xl border-4 border-white shadow-lg relative z-10"
+                    />
+                    {/* Verified Badge */}
+                    <div className="absolute -top-2 -right-2 bg-[#391C71] rounded-full p-2 shadow-lg z-20">
+                      <CheckCircle className="w-4 h-4 text-white" />
+                    </div>
                   </div>
-                  <div className="bg-gradient-to-r from-[#391C71]/10 to-purple-100 text-[#391C71] px-4 py-2 rounded-full text-sm font-bold border border-[#391C71]/20">
-                    {artist.pricePerHour} KWD/hour
+                  
+                  <div className="flex-1">
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">{t('bookArtistForm.title')} {(translatedArtist as Artist).stageName}</h1>
+                    <div className="flex flex-wrap items-center gap-4 mb-3">
+                      <div className="inline-flex items-center bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
+                        <User className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
+                        {(translatedArtist as Artist).category || 'Artist'}
+                      </div>
+                      <div className="bg-gradient-to-r from-[#391C71]/10 to-purple-100 text-[#391C71] px-4 py-2 rounded-full text-sm font-bold border border-[#391C71]/20">
+                        {artist.pricePerHour} KWD/hour
+                      </div>
+                    </div>
+                    <p className="text-gray-600 text-sm">{artist.user.firstName} {artist.user.lastName}</p>
                   </div>
                 </div>
-                <p className="text-gray-600 text-sm">{artist.user.firstName} {artist.user.lastName}</p>
-              </div>
-            </div>
+              )}
+            </TranslatedDataWrapper>
           </div>
         </div>
 
@@ -676,7 +686,7 @@ export default function BookArtistPage() {
               <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3 rtl:mr-0 rtl:ml-3">
                 <Calendar className="w-5 h-5 text-white" />
               </div>
-              Booking Progress
+              {t('bookArtistForm.bookingProgress')}
             </h2>
             <div className="flex items-center justify-between">
               {[1, 2, 3, 4].map((stepNumber) => (
@@ -701,10 +711,10 @@ export default function BookArtistPage() {
                     <p className={`text-sm font-bold ${
                       stepNumber <= step ? 'text-[#391C71]' : 'text-gray-500'
                     }`}>
-                      {stepNumber === 1 && t('bookArtist.step1')}
-                      {stepNumber === 2 && t('bookArtist.step2')}
-                      {stepNumber === 3 && t('bookArtist.step3')}
-                      {stepNumber === 4 && t('bookArtist.step4')}
+                      {stepNumber === 1 && t('bookArtistForm.step1')}
+                      {stepNumber === 2 && t('bookArtistForm.step2')}
+                      {stepNumber === 3 && t('bookArtistForm.step3')}
+                      {stepNumber === 4 && t('bookArtistForm.step4')}
                     </p>
                   </div>
                   {stepNumber < 4 && (
@@ -782,7 +792,7 @@ export default function BookArtistPage() {
                 className="px-8 py-3 bg-white/50 backdrop-blur-sm border border-gray-200 rounded-2xl text-gray-700 hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
               >
                 <ArrowLeft className="w-4 h-4" />
-                {t('bookArtist.previous')}
+                {t('bookArtistForm.previous')}
               </button>
               
               {step < 4 ? (
@@ -791,7 +801,7 @@ export default function BookArtistPage() {
                   className="px-8 py-3 bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white rounded-2xl hover:from-[#5B2C87] hover:to-[#391C71] hover:shadow-xl hover:scale-105 font-bold transition-all duration-300 shadow-lg flex items-center justify-center gap-2 relative overflow-hidden group"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                  <span className="relative z-10">{t('bookArtist.next')}</span>
+                  <span className="relative z-10">{t('bookArtistForm.next')}</span>
                   <ArrowLeft className="w-4 h-4 rotate-180 relative z-10" />
                 </button>
               ) : (
@@ -804,12 +814,12 @@ export default function BookArtistPage() {
                   {submitting ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white relative z-10"></div>
-                      <span className="relative z-10">{t('bookArtist.processing')}</span>
+                      <span className="relative z-10">{t('bookArtistForm.processing')}</span>
                     </>
                   ) : (
                     <>
                       <CheckCircle className="w-5 h-5 relative z-10" />
-                      <span className="relative z-10">{t('bookArtist.submitBooking')}</span>
+                      <span className="relative z-10">{t('bookArtistForm.completeBooking')}</span>
                     </>
                   )}
                 </button>
@@ -1054,11 +1064,11 @@ function DateTimeStep({ formData, setFormData, availability, errors, setErrors, 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">{t('bookArtist.dateTime')}</h2>
+        <h2 className="text-xl font-bold text-gray-900">{t('bookArtistForm.dateTime')}</h2>
         
         {/* Multi-day booking toggle */}
         <div className="flex items-center space-x-3 rtl:space-x-reverse">
-          <span className="text-sm font-medium text-gray-700">{t('bookArtist.singleDay')}</span>
+          <span className="text-sm font-medium text-gray-700">{t('bookArtistForm.singleDay')}</span>
           <button
             onClick={handleMultiDayToggle}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
@@ -1071,7 +1081,7 @@ function DateTimeStep({ formData, setFormData, availability, errors, setErrors, 
               }`}
             />
           </button>
-          <span className="text-sm font-medium text-gray-700">{t('bookArtist.multipleDays')}</span>
+          <span className="text-sm font-medium text-gray-700">{t('bookArtistForm.multipleDays')}</span>
         </div>
       </div>
 
@@ -1081,9 +1091,9 @@ function DateTimeStep({ formData, setFormData, availability, errors, setErrors, 
           <div className="flex items-start">
             <Info className="w-5 h-5 text-blue-600 mr-2 rtl:mr-0 rtl:ml-2 mt-0.5 flex-shrink-0" />
             <div>
-              <p className="text-blue-800 font-medium">{t('bookArtist.multiDayBooking')}</p>
+              <p className="text-blue-800 font-medium">{t('bookArtistForm.multiDayBooking')}</p>
               <p className="text-blue-700 text-sm mt-1">
-                {t('bookArtist.multiDayInfo', { hours: artist?.maximumPerformanceHours || 4 })}
+                {t('bookArtistForm.multiDayInfo', { hours: artist?.maximumPerformanceHours || 4 })}
               </p>
             </div>
           </div>
@@ -1093,8 +1103,8 @@ function DateTimeStep({ formData, setFormData, availability, errors, setErrors, 
       {/* Selected dates display for multi-day */}
       {isMultiDay && formData.eventDates.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-lg font-medium text-gray-900">Selected Dates</h3>
-          <p className="text-sm text-gray-600">Click on a date to edit its time slots on the calendar</p>
+          <h3 className="text-lg font-medium text-gray-900">{t('bookArtistForm.selectedDates')}</h3>
+          <p className="text-sm text-gray-600">{t('bookArtistForm.clickToEditTime')}</p>
           {formData.eventDates.map((dateItem, index) => (
             <div 
               key={dateItem.date} 
@@ -1113,11 +1123,11 @@ function DateTimeStep({ formData, setFormData, availability, errors, setErrors, 
                   <div className="flex items-center space-x-4 rtl:space-x-reverse">
                     <div className="flex items-center space-x-2 rtl:space-x-reverse">
                       <span className={`font-medium ${focusedDate === dateItem.date ? 'text-purple-900' : 'text-gray-900'}`}>
-                        Day {index + 1}: {dateItem.date}
+                        {t('bookArtistForm.day')} {index + 1}: {dateItem.date}
                       </span>
                       {focusedDate === dateItem.date && (
                         <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
-                          Editing
+                          {t('bookArtistForm.editing')}
                         </span>
                       )}
                     </div>
@@ -1127,21 +1137,21 @@ function DateTimeStep({ formData, setFormData, availability, errors, setErrors, 
                         onChange={(e) => updateMultiDayTime(dateItem.date, `${e.target.value}:00`, dateItem.endTime)}
                         className="px-2 py-1 border border-gray-300 rounded text-sm"
                       >
-                        <option value="">Start Hour</option>
+                        <option value="">{t('bookArtistForm.startHour')}</option>
                         {Array.from({ length: 24 }, (_, i) => (
                           <option key={i} value={i.toString().padStart(2, '0')}>
                             {i.toString().padStart(2, '0')}:00
                           </option>
                         ))}
                       </select>
-                      <span className="text-gray-500">to</span>
+                      <span className="text-gray-500">{t('bookArtistForm.to')}</span>
                       <select
                         value={dateItem.endTime ? dateItem.endTime.split(':')[0] : ''}
                         onChange={(e) => updateMultiDayTime(dateItem.date, dateItem.startTime, `${e.target.value}:00`)}
                         className="px-2 py-1 border border-gray-300 rounded text-sm"
                         disabled={!dateItem.startTime}
                       >
-                        <option value="">End Hour</option>
+                        <option value="">{t('bookArtistForm.endHour')}</option>
                         {Array.from({ length: 24 }, (_, i) => {
                           const startHour = dateItem.startTime ? parseInt(dateItem.startTime.split(':')[0]) : -1;
                           const maxHours = artist?.maximumPerformanceHours || 8;
@@ -1160,8 +1170,8 @@ function DateTimeStep({ formData, setFormData, availability, errors, setErrors, 
                         })}
                       </select>
                       {dateItem.startTime && dateItem.endTime && (
-                        <span className="text-xs text-gray-500 ml-2">
-                          ({parseInt(dateItem.endTime.split(':')[0]) - parseInt(dateItem.startTime.split(':')[0])} hrs)
+                        <span className="text-xs text-gray-500 ml-2 rtl:ml-0 rtl:mr-2">
+                          ({parseInt(dateItem.endTime.split(':')[0]) - parseInt(dateItem.startTime.split(':')[0])} {t('bookArtistForm.hrs')})
                         </span>
                       )}
                     </div>
@@ -1224,15 +1234,15 @@ function DateTimeStep({ formData, setFormData, availability, errors, setErrors, 
 function EventDetailsStep({ formData, setFormData, errors, t }: StepProps) {
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold text-gray-900">{t('bookArtist.eventDetails')}</h2>
+      <h2 className="text-xl font-bold text-gray-900">{t('bookArtistForm.eventDetails')}</h2>
       
       {/* User Details */}
       <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">{t('bookArtist.userDetails')}</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">{t('bookArtistForm.userDetails')}</h3>
         <div className="grid md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('bookArtist.name')}
+              {t('bookArtistForm.name')}
             </label>
             <input
               type="text"
@@ -1248,7 +1258,7 @@ function EventDetailsStep({ formData, setFormData, errors, t }: StepProps) {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('bookArtist.email')}
+              {t('bookArtistForm.email')}
             </label>
             <input
               type="email"
@@ -1264,7 +1274,7 @@ function EventDetailsStep({ formData, setFormData, errors, t }: StepProps) {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('bookArtist.phone')}
+              {t('bookArtistForm.phone')}
             </label>
             <input
               type="tel"
@@ -1282,11 +1292,11 @@ function EventDetailsStep({ formData, setFormData, errors, t }: StepProps) {
       
       {/* Venue Details */}
       <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">{t('bookArtist.venueDetails')}</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">{t('bookArtistForm.venueDetails')}</h3>
         <div className="grid md:grid-cols-2 gap-4">
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('bookArtist.address')}
+              {t('bookArtistForm.address')}
             </label>
             <input
               type="text"
@@ -1302,7 +1312,7 @@ function EventDetailsStep({ formData, setFormData, errors, t }: StepProps) {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              City
+              {t('bookArtistForm.city')}
             </label>
             <input
               type="text"
@@ -1318,7 +1328,7 @@ function EventDetailsStep({ formData, setFormData, errors, t }: StepProps) {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              State
+              {t('bookArtistForm.state')}
             </label>
             <input
               type="text"
@@ -1334,7 +1344,7 @@ function EventDetailsStep({ formData, setFormData, errors, t }: StepProps) {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Country
+              {t('bookArtistForm.country')}
             </label>
             <input
               type="text"
@@ -1350,7 +1360,7 @@ function EventDetailsStep({ formData, setFormData, errors, t }: StepProps) {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Postal Code
+              {t('bookArtistForm.postalCode')}
             </label>
             <input
               type="text"
@@ -1367,30 +1377,30 @@ function EventDetailsStep({ formData, setFormData, errors, t }: StepProps) {
       
       {/* Additional Information */}
       <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Additional Information</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">{t('bookArtistForm.additionalInfo')}</h3>
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Event Description
+              {t('bookArtistForm.eventDescription')}
             </label>
             <textarea
               rows={3}
               value={formData.eventDescription}
               onChange={(e) => setFormData({ ...formData, eventDescription: e.target.value })}
-              placeholder="Describe your event..."
+              placeholder={t('bookArtistForm.eventDescriptionPlaceholder')}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500"
             />
           </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Special Requests
+              {t('bookArtistForm.specialRequests')}
             </label>
             <textarea
               rows={3}
               value={formData.specialRequests}
               onChange={(e) => setFormData({ ...formData, specialRequests: e.target.value })}
-              placeholder="Any special requests or requirements..."
+              placeholder={t('bookArtistForm.specialRequestsPlaceholder')}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500"
             />
           </div>
@@ -1467,15 +1477,15 @@ function EquipmentStep({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">Equipment Packages (Optional)</h2>
+        <h2 className="text-xl font-bold text-gray-900">{t('bookArtistForm.equipmentOptional')}</h2>
         <div className="text-right">
-          <p className="text-sm text-gray-600">Selected equipment cost</p>
+          <p className="text-sm text-gray-600">{t('bookArtistForm.selectedEquipmentCost')}</p>
           <p className="text-lg font-semibold text-purple-600">{calculateEquipmentPrice()} KWD</p>
         </div>
       </div>
       
       <p className="text-gray-600">
-        Enhance your event with professional equipment packages. Choose from provider packages or your custom combinations.
+        {t('bookArtistForm.enhanceEvent')}
       </p>
 
       {/* Package Type Tabs */}
@@ -1489,7 +1499,7 @@ function EquipmentStep({
           }`}
         >
           <Package className="w-4 h-4" />
-          Provider Packages ({equipmentPackages.length})
+          {t('bookArtistForm.providerPackagesTab')} ({equipmentPackages.length})
         </button>
         <button
           onClick={() => setActivePackageTab('custom')}
@@ -1500,7 +1510,7 @@ function EquipmentStep({
           }`}
         >
           <Plus className="w-4 h-4" />
-          Custom Packages ({Array.isArray(customPackages) ? customPackages.length : 0})
+          {t('bookArtistForm.customPackagesTab')} ({Array.isArray(customPackages) ? customPackages.length : 0})
         </button>
       </div>
       
@@ -1509,53 +1519,60 @@ function EquipmentStep({
         equipmentPackages.length === 0 ? (
           <div className="text-center py-8">
             <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">No equipment packages available at the moment.</p>
+            <p className="text-gray-500">{t('bookArtistForm.noEquipmentAvailable')}</p>
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 gap-6">
-          {equipmentPackages.map((pkg) => (
-            <div
-              key={pkg._id}
-              className={`border-2 rounded-lg p-6 cursor-pointer transition-all ${
-                formData.selectedEquipmentPackages.includes(pkg._id)
-                  ? 'border-purple-500 bg-purple-50'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-              onClick={() => togglePackageSelection(pkg._id)}
-            >
-              {pkg.coverImage && (
-                <Image
-                  src={pkg.coverImage}
-                  alt={pkg.name}
-                  width={300}
-                  height={200}
-                  className="w-full h-40 object-cover rounded-md mb-4"
-                />
-              )}
-              
-              <div className="flex items-start justify-between mb-3">
-                <h3 className="text-lg font-semibold text-gray-900">{pkg.name}</h3>
-                <div className="flex items-center">
-                  {formData.selectedEquipmentPackages.includes(pkg._id) ? (
-                    <CheckCircle className="w-5 h-5 text-purple-600" />
-                  ) : (
-                    <div className="w-5 h-5 border-2 border-gray-300 rounded-full"></div>
-                  )}
-                </div>
-              </div>
-              
-              <p className="text-gray-600 text-sm mb-4">{pkg.description}</p>
+          <TranslatedDataWrapper 
+            data={equipmentPackages}
+            translateFields={['name', 'description', 'category', 'features', 'specifications', 'adminNotes']}
+            preserveFields={['totalPrice', 'coverImage', 'imageUrl', '_id', 'createdBy', 'status', 'visibility', 'roleRef', 'createdAt', 'updatedAt', 'pricePerDay', 'quantity', 'images', 'items']}
+            showLoadingOverlay={false}
+          >
+            {(translatedPackages, isTranslating) => (
+              <div className="grid md:grid-cols-2 gap-6">
+                {(translatedPackages as EquipmentPackage[]).map((pkg) => (
+                  <div
+                    key={pkg._id}
+                    className={`border-2 rounded-lg p-6 cursor-pointer transition-all ${
+                      formData.selectedEquipmentPackages.includes(pkg._id)
+                        ? 'border-purple-500 bg-purple-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                    onClick={() => togglePackageSelection(pkg._id)}
+                  >
+                    {pkg.coverImage && (
+                      <Image
+                        src={pkg.coverImage}
+                        alt={pkg.name}
+                        width={300}
+                        height={200}
+                        className="w-full h-40 object-cover rounded-md mb-4"
+                      />
+                    )}
+                    
+                    <div className="flex items-start justify-between mb-3">
+                      <h3 className="text-lg font-semibold text-gray-900">{pkg.name}</h3>
+                      <div className="flex items-center">
+                        {formData.selectedEquipmentPackages.includes(pkg._id) ? (
+                          <CheckCircle className="w-5 h-5 text-purple-600" />
+                        ) : (
+                          <div className="w-5 h-5 border-2 border-gray-300 rounded-full"></div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <p className="text-gray-600 text-sm mb-4">{pkg.description}</p>
               
               <div className="space-y-2">
                 <p className="text-lg font-bold text-purple-600">{pkg.totalPrice} KWD</p>
                 <p className="text-xs text-gray-500">
-                  {pkg.items.length} items included
+                  {pkg.items.length} {t('bookArtistForm.itemsIncluded')}
                 </p>
               </div>
               
               {/* Package Items */}
               <div className="mt-4 pt-4 border-t border-gray-200">
-                <p className="text-sm font-medium text-gray-700 mb-2">Includes:</p>
+                <p className="text-sm font-medium text-gray-700 mb-2">{t('bookArtistForm.includes')}</p>
                 <ul className="text-xs text-gray-600 space-y-1">
                   {pkg.items.slice(0, 3).map((item, index) => (
                     <li key={index} className="flex items-center">
@@ -1565,7 +1582,7 @@ function EquipmentStep({
                   ))}
                   {pkg.items.length > 3 && (
                     <li className="text-purple-600">
-                      +{pkg.items.length - 3} more items
+                      +{pkg.items.length - 3} {t('bookArtistForm.moreItems')}
                     </li>
                   )}
                 </ul>
@@ -1573,37 +1590,45 @@ function EquipmentStep({
             </div>
           ))}
         </div>
+            )}
+          </TranslatedDataWrapper>
         )
       ) : (
         /* Custom Packages */
         <div className="space-y-4">
           {/* Create Custom Package Button */}
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-medium text-gray-900">Your Custom Packages</h3>
+            <h3 className="text-lg font-medium text-gray-900">{t('bookArtistForm.yourCustomPackages')}</h3>
             <button
               onClick={() => onCreateCustomPackage?.()}
               className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white rounded-lg hover:from-[#5B2C87] hover:to-[#391C71] font-medium transition-all duration-200 shadow-md hover:shadow-lg"
             >
               <Plus className="w-4 h-4" />
-              Create Package
+              {t('bookArtistForm.createPackage')}
             </button>
           </div>
 
           {(Array.isArray(customPackages) ? customPackages : []).length === 0 ? (
             <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
               <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500 mb-4">No custom packages yet.</p>
+              <p className="text-gray-500 mb-4">{t('bookArtistForm.noCustomPackages')}</p>
               <button
                 onClick={() => onCreateCustomPackage?.()}
                 className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white rounded-xl hover:from-[#5B2C87] hover:to-[#391C71] font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                 <Plus className="w-5 h-5" />
-                Create Your First Custom Package
+                {t('bookArtistForm.createFirstPackage')}
               </button>
             </div>
           ) : (
-          <div className="grid md:grid-cols-2 gap-6">
-            {(Array.isArray(customPackages) ? customPackages : []).map((pkg) => (
+            <TranslatedDataWrapper
+              data={Array.isArray(customPackages) ? customPackages : []}
+              translateFields={['name', 'description']}
+              preserveFields={['_id', 'totalPricePerDay', 'items']}
+            >
+              {(translatedCustomPackages) => (
+                <div className="grid md:grid-cols-2 gap-6">
+                  {translatedCustomPackages.map((pkg) => (
               <div
                 key={pkg._id}
                 className={`border-2 rounded-lg p-6 cursor-pointer transition-all ${
@@ -1629,13 +1654,13 @@ function EquipmentStep({
                 <div className="space-y-2">
                   <p className="text-lg font-bold text-purple-600">{pkg.totalPricePerDay} KWD/day</p>
                   <p className="text-xs text-gray-500">
-                    {pkg.items.length} items included
+                    {pkg.items.length} {t('bookArtistForm.itemsIncluded')}
                   </p>
                 </div>
                 
                 {/* Package Items Preview */}
                 <div className="mt-4 pt-4 border-t border-gray-200">
-                  <p className="text-sm font-medium text-gray-700 mb-2">Equipment:</p>
+                  <p className="text-sm font-medium text-gray-700 mb-2">{t('bookArtistForm.equipmentLabel')}</p>
                   <ul className="text-xs text-gray-600 space-y-1">
                     {pkg.items.slice(0, 3).map((item, index) => (
                       <li key={index} className="flex items-center">
@@ -1645,7 +1670,7 @@ function EquipmentStep({
                     ))}
                     {pkg.items.length > 3 && (
                       <li className="text-purple-600">
-                        +{pkg.items.length - 3} more items
+                        +{pkg.items.length - 3} {t('bookArtistForm.moreItems')}
                       </li>
                     )}
                   </ul>
@@ -1653,7 +1678,9 @@ function EquipmentStep({
               </div>
             ))}
           </div>
-        )}
+                )}
+              </TranslatedDataWrapper>
+            )}
         </div>
       )}
       
@@ -1662,21 +1689,21 @@ function EquipmentStep({
           <div className="flex items-center mb-2">
             <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
             <p className="text-green-800 font-medium">
-              {formData.selectedEquipmentPackages.length + formData.selectedCustomPackages.length} package(s) selected
+              {formData.selectedEquipmentPackages.length + formData.selectedCustomPackages.length} {t('bookArtistForm.packagesSelected')}
             </p>
           </div>
           {formData.selectedEquipmentPackages.length > 0 && (
             <p className="text-green-700 text-sm">
-              Provider packages: {formData.selectedEquipmentPackages.length}
+              {t('bookArtistForm.providerPackagesCount')} {formData.selectedEquipmentPackages.length}
             </p>
           )}
           {formData.selectedCustomPackages.length > 0 && (
             <p className="text-green-700 text-sm">
-              Custom packages: {formData.selectedCustomPackages.length}
+              {t('bookArtistForm.customPackagesCount')} {formData.selectedCustomPackages.length}
             </p>
           )}
           <p className="text-green-700 text-sm font-medium">
-            Total equipment cost: {calculateEquipmentPrice()} KWD
+            {t('bookArtistForm.totalEquipmentCostLabel')} {calculateEquipmentPrice()} KWD
           </p>
         </div>
       )}
@@ -1822,15 +1849,15 @@ function ReviewStep({ formData, artist, equipmentPackages, customPackages, t }: 
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold text-gray-900">Review Your Booking</h2>
+      <h2 className="text-xl font-bold text-gray-900">{t('bookArtistForm.reviewYourBooking')}</h2>
       
       {/* Booking Summary */}
       <div className="bg-gray-50 rounded-lg p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Booking Summary</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">{t('bookArtistForm.bookingSummary')}</h3>
         
         <div className="space-y-3">
           <div className="flex justify-between">
-            <span>Artist:</span>
+            <span>{t('bookArtistForm.artistLabel')}</span>
             <span className="font-medium">{artist.stageName}</span>
           </div>
           
@@ -1838,49 +1865,49 @@ function ReviewStep({ formData, artist, equipmentPackages, customPackages, t }: 
           {isMultiDayBooking ? (
             <>
               <div className="flex justify-between">
-                <span>Booking Type:</span>
-                <span className="font-medium">Multi-Day ({bookingDetails.length} days)</span>
+                <span>{t('bookArtistForm.bookingType')}</span>
+                <span className="font-medium">{t('bookArtistForm.multiDay')} ({bookingDetails.length} {t('bookArtistForm.daysLabel')})</span>
               </div>
               {bookingDetails.map((detail, index) => (
                 <div key={detail.date} className="pl-4 border-l-2 border-purple-200 space-y-2">
                   <div className="flex justify-between">
-                    <span>Day {index + 1}:</span>
+                    <span>{t('bookArtistForm.dayLabel')} {index + 1}:</span>
                     <span className="font-medium">{detail.date}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Time:</span>
+                    <span>{t('bookArtistForm.timeLabel')}</span>
                     <span className="font-medium">{detail.startTime} - {detail.endTime}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Duration:</span>
-                    <span className="font-medium">{detail.hours} hours</span>
+                    <span>{t('bookArtistForm.durationLabel')}</span>
+                    <span className="font-medium">{detail.hours} {t('bookArtistForm.hours')}</span>
                   </div>
                 </div>
               ))}
               <div className="flex justify-between pt-2 border-t border-gray-200">
-                <span className="font-medium">Total Duration:</span>
-                <span className="font-medium">{totalHours} hours</span>
+                <span className="font-medium">{t('bookArtistForm.totalDuration')}</span>
+                <span className="font-medium">{totalHours} {t('bookArtistForm.hours')}</span>
               </div>
             </>
           ) : (
             <>
               <div className="flex justify-between">
-                <span>Date:</span>
+                <span>{t('bookArtistForm.dateLabel')}</span>
                 <span className="font-medium">{formData.eventDate}</span>
               </div>
               <div className="flex justify-between">
-                <span>Time:</span>
+                <span>{t('bookArtistForm.timeLabel')}</span>
                 <span className="font-medium">{formData.startTime} - {formData.endTime}</span>
               </div>
               <div className="flex justify-between">
-                <span>Duration:</span>
-                <span className="font-medium">{totalHours} hours</span>
+                <span>{t('bookArtistForm.durationLabel')}</span>
+                <span className="font-medium">{totalHours} {t('bookArtistForm.hours')}</span>
               </div>
             </>
           )}
           
           <div className="flex justify-between">
-            <span>Venue:</span>
+            <span>{t('bookArtistForm.venueLabel')}</span>
             <span className="font-medium">{formData.venueDetails.city}, {formData.venueDetails.state}</span>
           </div>
         </div>
@@ -1888,7 +1915,7 @@ function ReviewStep({ formData, artist, equipmentPackages, customPackages, t }: 
       
       {/* Pricing */}
       <div className="bg-gray-50 rounded-lg p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Pricing</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">{t('bookArtistForm.pricingLabel')}</h3>
         
         <div className="space-y-3">
           <div className="flex justify-between">
@@ -1898,20 +1925,20 @@ function ReviewStep({ formData, artist, equipmentPackages, customPackages, t }: 
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Calculating artist fee...
+                {t('bookArtistForm.calculatingArtistFee')}
               </span>
             ) : isDynamicPricing ? (
               <span>
-                Artist Fee ({totalHours} hours - Dynamic Pricing):
+                {t('bookArtistForm.artistFeeLabel')} ({totalHours} {t('bookArtistForm.hoursDynamicPricing')}):
                 <div className="text-xs text-gray-500 mt-1">
                   {isMultiDayBooking 
-                    ? `${bookingDetails.length} days with variable rates`
-                    : `Hours ${bookingDetails[0]?.startHour}:00 - ${bookingDetails[0]?.startHour + bookingDetails[0]?.hours}:00 with variable rates`
+                    ? `${bookingDetails.length} ${t('bookArtistForm.daysVariableRates')}`
+                    : `${t('bookArtistForm.hours')} ${bookingDetails[0]?.startHour}:00 - ${bookingDetails[0]?.startHour + bookingDetails[0]?.hours}:00 ${t('bookArtistForm.hoursVariableRates')}`
                   }
                 </div>
               </span>
             ) : (
-              <span>Artist Fee ({totalHours} hours × {artist.pricePerHour} KWD/hour):</span>
+              <span>{t('bookArtistForm.artistFeeLabel')} ({totalHours} {t('bookArtistForm.artistFeeHourly', { price: artist.pricePerHour })}):</span>
             )}
             <span className="font-medium">
               {loadingPrice ? '...' : `${artistPrice} KWD`}
@@ -1919,27 +1946,27 @@ function ReviewStep({ formData, artist, equipmentPackages, customPackages, t }: 
           </div>
           {(selectedPackages.length > 0 || selectedCustomPackages.length > 0) && (
             <div className="space-y-2">
-              <div className="font-medium text-gray-700">Equipment Packages:</div>
+              <div className="font-medium text-gray-700">{t('bookArtistForm.equipmentPackagesLabel')}</div>
               {selectedPackages.map(pkg => (
                 <div key={pkg._id} className="flex justify-between text-sm pl-4">
-                  <span>• {pkg.name} (Provider):</span>
+                  <span>• {pkg.name} ({t('bookArtistForm.providerLabel')}):</span>
                   <span>{pkg.totalPrice} KWD</span>
                 </div>
               ))}
               {selectedCustomPackages.map(pkg => (
                 <div key={pkg._id} className="flex justify-between text-sm pl-4">
-                  <span>• {pkg.name} (Custom):</span>
+                  <span>• {pkg.name} ({t('bookArtistForm.customLabel')}):</span>
                   <span>{pkg.totalPricePerDay} KWD</span>
                 </div>
               ))}
               <div className="flex justify-between font-medium text-purple-600">
-                <span>Equipment Subtotal:</span>
+                <span>{t('bookArtistForm.equipmentSubtotal')}</span>
                 <span>{equipmentPrice} KWD</span>
               </div>
             </div>
           )}
           <div className="border-t pt-3 flex justify-between text-lg font-bold">
-            <span>Total:</span>
+            <span>{t('bookArtistForm.totalLabel')}</span>
             <span>{totalPrice} KWD</span>
           </div>
         </div>
@@ -1947,12 +1974,12 @@ function ReviewStep({ formData, artist, equipmentPackages, customPackages, t }: 
       
       {/* Contact Details */}
       <div className="bg-gray-50 rounded-lg p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Contact Details</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">{t('bookArtistForm.contactDetailsLabel')}</h3>
         
         <div className="space-y-2">
-          <p><span className="font-medium">Name:</span> {formData.userDetails.name}</p>
-          <p><span className="font-medium">Email:</span> {formData.userDetails.email}</p>
-          <p><span className="font-medium">Phone:</span> {formData.userDetails.phone}</p>
+          <p><span className="font-medium">{t('bookArtistForm.nameLabel')}</span> {formData.userDetails.name}</p>
+          <p><span className="font-medium">{t('bookArtistForm.emailLabel')}</span> {formData.userDetails.email}</p>
+          <p><span className="font-medium">{t('bookArtistForm.phoneLabel')}</span> {formData.userDetails.phone}</p>
         </div>
       </div>
       
@@ -1961,12 +1988,12 @@ function ReviewStep({ formData, artist, equipmentPackages, customPackages, t }: 
         <div className="flex items-start">
           <Info className="w-5 h-5 text-blue-600 mr-2 rtl:mr-0 rtl:ml-2 mt-0.5" />
           <div>
-            <p className="text-blue-800 font-medium mb-2">Important Notice</p>
+            <p className="text-blue-800 font-medium mb-2">{t('bookArtistForm.importantNotice')}</p>
             <ul className="text-blue-700 text-sm space-y-1">
-              <li>• Your booking is subject to artist approval</li>
-              <li>• Payment will be processed after confirmation</li>
-              <li>• Cancellation policy applies as per terms and conditions</li>
-              <li>• You will receive a confirmation email shortly</li>
+              <li>• {t('bookArtistForm.bookingSubjectApproval')}</li>
+              <li>• {t('bookArtistForm.paymentAfterConfirmation')}</li>
+              <li>• {t('bookArtistForm.cancellationPolicy')}</li>
+              <li>• {t('bookArtistForm.confirmationEmail')}</li>
             </ul>
           </div>
         </div>
