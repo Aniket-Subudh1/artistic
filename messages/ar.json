@@ -29,10 +29,15 @@
       "rememberMe": "تذكرني",
       "forgotPassword": "نسيت كلمة المرور؟",
       "signInButton": "تسجيل الدخول",
+      "signingIn": "جاري تسجيل الدخول",
       "orContinueWith": "أو المتابعة باستخدام",
       "continueWithGoogle": "المتابعة باستخدام جوجل",
       "noAccount": "ليس لديك حساب؟",
-      "signUpHere": "سجل هنا"
+      "signUpHere": "سجل هنا",
+      "errors": {
+        "fillAllFields": "يرجى ملء جميع الحقول المطلوبة",
+        "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة"
+      }
     },
     "signUp": {
       "title": "إنشاء حساب",
@@ -58,8 +63,41 @@
       "privacyPolicy": "سياسة الخصوصية",
       "marketingCommunications": "أرغب في تلقي التواصل التسويقي (اختياري)",
       "createAccountButton": "إنشاء حساب",
+      "creatingAccount": "جاري إنشاء الحساب",
       "backToHome": "← العودة للرئيسية",
-      "required": "*"
+      "required": "*",
+      "errors": {
+        "fillAllFields": "يرجى ملء جميع الحقول المطلوبة",
+        "passwordMismatch": "كلمات المرور غير متطابقة",
+        "passwordTooShort": "يجب أن تكون كلمة المرور 6 أحرف على الأقل",
+        "acceptTerms": "يرجى الموافقة على شروط الخدمة وسياسة الخصوصية",
+        "registrationFailed": "فشل التسجيل. يرجى المحاولة مرة أخرى."
+      },
+      "success": {
+        "accountCreatedVerify": "تم إنشاء الحساب! يرجى التحقق من رقم هاتفك.",
+        "accountCreatedSignIn": "تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول."
+      }
+    },
+    "verifyOtp": {
+      "title": "تحقق من رقم هاتفك",
+      "subtitle": "لقد أرسلنا رمز تحقق مكون من 6 أرقام إلى",
+      "enterCodeLabel": "أدخل الرمز المكون من 6 أرقام",
+      "resendOtp": "إعادة إرسال الرمز",
+      "resendOtpIn": "إعادة إرسال الرمز خلال",
+      "seconds": "ث",
+      "verifyButton": "تحقق من رقم الهاتف",
+      "verifying": "جاري التحقق",
+      "wrongNumber": "رقم خاطئ؟",
+      "goBack": "العودة",
+      "errors": {
+        "enterCompleteOtp": "يرجى إدخال الرمز كاملاً المكون من 6 أرقام",
+        "invalidOtp": "رمز التحقق غير صحيح. يرجى المحاولة مرة أخرى.",
+        "resendFailed": "فشل في إعادة إرسال الرمز. يرجى المحاولة مرة أخرى."
+      },
+      "success": {
+        "phoneVerified": "تم تحقق رقم الهاتف بنجاح! جاري التوجيه...",
+        "otpSent": "تم إرسال الرمز بنجاح!"
+      }
     },
     "countries": {
       "kuwait": "الكويت",

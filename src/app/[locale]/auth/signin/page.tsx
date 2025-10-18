@@ -11,6 +11,7 @@ import { useAuthLogic } from '@/hooks/useAuth';
 
 export default function SignInPage() {
   const t = useTranslations('auth.signIn');
+  const tErrors = useTranslations('auth.signIn.errors');
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login, isLoading, isAuthenticated, isLoading: authLoading, user } = useAuthLogic();
@@ -60,7 +61,7 @@ export default function SignInPage() {
     setError('');
 
     if (!formData.email || !formData.password) {
-      setError('Please fill in all required fields');
+      setError(tErrors('fillAllFields'));
       return;
     }
 
@@ -97,7 +98,7 @@ export default function SignInPage() {
       }
     } catch (error: any) {
       console.error('Sign in error:', error);
-      setError(error.message || 'Invalid email or password');
+      setError(error.message || tErrors('invalidCredentials'));
     }
   };
 
@@ -164,10 +165,10 @@ export default function SignInPage() {
 
                 <div className="text-center mb-6">
                   <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                    Welcome Back
+                    {t('title')}
                   </h1>
                   <p className="text-gray-700 text-sm">
-                    Sign in to access your dashboard
+                    {t('subtitle')}
                   </p>
                 </div>
 
@@ -182,7 +183,7 @@ export default function SignInPage() {
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-800 mb-1">
-                      Email Address
+                      {t('emailLabel')}
                     </label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-800" />
@@ -193,7 +194,7 @@ export default function SignInPage() {
                         value={formData.email}
                         onChange={handleChange}
                         className="w-full pl-10 pr-3 py-3 border border-gray-300/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white/70 backdrop-blur-sm"
-                        placeholder="Enter your email"
+                        placeholder={t('emailPlaceholder')}
                         required
                         disabled={isLoading}
                       />
@@ -202,7 +203,7 @@ export default function SignInPage() {
 
                   <div>
                     <label htmlFor="password" className="block text-sm font-medium text-gray-800 mb-1">
-                      Password
+                      {t('passwordLabel')}
                     </label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-black" />
@@ -213,7 +214,7 @@ export default function SignInPage() {
                         value={formData.password}
                         onChange={handleChange}
                         className="w-full pl-10 pr-10 py-3 border border-gray-300/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white/70 backdrop-blur-sm"
-                        placeholder="Enter your password"
+                        placeholder={t('passwordPlaceholder')}
                         required
                         disabled={isLoading}
                       />
@@ -235,10 +236,10 @@ export default function SignInPage() {
                         className="w-3 h-3 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-1"
                         disabled={isLoading}
                       />
-                      <span className="ml-2 text-gray-700">Remember me</span>
+                      <span className="ml-2 text-gray-700">{t('rememberMe')}</span>
                     </label>
                     <Link href="/auth/forgot-password" className="text-purple-600 hover:text-purple-700 transition-colors font-medium">
-                      Forgot Password?
+                      {t('forgotPassword')}
                     </Link>
                   </div>
 
@@ -250,11 +251,11 @@ export default function SignInPage() {
                     {isLoading ? (
                       <>
                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
-                        Signing In...
+                        {t('signingIn')}...
                       </>
                     ) : (
                       <>
-                        Sign In
+                        {t('signInButton')}
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </>
                     )}
@@ -263,9 +264,9 @@ export default function SignInPage() {
 
                 <div className="mt-6 text-center">
                   <p className="text-gray-700 text-sm">
-                    Don't have an account?{' '}
+                    {t('noAccount')}{' '}
                     <Link href="/auth/signup" className="text-purple-600 hover:text-purple-700 font-semibold transition-colors">
-                      Sign up here
+                      {t('signUpHere')}
                     </Link>
                   </p>
                 </div>

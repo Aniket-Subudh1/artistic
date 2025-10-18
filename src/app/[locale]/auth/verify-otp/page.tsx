@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Link } from '@/i18n/routing';
 import { Phone, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react';
@@ -9,6 +10,9 @@ import { Footer } from '@/components/main/Footer';
 import { AuthService } from '@/services/auth.service';
 
 export default function VerifyOTPPage() {
+  const t = useTranslations('auth.verifyOtp');
+  const tErrors = useTranslations('auth.verifyOtp.errors');
+  const tSuccess = useTranslations('auth.verifyOtp.success');
   const router = useRouter();
   const searchParams = useSearchParams();
   const phoneNumber = searchParams.get('phone') || '';
@@ -57,7 +61,7 @@ export default function VerifyOTPPage() {
 
     const otpCode = otp.join('');
     if (otpCode.length !== 6) {
-      setError('Please enter the complete 6-digit OTP');
+      setError(tErrors('enterCompleteOtp'));
       return;
     }
 
@@ -69,7 +73,7 @@ export default function VerifyOTPPage() {
       // Store auth data if verification successful
       AuthService.storeAuthData(response.access_token, response.user);
       
-      setSuccess('Phone number verified successfully! Redirecting...');
+      setSuccess(tSuccess('phoneVerified'));
       
       // Redirect to dashboard or signin page after success
       setTimeout(() => {
@@ -77,7 +81,7 @@ export default function VerifyOTPPage() {
       }, 2000);
       
     } catch (error: any) {
-      setError(error.message || 'Invalid OTP. Please try again.');
+      setError(error.message || tErrors('invalidOtp'));
     } finally {
       setIsLoading(false);
     }
@@ -92,13 +96,13 @@ export default function VerifyOTPPage() {
     try {
       await AuthService.resendOtp(phoneNumber);
       
-      setSuccess('OTP sent successfully!');
+      setSuccess(tSuccess('otpSent'));
       setCountdown(60);
       setCanResend(false);
       setOtp(['', '', '', '', '', '']);
       
     } catch (error: any) {
-      setError('Failed to resend OTP. Please try again.');
+      setError(tErrors('resendFailed'));
     }
   };
 
@@ -135,10 +139,10 @@ export default function VerifyOTPPage() {
                   <Phone className="w-8 h-8 text-purple-600" />
                 </div>
                 <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                  Verify Your Phone
+                  {t('title')}
                 </h1>
                 <p className="text-gray-600 text-sm">
-                  We've sent a 6-digit verification code to
+                  {t('subtitle')}
                 </p>
                 <p className="text-gray-900 font-medium">
                   {phoneNumber}
@@ -165,7 +169,7 @@ export default function VerifyOTPPage() {
                 {/* OTP Input */}
                 <div>
                   <label className="block text-sm font-medium text-gray-800 mb-3 text-center">
-                    Enter 6-digit code
+                    {t('enterCodeLabel')}
                   </label>
                   <div className="flex justify-center space-x-3">
                     {otp.map((digit, index) => (
@@ -193,11 +197,11 @@ export default function VerifyOTPPage() {
                       onClick={handleResendOTP}
                       className="text-purple-600 hover:text-purple-700 text-sm font-medium"
                     >
-                      Resend OTP
+                      {t('resendOtp')}
                     </button>
                   ) : (
                     <p className="text-gray-500 text-sm">
-                      Resend OTP in {countdown}s
+                      {t('resendOtpIn')} {countdown}{t('seconds')}
                     </p>
                   )}
                 </div>
@@ -210,11 +214,11 @@ export default function VerifyOTPPage() {
                   {isLoading ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
-                      Verifying...
+                      {t('verifying')}...
                     </>
                   ) : (
                     <>
-                      Verify Phone Number
+                      {t('verifyButton')}
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </>
                   )}
@@ -223,9 +227,9 @@ export default function VerifyOTPPage() {
 
               <div className="mt-6 text-center">
                 <p className="text-gray-700 text-sm">
-                  Wrong number?{' '}
+                  {t('wrongNumber')}{' '}
                   <Link href="/auth/signup" className="text-purple-600 hover:text-purple-700 font-medium transition-colors">
-                    Go back
+                    {t('goBack')}
                   </Link>
                 </p>
               </div>

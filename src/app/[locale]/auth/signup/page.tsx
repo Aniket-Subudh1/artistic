@@ -11,6 +11,8 @@ import { useAuthLogic } from '@/hooks/useAuth';
 export default function SignUpPage() {
   const t = useTranslations('auth.signUp');
   const tCountries = useTranslations('auth.countries');
+  const tErrors = useTranslations('auth.signUp.errors');
+  const tSuccess = useTranslations('auth.signUp.success');
   const router = useRouter();
   const { signup, isLoading } = useAuthLogic();
   
@@ -64,22 +66,22 @@ export default function SignUpPage() {
     setSuccess('');
 
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.mobile || !formData.password) {
-      setError('Please fill in all required fields');
+      setError(tErrors('fillAllFields'));
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError(tErrors('passwordMismatch'));
       return;
     }
 
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
+      setError(tErrors('passwordTooShort'));
       return;
     }
 
     if (!agreements.terms || !agreements.privacy) {
-      setError('Please accept the Terms of Service and Privacy Policy');
+      setError(tErrors('acceptTerms'));
       return;
     }
 
@@ -96,14 +98,14 @@ export default function SignUpPage() {
 
       // Check if response indicates OTP verification is needed
       if (response.message?.includes('verify') || response.message?.includes('otp')) {
-        setSuccess('Account created! Please verify your phone number.');
+        setSuccess(tSuccess('accountCreatedVerify'));
         
         // Redirect to OTP verification page with phone number
         setTimeout(() => {
           router.push(`/auth/verify-otp?phone=${encodeURIComponent(phoneNumber)}`);
         }, 2000);
       } else {
-        setSuccess('Account created successfully! You can now sign in.');
+        setSuccess(tSuccess('accountCreatedSignIn'));
         
         setTimeout(() => {
           router.push('/auth/signin');
@@ -112,7 +114,7 @@ export default function SignUpPage() {
       
     } catch (error: any) {
       console.error('Sign up error:', error);
-      setError(error.message || 'Registration failed. Please try again.');
+      setError(error.message || tErrors('registrationFailed'));
     }
   };
 
@@ -164,12 +166,12 @@ export default function SignUpPage() {
 
                 <div className="text-center mb-4">
                   <h1 className="text-xl font-bold text-gray-900 mb-1">
-                    Create User Account
+                    {t('title')}
                   </h1>
                   <p className="text-gray-700 text-xs">
-                    Already have an account?{' '}
+                    {t('alreadyHaveAccount')}{' '}
                     <Link href="/auth/signin" className="text-purple-600 hover:text-purple-700 font-semibold transition-colors">
-                      Sign in here
+                      {t('signInHere')}
                     </Link>
                   </p>
                 </div>
@@ -193,7 +195,7 @@ export default function SignUpPage() {
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label htmlFor="firstName" className="block text-xs font-medium text-gray-800 mb-1">
-                        First Name *
+                        {t('firstNameLabel')} {t('required')}
                       </label>
                       <div className="relative">
                         <User className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-900" />
@@ -204,7 +206,7 @@ export default function SignUpPage() {
                           value={formData.firstName}
                           onChange={handleChange}
                           className="w-full pl-8 pr-2 py-2.5 text-sm border border-gray-300/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white/70 backdrop-blur-sm"
-                          placeholder="First name"
+                          placeholder={t('firstNamePlaceholder')}
                           required
                           disabled={isLoading}
                         />
@@ -212,7 +214,7 @@ export default function SignUpPage() {
                     </div>
                     <div>
                       <label htmlFor="lastName" className="block text-xs font-medium text-gray-800 mb-1">
-                        Last Name *
+                        {t('lastNameLabel')} {t('required')}
                       </label>
                       <div className="relative">
                         <User className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-900" />
@@ -223,7 +225,7 @@ export default function SignUpPage() {
                           value={formData.lastName}
                           onChange={handleChange}
                           className="w-full pl-8 pr-2 py-2.5 text-sm border border-gray-300/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white/70 backdrop-blur-sm"
-                          placeholder="Last name"
+                          placeholder={t('lastNamePlaceholder')}
                           required
                           disabled={isLoading}
                         />
@@ -233,7 +235,7 @@ export default function SignUpPage() {
 
                   <div>
                     <label htmlFor="email" className="block text-xs font-medium text-gray-800 mb-1">
-                      Email Address *
+                      {t('emailLabel')} {t('required')}
                     </label>
                     <div className="relative">
                       <Mail className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-900" />
@@ -244,7 +246,7 @@ export default function SignUpPage() {
                         value={formData.email}
                         onChange={handleChange}
                         className="w-full pl-8 pr-2 py-2.5 text-sm border border-gray-300/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white/70 backdrop-blur-sm"
-                        placeholder="Enter your email"
+                        placeholder={t('emailPlaceholder')}
                         required
                         disabled={isLoading}
                       />
@@ -253,7 +255,7 @@ export default function SignUpPage() {
 
                   <div>
                     <label htmlFor="mobile" className="block text-xs font-medium text-gray-800 mb-1">
-                      Mobile Number *
+                      {t('mobileLabel')} {t('required')}
                     </label>
                     <div className="relative">
                       <div className="flex">
@@ -294,7 +296,7 @@ export default function SignUpPage() {
                           value={formData.mobile}
                           onChange={handleChange}
                           className="flex-1 px-2 py-2.5 text-sm border border-gray-300/50 border-l-0 rounded-r-lg focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white/70 backdrop-blur-sm"
-                          placeholder="Mobile number"
+                          placeholder={t('mobilePlaceholder')}
                           required
                           disabled={isLoading}
                         />
@@ -305,7 +307,7 @@ export default function SignUpPage() {
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label htmlFor="password" className="block text-xs font-medium text-gray-800 mb-1">
-                        Password *
+                        {t('passwordLabel')} {t('required')}
                       </label>
                       <div className="relative">
                         <Lock className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-900" />
@@ -316,7 +318,7 @@ export default function SignUpPage() {
                           value={formData.password}
                           onChange={handleChange}
                           className="w-full pl-8 pr-8 py-2.5 text-sm border border-gray-300/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white/70 backdrop-blur-sm"
-                          placeholder="Password"
+                          placeholder={t('passwordPlaceholder')}
                           required
                           disabled={isLoading}
                         />
@@ -332,7 +334,7 @@ export default function SignUpPage() {
                     </div>
                     <div>
                       <label htmlFor="confirmPassword" className="block text-xs font-medium text-gray-800 mb-1">
-                        Confirm Password *
+                        {t('confirmPasswordLabel')} {t('required')}
                       </label>
                       <div className="relative">
                         <Lock className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-900" />
@@ -343,7 +345,7 @@ export default function SignUpPage() {
                           value={formData.confirmPassword}
                           onChange={handleChange}
                           className="w-full pl-8 pr-8 py-2.5 text-sm border border-gray-300/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white/70 backdrop-blur-sm"
-                          placeholder="Confirm password"
+                          placeholder={t('confirmPasswordPlaceholder')}
                           required
                           disabled={isLoading}
                         />
@@ -370,10 +372,10 @@ export default function SignUpPage() {
                         disabled={isLoading}
                       />
                       <span className="text-gray-700 leading-tight">
-                        I agree to the{' '}
+                        {t('agreeToTerms')}{' '}
                         <Link href="/terms" className="text-purple-600 hover:text-purple-700 font-medium">
-                          Terms of Service
-                        </Link> *
+                          {t('termsOfService')}
+                        </Link> {t('required')}
                       </span>
                     </label>
                     <label className="flex items-start cursor-pointer">
@@ -386,10 +388,10 @@ export default function SignUpPage() {
                         disabled={isLoading}
                       />
                       <span className="text-gray-700 leading-tight">
-                        I agree to the{' '}
+                        {t('agreeToPrivacy')}{' '}
                         <Link href="/privacy" className="text-purple-600 hover:text-purple-700 font-medium">
-                          Privacy Policy
-                        </Link> *
+                          {t('privacyPolicy')}
+                        </Link> {t('required')}
                       </span>
                     </label>
                     <label className="flex items-start cursor-pointer">
@@ -401,7 +403,7 @@ export default function SignUpPage() {
                         disabled={isLoading}
                       />
                       <span className="text-gray-700 leading-tight">
-                        I would like to receive marketing communications
+                        {t('marketingCommunications')}
                       </span>
                     </label>
                   </div>
@@ -414,10 +416,10 @@ export default function SignUpPage() {
                     {isLoading ? (
                       <>
                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
-                        Creating Account...
+                        {t('creatingAccount')}...
                       </>
                     ) : (
-                      'Create User Account'
+                      t('createAccountButton')
                     )}
                   </button>
                 </form>

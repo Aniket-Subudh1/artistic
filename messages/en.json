@@ -29,10 +29,15 @@
       "rememberMe": "Remember me",
       "forgotPassword": "Forgot password?",
       "signInButton": "Sign In",
+      "signingIn": "Signing In",
       "orContinueWith": "Or continue with",
       "continueWithGoogle": "Continue with Google",
       "noAccount": "Don't have an account?",
-      "signUpHere": "Sign up here"
+      "signUpHere": "Sign up here",
+      "errors": {
+        "fillAllFields": "Please fill in all required fields",
+        "invalidCredentials": "Invalid email or password"
+      }
     },
     "signUp": {
       "title": "Create Account",
@@ -58,8 +63,41 @@
       "privacyPolicy": "Privacy Policy",
       "marketingCommunications": "I would like to receive marketing communications (optional)",
       "createAccountButton": "Create Account",
+      "creatingAccount": "Creating Account",
       "backToHome": "← Back to Home",
-      "required": "*"
+      "required": "*",
+      "errors": {
+        "fillAllFields": "Please fill in all required fields",
+        "passwordMismatch": "Passwords do not match",
+        "passwordTooShort": "Password must be at least 6 characters long",
+        "acceptTerms": "Please accept the Terms of Service and Privacy Policy",
+        "registrationFailed": "Registration failed. Please try again."
+      },
+      "success": {
+        "accountCreatedVerify": "Account created! Please verify your phone number.",
+        "accountCreatedSignIn": "Account created successfully! You can now sign in."
+      }
+    },
+    "verifyOtp": {
+      "title": "Verify Your Phone",
+      "subtitle": "We've sent a 6-digit verification code to",
+      "enterCodeLabel": "Enter 6-digit code",
+      "resendOtp": "Resend OTP",
+      "resendOtpIn": "Resend OTP in",
+      "seconds": "s",
+      "verifyButton": "Verify Phone Number",
+      "verifying": "Verifying",
+      "wrongNumber": "Wrong number?",
+      "goBack": "Go back",
+      "errors": {
+        "enterCompleteOtp": "Please enter the complete 6-digit OTP",
+        "invalidOtp": "Invalid OTP. Please try again.",
+        "resendFailed": "Failed to resend OTP. Please try again."
+      },
+      "success": {
+        "phoneVerified": "Phone number verified successfully! Redirecting...",
+        "otpSent": "OTP sent successfully!"
+      }
     },
     "countries": {
       "kuwait": "Kuwait",
