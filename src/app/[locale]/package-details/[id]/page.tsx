@@ -84,7 +84,6 @@ export default function PackageDetailsPage() {
       navigator.clipboard.writeText(window.location.href);
     }
   };
-  };
 
   const handleDownloadQR = () => {
     if (qrCodeUrl) {

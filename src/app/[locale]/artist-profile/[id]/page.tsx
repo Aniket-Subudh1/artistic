@@ -120,7 +120,6 @@ export default function ArtistProfilePage() {
       // Fallback: copy to clipboard
       navigator.clipboard.writeText(window.location.href);
     }
-    }
   };
 
   const handleDownloadQR = () => {
