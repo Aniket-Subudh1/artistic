@@ -195,7 +195,6 @@ export default function ArtistProfilePage() {
                       alt={artist.stageName || 'Artist Profile'}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                       onLoad={(e) => {
-                        console.log('✅ Profile image loaded successfully from:', getBestProfileImage());
                         // Hide fallback icon when image loads
                         const fallback = (e.currentTarget.parentElement?.querySelector('.fallback-icon') as HTMLElement);
                         if (fallback) {

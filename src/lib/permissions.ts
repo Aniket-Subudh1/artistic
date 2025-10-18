@@ -241,14 +241,6 @@ export const getSidebarItems = (): SidebarItem[] => [
         roles: ['super_admin', 'admin'],
       },
       {
-        id: 'artist-types',
-        label: 'Artist Categories',
-        labelAr: 'فئات الفنانين',
-        icon: 'Settings',
-        href: '/dashboard/admin/artist-types',
-        roles: ['super_admin', 'admin'],
-      },
-      {
         id: 'profile-updates',
         label: 'Profile Updates',
         labelAr: 'تحديثات الملفات',

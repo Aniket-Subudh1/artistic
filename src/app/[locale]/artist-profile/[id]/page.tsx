@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useRouter as useI18nRouter } from '@/i18n/routing';
 import { useAuthLogic } from '@/hooks/useAuth';
-import { ArtistService, Artist, PortfolioItem } from '@/services/artist.service';
+import { ArtistService, Artist, PortfolioItem, ArtistPricingData } from '@/services/artist.service';
 import { getYouTubeEmbedUrl } from '@/lib/youtube';
 import Image from 'next/image';
 import { 
@@ -43,6 +43,43 @@ export default function ArtistProfilePage() {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
   const [portfolioLoading, setPortfolioLoading] = useState(false);
+  const [pricingData, setPricingData] = useState<ArtistPricingData | null>(null);
+  const [hasDynamicPricing, setHasDynamicPricing] = useState(false);
+
+  // Function to get display pricing information
+  const getPricingDisplay = () => {
+    if (!hasDynamicPricing || !pricingData) {
+      return {
+        mainPrice: artist?.pricePerHour || 0,
+        subtitle: 'KWD/hour',
+        hasMultiple: false
+      };
+    }
+
+    let mainPrice = 0;
+    let subtitle = 'KWD/hour';
+    let hasMultiple = true;
+
+    if (pricingData.pricingMode === 'duration') {
+      // Use private pricing only
+      const privatePricing = pricingData.privatePricing;
+      if (privatePricing && privatePricing.length > 0) {
+        mainPrice = Math.min(...privatePricing.map(p => p.amount));
+      } else {
+        mainPrice = pricingData.basePrivateRate || 0;
+      }
+    } else {
+      // Time slot pricing - private only
+      const privateTimeSlots = pricingData.privateTimeSlotPricing;
+      if (privateTimeSlots && privateTimeSlots.length > 0) {
+        mainPrice = Math.min(...privateTimeSlots.map(p => p.rate));
+      } else {
+        mainPrice = pricingData.basePrivateRate || 0;
+      }
+    }
+
+    return { mainPrice, subtitle, hasMultiple };
+  };
 
   useEffect(() => {
     const fetchArtist = async () => {
@@ -73,6 +110,18 @@ export default function ArtistProfilePage() {
           // Don't set error for portfolio, just log it
         } finally {
           setPortfolioLoading(false);
+        }
+
+        // Fetch pricing data
+        try {
+          const pricing = await ArtistService.getArtistPricing(foundArtist._id);
+          if (pricing) {
+            setPricingData(pricing);
+            setHasDynamicPricing(true);
+          }
+        } catch (pricingErr) {
+          console.error('Error fetching pricing:', pricingErr);
+          // Don't set error for pricing, just log it
         }
       } catch (err) {
         console.error('Error fetching artist:', err);
@@ -312,9 +361,13 @@ export default function ArtistProfilePage() {
                       <Star className="w-4 h-4 text-[#391C71] mx-auto mt-2" />
                     </div>
                     <div className="text-center p-3 bg-gradient-to-r from-[#391C71]/10 to-purple-100 rounded-2xl border border-[#391C71]/20">
-                      <div className="text-2xl font-bold text-[#391C71] mb-1">{artist.pricePerHour}</div>
-                      <div className="text-xs text-gray-600 font-medium">KWD Per Hour</div>
-                      <div className="text-base text-[#391C71] mx-auto mt-1">🎭</div>
+                      <div className="text-lg font-bold text-[#391C71] mb-1">
+                        {getPricingDisplay().mainPrice}
+                      </div>
+                      <div className="text-xs text-gray-600 font-medium">
+                        KWD Per Hour
+                      </div>
+                      <div className="text-xs text-[#391C71] font-medium mt-1">Price</div>
                     </div>
                   </div>
 
@@ -331,6 +384,54 @@ export default function ArtistProfilePage() {
                     </div>
                   </div>
 
+                  {/* Detailed Pricing Section */}
+                  {hasDynamicPricing && pricingData && (pricingData.privatePricing || pricingData.privateTimeSlotPricing || pricingData.basePrivateRate) && (
+                    <div className="mb-8">
+                      <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                        <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3">
+                          <Star className="w-4 h-4 text-white" />
+                        </div>
+                        Pricing Details
+                      </h3>
+                      <div className="bg-gradient-to-r from-[#391C71]/10 to-purple-100 rounded-2xl p-4 border border-[#391C71]/20">
+                        <div className="grid grid-cols-1 gap-4">
+                          {/* Private Performance Only */}
+                          <div className="bg-white/50 rounded-xl p-3">
+                            <h4 className="text-sm font-semibold text-[#391C71] mb-2">Private Performance</h4>
+                            {pricingData.pricingMode === 'duration' ? (
+                              <div className="space-y-1">
+                                {pricingData.privatePricing?.map((price, index) => (
+                                  <div key={index} className="text-xs text-gray-700">
+                                    {price.hours}h: {price.amount} KWD
+                                  </div>
+                                )) || (
+                                  <div className="text-xs text-gray-700">
+                                    Base: {pricingData.basePrivateRate} KWD/hour
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="space-y-1">
+                                {pricingData.privateTimeSlotPricing?.map((slot, index) => (
+                                  <div key={index} className="text-xs text-gray-700">
+                                    {slot.hour}:00: {slot.rate} KWD
+                                  </div>
+                                )) || (
+                                  <div className="text-xs text-gray-700">
+                                    Base: {pricingData.basePrivateRate} KWD/hour
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="mt-3 text-xs text-gray-600 text-center">
+                          Pricing mode: {pricingData.pricingMode === 'duration' ? 'Duration-based' : 'Time slot-based'}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Enhanced Book Button */}
                   <div className="flex flex-col sm:flex-row gap-4">
                     <button
@@ -345,7 +446,7 @@ export default function ArtistProfilePage() {
                       <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                       <Calendar className="w-6 h-6 relative z-10" />
                       <span className="relative z-10">
-                        {authLoading ? 'Loading...' : `Book Now - ${artist.pricePerHour} KWD/hour`}
+                        {authLoading ? 'Loading...' : 'Book Now'}
                       </span>
                     </button>
                   </div>

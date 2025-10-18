@@ -23,7 +23,6 @@ export const API_CONFIG = {
       REMOVE_PROFILE_PICTURE: '/user/profile/picture',
     },
     ADMIN: {
-      ADD_ARTIST_TYPE: '/admin/add-artist-type',
       ADD_EQUIPMENT_PROVIDER: '/admin/add-equipment-provider',
       DASHBOARD_STATS: '/admin/dashboard/stats',
       SYSTEM_SETTINGS: '/admin/system/settings',
@@ -32,7 +31,6 @@ export const API_CONFIG = {
       REVIEW_PORTFOLIO_ITEM: (id: string) => `/admin/portfolio-items/${id}/review`,
     },
     ARTIST: {
-      LIST_TYPES: '/artist/list-types',
       ONBOARD: '/artist/onboard',
       LIST_PUBLIC: '/artist/list/public',
       LIST_PRIVATE: '/artist/list/private',

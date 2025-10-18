@@ -24,7 +24,7 @@ import {
   ArrowLeft,
   ArrowRight
 } from 'lucide-react';
-import { ArtistService, Artist, ArtistType } from '@/services/artist.service';
+import { ArtistService, Artist } from '@/services/artist.service';
 import { AdminService } from '@/services/admin.service';
 import { UserService } from '@/services/user.service';
 import { ImageCropper } from '@/components/ui/ImageCropper';
@@ -32,9 +32,8 @@ import { PricingSettings } from './PricingSettings';
 
 export function ArtistManagement() {
   const [artists, setArtists] = useState<Artist[]>([]);
-  const [artistTypes, setArtistTypes] = useState<ArtistType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isCreatingArtist, setIsCreatingArtist] = useState(false); // New loading state for creation
+  const [isCreatingArtist, setIsCreatingArtist] = useState(false); 
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -59,6 +58,7 @@ export function ArtistManagement() {
     gender: '',
     artistType: '',
     category: '',
+    customCategory: '', // Add custom category field
     country: '',
     performPreference: [] as string[],
     youtubeLink: '',
@@ -95,7 +95,6 @@ export function ArtistManagement() {
   const [newSkill, setNewSkill] = useState('');
   const [newLanguage, setNewLanguage] = useState('');
   const [newAward, setNewAward] = useState('');
-  const [newPerformPreference, setNewPerformPreference] = useState('');
 
   // Image upload states
   const [profileImage, setProfileImage] = useState<File | null>(null);
@@ -113,12 +112,8 @@ export function ArtistManagement() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [artistsData, typesData] = await Promise.all([
-        ArtistService.getPrivateArtists(),
-        ArtistService.getArtistTypes(),
-      ]);
+      const artistsData = await ArtistService.getPrivateArtists();
       setArtists(artistsData);
-      setArtistTypes(typesData);
     } catch (error: any) {
       setError('Failed to load data: ' + (error.message || 'Unknown error'));
     } finally {
@@ -163,6 +158,13 @@ export function ArtistManagement() {
         setError('Please fill in all required fields');
         return;
       }
+      
+      // Validate custom category if "Other" is selected
+      if (createArtistForm.category === 'OTHER' && !createArtistForm.customCategory.trim()) {
+        setError('Please enter a custom category');
+        return;
+      }
+      
       // Move to step 2
       setCreateStep(2);
       return;
@@ -204,6 +206,8 @@ export function ArtistManagement() {
       // Prepare artist data with performance settings
       const artistData = {
         ...createArtistForm,
+        // Use custom category if "Other" is selected, otherwise use the selected category
+        category: createArtistForm.category === 'OTHER' ? createArtistForm.customCategory : createArtistForm.category,
         // Map frontend field names to backend field names
         cooldownPeriod: artistSettings.cooldownPeriodHours,
         maximumPerformHour: artistSettings.maximumPerformanceHours,
@@ -314,6 +318,7 @@ export function ArtistManagement() {
       gender: '',
       artistType: '',
       category: '',
+      customCategory: '', // Add custom category to reset
       country: '',
       performPreference: [],
       youtubeLink: '',
@@ -343,7 +348,6 @@ export function ArtistManagement() {
     setNewSkill('');
     setNewLanguage('');
     setNewAward('');
-    setNewPerformPreference('');
     
     // Reset image states
     setProfileImage(null);
@@ -400,23 +404,6 @@ export function ArtistManagement() {
     setCreateArtistForm(prev => ({ 
       ...prev, 
       awards: prev.awards.filter(a => a !== award) 
-    }));
-  };
-
-  const addPerformPreference = () => {
-    if (newPerformPreference.trim() && !createArtistForm.performPreference.includes(newPerformPreference.trim())) {
-      setCreateArtistForm(prev => ({ 
-        ...prev, 
-        performPreference: [...prev.performPreference, newPerformPreference.trim()] 
-      }));
-      setNewPerformPreference('');
-    }
-  };
-
-  const removePerformPreference = (preference: string) => {
-    setCreateArtistForm(prev => ({ 
-      ...prev, 
-      performPreference: prev.performPreference.filter(p => p !== preference) 
     }));
   };
 
@@ -545,18 +532,6 @@ export function ArtistManagement() {
             </div>
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
               <CheckCircle className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Categories</p>
-              <p className="text-2xl font-bold text-gray-900">{artistTypes.length}</p>
-            </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Star className="w-6 h-6 text-blue-600" />
             </div>
           </div>
         </div>
@@ -1090,7 +1065,7 @@ export function ArtistManagement() {
                       </label>
                       <select
                         value={createArtistForm.category}
-                        onChange={(e) => setCreateArtistForm(prev => ({ ...prev, category: e.target.value }))}
+                        onChange={(e) => setCreateArtistForm(prev => ({ ...prev, category: e.target.value, customCategory: e.target.value !== 'OTHER' ? '' : prev.customCategory }))}
                         required
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                       >
@@ -1100,25 +1075,33 @@ export function ArtistManagement() {
                         <option value="BAND">Band</option>
                         <option value="DJ">DJ</option>
                         <option value="DANCER">Dancer</option>
+                        <option value="OTHER">Other</option>
                       </select>
+                      {createArtistForm.category === 'OTHER' && (
+                        <div className="mt-2">
+                          <input
+                            type="text"
+                            value={createArtistForm.customCategory}
+                            onChange={(e) => setCreateArtistForm(prev => ({ ...prev, customCategory: e.target.value }))}
+                            placeholder="Enter custom category"
+                            required
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                          />
+                        </div>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Artist Type *
                       </label>
-                      <select
+                      <input
+                        type="text"
                         value={createArtistForm.artistType}
                         onChange={(e) => setCreateArtistForm(prev => ({ ...prev, artistType: e.target.value }))}
                         required
+                        placeholder="Enter artist type (e.g., Singer, Musician, Performer)"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                      >
-                        <option value="">Select Type</option>
-                        {artistTypes.map((type) => (
-                          <option key={type._id} value={type._id}>
-                            {type.name}
-                          </option>
-                        ))}
-                      </select>
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1267,61 +1250,75 @@ export function ArtistManagement() {
                 {/* Performance Preferences */}
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 mb-4">Performance Preferences</h3>
-                  <div className="space-y-2">
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={newPerformPreference}
-                        onChange={(e) => setNewPerformPreference(e.target.value)}
-                        placeholder="Add a preference"
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addPerformPreference())}
-                      />
-                      <button
-                        type="button"
-                        onClick={addPerformPreference}
-                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                      >
-                        Add
-                      </button>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {createArtistForm.performPreference.map((preference, index) => (
-                        <span key={index} className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
-                          {preference}
-                          <button
-                            type="button"
-                            onClick={() => removePerformPreference(preference)}
-                            className="ml-2 text-blue-600 hover:text-blue-800"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </span>
+                  <div className="space-y-3">
+                    <p className="text-sm text-gray-600">Select up to 4 performance preferences:</p>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      {['private', 'public', 'international', 'workshop'].map((pref) => (
+                        <button
+                          key={pref}
+                          type="button"
+                          onClick={() => {
+                            const isSelected = createArtistForm.performPreference.includes(pref);
+                            if (isSelected) {
+                              // Remove preference
+                              setCreateArtistForm(prev => ({
+                                ...prev,
+                                performPreference: prev.performPreference.filter(p => p !== pref)
+                              }));
+                            } else if (createArtistForm.performPreference.length < 4) {
+                              // Add preference if under limit
+                              setCreateArtistForm(prev => ({
+                                ...prev,
+                                performPreference: [...prev.performPreference, pref]
+                              }));
+                            }
+                          }}
+                          className={`p-3 text-sm border rounded-lg transition-colors ${
+                            createArtistForm.performPreference.includes(pref)
+                              ? 'bg-purple-100 border-purple-500 text-purple-700'
+                              : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                          } ${
+                            !createArtistForm.performPreference.includes(pref) && createArtistForm.performPreference.length >= 4
+                              ? 'opacity-50 cursor-not-allowed'
+                              : 'cursor-pointer'
+                          }`}
+                          disabled={!createArtistForm.performPreference.includes(pref) && createArtistForm.performPreference.length >= 4}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="capitalize font-medium">{pref}</span>
+                            {createArtistForm.performPreference.includes(pref) && (
+                              <CheckCircle className="w-4 h-4 text-purple-600" />
+                            )}
+                          </div>
+                        </button>
                       ))}
                     </div>
-                    <div className="mt-2">
-                      <p className="text-sm text-gray-600 mb-2">Quick Add Common Preferences:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {['private', 'public', 'international', 'workshop'].map((pref) => (
-                          <button
-                            key={pref}
-                            type="button"
-                            onClick={() => {
-                              if (!createArtistForm.performPreference.includes(pref)) {
-                                setCreateArtistForm(prev => ({
-                                  ...prev,
-                                  performPreference: [...prev.performPreference, pref]
-                                }));
-                              }
-                            }}
-                            disabled={createArtistForm.performPreference.includes(pref)}
-                            className="px-3 py-1 text-sm border border-gray-300 rounded-full hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {pref}
-                          </button>
+                    
+                    <div className="text-xs text-gray-500">
+                      Selected: {createArtistForm.performPreference.length}/4
+                    </div>
+                    
+                    {/* Display selected preferences */}
+                    {createArtistForm.performPreference.length > 0 && (
+                      <div className="flex flex-wrap gap-2 pt-2">
+                        {createArtistForm.performPreference.map((preference, index) => (
+                          <span key={index} className="inline-flex items-center px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-full">
+                            {preference}
+                            <button
+                              type="button"
+                              onClick={() => setCreateArtistForm(prev => ({
+                                ...prev,
+                                performPreference: prev.performPreference.filter(p => p !== preference)
+                              }))}
+                              className="ml-2 text-purple-600 hover:text-purple-800"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
                         ))}
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
 

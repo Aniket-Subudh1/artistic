@@ -238,7 +238,6 @@ export default function BookArtistPage() {
       
       return response;
     } catch (error: any) {
-      console.error('❌ Error fetching date availability:', error);
       throw error;
     }
   };
@@ -386,8 +385,6 @@ export default function BookArtistPage() {
       setSubmitting(true);
       
       // Use new optimized pricing calculation
-      console.log('🔄 Processing booking with optimized pricing...');
-      
       const pricingData = {
         artistId,
         eventType: 'private' as const,
@@ -407,9 +404,7 @@ export default function BookArtistPage() {
       try {
         // Single API call for complete pricing calculation
         pricingResponse = await BookingService.calculateBookingPricing(pricingData);
-        console.log('✅ Optimized pricing response:', pricingResponse);
       } catch (error) {
-        console.error('❌ Optimized pricing failed, falling back to legacy:', error);
         
         // Fallback to legacy calculation if new endpoint fails
         let totalHours = 0;
@@ -483,7 +478,6 @@ export default function BookArtistPage() {
           if (!availabilityCheck.isAvailable) {
             throw new Error(`Booking not available: ${availabilityCheck.reason}`);
           }
-          console.log('✅ Availability check passed');
         } catch (error: any) {
           throw new Error(`Availability check failed: ${error.message}`);
         }
@@ -521,7 +515,6 @@ export default function BookArtistPage() {
       // Redirect to success page or booking confirmation
       i18nRouter.push('/dashboard/user/bookings');
     } catch (error: any) {
-      console.error('❌ Error creating booking:', error);
       setErrorModal({
         show: true,
         title: 'Booking Failed',
@@ -947,7 +940,6 @@ function DateTimeStep({ formData, setFormData, availability, errors, setErrors, 
         setFormData({ ...formData, eventDate: date });
       }
     } catch (error) {
-      console.error('❌ Error fetching date availability:', error);
       // Still set the date even if availability fetch fails
       if (isMultiDay) {
         const existingDate = formData.eventDates.find(d => d.date === date);
@@ -1765,20 +1757,15 @@ function ReviewStep({ formData, artist, equipmentPackages, customPackages }: {
           selectedCustomPackages: []
         };
 
-        console.log('🔄 ReviewStep: Using optimized pricing calculation');
         const pricingResponse = await BookingService.calculateBookingPricing(pricingData);
         
         setArtistPrice(pricingResponse.artistFee.amount);
         setIsDynamicPricing(true);
-        console.log('✅ ReviewStep optimized pricing:', pricingResponse.artistFee.amount, 'KWD for', pricingResponse.artistFee.totalHours, 'hours');
         
       } catch (error) {
-        console.error('❌ Optimized pricing failed, falling back to legacy:', error);
-        
         // Fallback to legacy pricing if new endpoint fails
         try {
           if (isMultiDayBooking) {
-            console.log('� ReviewStep: Fallback to legacy multi-day pricing for', totalHours, 'total hours');
             
             const pricingResponse = await ArtistService.calculateBookingCost(
               artist._id,
@@ -1789,7 +1776,6 @@ function ReviewStep({ formData, artist, equipmentPackages, customPackages }: {
             
             setArtistPrice(pricingResponse.totalCost);
             setIsDynamicPricing(true);
-            console.log('✅ ReviewStep legacy multi-day pricing:', pricingResponse.totalCost, 'KWD for', totalHours, 'hours');
           } else {
             // For single-day bookings, use the day-specific calculation
             const detail = bookingDetails[0];
@@ -1802,14 +1788,12 @@ function ReviewStep({ formData, artist, equipmentPackages, customPackages }: {
             
             setArtistPrice(pricingResponse.totalCost);
             setIsDynamicPricing(true);
-            console.log('✅ ReviewStep legacy single-day pricing:', pricingResponse.totalCost, 'KWD');
           }
         } catch (legacyError) {
           // Final fallback to static pricing
           const legacyPrice = (artist.pricePerHour || 0) * totalHours;
           setArtistPrice(legacyPrice);
           setIsDynamicPricing(false);
-          console.log('⚠️ ReviewStep final fallback to static pricing:', legacyPrice, 'KWD');
         }
       }
       

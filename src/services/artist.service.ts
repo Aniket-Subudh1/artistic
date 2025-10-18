@@ -1,13 +1,5 @@
 import { API_CONFIG, apiRequest, getMultipartAuthHeaders } from '@/lib/api-config';
 
-export interface ArtistType {
-  _id: string;
-  name: string;
-  description: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface CreatePortfolioItemRequest {
   title: string;
   description: string;
@@ -166,12 +158,6 @@ export interface CreateArtistResponse {
 }
 
 export class ArtistService {
-  static async getArtistTypes(): Promise<ArtistType[]> {
-    return apiRequest<ArtistType[]>(API_CONFIG.ENDPOINTS.ARTIST.LIST_TYPES, {
-      method: 'GET',
-    });
-  }
-
   static async createArtist(
     artistData: CreateArtistRequest,
     files?: {
