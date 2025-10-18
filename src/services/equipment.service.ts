@@ -111,7 +111,6 @@ export class EquipmentService {
         }))
       };
     } catch (error) {
-      console.error('Error checking equipment in packages:', error);
       return { isUsedInPackages: false, packages: [] };
     }
   }

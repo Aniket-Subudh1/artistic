@@ -65,7 +65,6 @@ const MultipleImageCropper: React.FC<MultipleImageCropperProps> = ({
     const files = Array.from(event.target.files || []);
     
     if (imageList.length + files.length > maxImages) {
-      alert(`You can only upload up to ${maxImages} images`);
       return;
     }
 
@@ -153,7 +152,7 @@ const MultipleImageCropper: React.FC<MultipleImageCropperProps> = ({
       setEditingImage(null);
     } catch (error) {
       console.error('Error cropping image:', error);
-      alert('Failed to crop image. Please try again.');
+      return;
     }
   }, [editingImage, onImagesChange]);
 

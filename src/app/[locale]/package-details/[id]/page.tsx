@@ -82,8 +82,8 @@ export default function PackageDetailsPage() {
     } else {
       // Fallback to clipboard
       navigator.clipboard.writeText(window.location.href);
-      alert('Link copied to clipboard!');
     }
+  };
   };
 
   const handleDownloadQR = () => {
@@ -390,7 +390,6 @@ export default function PackageDetailsPage() {
                       onClick={() => {
                         if (qrCodeUrl) {
                           navigator.clipboard.writeText(window.location.href);
-                          alert('Package link copied!');
                         }
                       }}
                       className="w-full bg-gradient-to-r from-gray-500 to-gray-600 text-white px-4 py-3 rounded-2xl font-semibold hover:from-gray-600 hover:to-gray-500 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-2"

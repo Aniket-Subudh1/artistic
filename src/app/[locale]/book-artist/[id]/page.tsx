@@ -36,6 +36,13 @@ import { TermsAndConditionsModal } from '@/components/booking/TermsAndConditions
 import { TermsAndConditionsService, TermsAndConditions, TermsType } from '@/services/terms-and-conditions.service';
 
 interface BookingFormData {
+  // Multi-day booking support
+  eventDates: Array<{
+    date: string;
+    startTime: string;
+    endTime: string;
+  }>;
+  // Legacy single date support (for backward compatibility)
   eventDate: string;
   startTime: string;
   endTime: string;
@@ -77,6 +84,7 @@ export default function BookArtistPage() {
   const [customPackages, setCustomPackages] = useState<CustomEquipmentPackage[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [step, setStep] = useState(1);
+  const [isMultiDayBooking, setIsMultiDayBooking] = useState(false);
   const [errorModal, setErrorModal] = useState<{
     show: boolean;
     title: string;
@@ -84,6 +92,9 @@ export default function BookArtistPage() {
   }>({ show: false, title: '', message: '' });
   
   const [formData, setFormData] = useState<BookingFormData>({
+    // Multi-day booking support
+    eventDates: [],
+    // Legacy single date support (for backward compatibility)
     eventDate: '',
     startTime: '',
     endTime: '',
@@ -206,43 +217,13 @@ export default function BookArtistPage() {
   };
 
   const fetchAvailability = async (month: number, year: number) => {
-    try {
-      console.log('🔍 Fetching availability for artist:', artistId, 'month:', month, 'year:', year);
-      const response = await BookingService.getArtistAvailability(artistId, month, year);
-      console.log('📅 Availability response:', response);
-      console.log('🚫 Unavailable slots:', response.unavailableSlots);
-      console.log('🔍 Object.keys(response.unavailableSlots):', Object.keys(response.unavailableSlots));
-      
-      // Log each date and its unavailable hours for debugging
-      Object.entries(response.unavailableSlots).forEach(([date, hours]) => {
-        console.log(`📅 Date ${date} -> Unavailable hours: [${hours.join(', ')}]`);
-      });
-      
-      setAvailability(response.unavailableSlots);
-    } catch (error: any) {
-      console.error('❌ Error fetching availability:', error);
-      
-      // Handle different types of errors
-      let errorTitle = 'Error Loading Availability';
-      let errorMessage = 'Unable to load artist availability. Please try again.';
-      
-      if (error.message === 'Artist not found') {
-        errorTitle = 'Artist Not Found';
-        errorMessage = 'The artist you\'re looking for could not be found.';
-      } else if (error.message === 'Artist not available for private bookings') {
-        errorTitle = 'Artist Not Available';
-        errorMessage = 'This artist is not available for private bookings. Please choose another artist.';
-      } else if (error.message === 'Artist not found or not available for private bookings') {
-        errorTitle = 'Artist Not Available';
-        errorMessage = 'This artist is either not found or not available for private bookings.';
-      }
-      
-      setErrorModal({
-        show: true,
-        title: errorTitle,
-        message: errorMessage
-      });
-    }
+    // For dynamic pricing with artistProfileId, we don't need to pre-fetch month availability
+    // The AvailabilityCalendar component will handle per-date availability fetching
+    console.log('🔍 Using dynamic availability for artist:', artistId, 'month:', month, 'year:', year);
+    console.log('📋 Dynamic pricing will handle date-specific availability');
+    
+    // Set empty availability to let dynamic pricing take over
+    setAvailability({});
   };
 
   const fetchDateAvailability = async (dateStr: string) => {
@@ -270,20 +251,60 @@ export default function BookArtistPage() {
     const newErrors: { [key: string]: string } = {};
 
     if (stepNumber === 1) {
-      if (!formData.eventDate) newErrors.eventDate = 'Event date is required';
-      if (!formData.startTime) newErrors.startTime = 'Start time is required';
-      if (!formData.endTime) newErrors.endTime = 'End time is required';
-      
-      // Check if selected time slots are available
-      if (formData.eventDate && availability[formData.eventDate]) {
-        const startHour = parseInt(formData.startTime.split(':')[0]);
-        const endHour = parseInt(formData.endTime.split(':')[0]);
-        const unavailableHours = availability[formData.eventDate];
+      if (isMultiDayBooking) {
+        // Multi-day booking validation
+        if (!formData.eventDates || formData.eventDates.length === 0) {
+          newErrors.eventDate = 'Event dates are required';
+        } else {
+          // Check each day has required time slots
+          for (let i = 0; i < formData.eventDates.length; i++) {
+            const dayData = formData.eventDates[i];
+            if (!dayData.date) {
+              newErrors.eventDate = 'All event dates are required';
+              break;
+            }
+            if (!dayData.startTime) {
+              newErrors.startTime = 'Start time is required for all days';
+              break;
+            }
+            if (!dayData.endTime) {
+              newErrors.endTime = 'End time is required for all days';
+              break;
+            }
+            
+            // Check availability for this day
+            if (dayData.date && availability[dayData.date]) {
+              const startHour = parseInt(dayData.startTime.split(':')[0]);
+              const endHour = parseInt(dayData.endTime.split(':')[0]);
+              const unavailableHours = availability[dayData.date];
+              
+              for (let hour = startHour; hour < endHour; hour++) {
+                if (unavailableHours.includes(hour)) {
+                  newErrors.timeSlot = `Selected time slot is not available on ${dayData.date}`;
+                  break;
+                }
+              }
+              if (newErrors.timeSlot) break;
+            }
+          }
+        }
+      } else {
+        // Single-day booking validation
+        if (!formData.eventDate) newErrors.eventDate = 'Event date is required';
+        if (!formData.startTime) newErrors.startTime = 'Start time is required';
+        if (!formData.endTime) newErrors.endTime = 'End time is required';
         
-        for (let hour = startHour; hour < endHour; hour++) {
-          if (unavailableHours.includes(hour)) {
-            newErrors.timeSlot = 'Selected time slot is not available';
-            break;
+        // Check if selected time slots are available
+        if (formData.eventDate && availability[formData.eventDate]) {
+          const startHour = parseInt(formData.startTime.split(':')[0]);
+          const endHour = parseInt(formData.endTime.split(':')[0]);
+          const unavailableHours = availability[formData.eventDate];
+          
+          for (let hour = startHour; hour < endHour; hour++) {
+            if (unavailableHours.includes(hour)) {
+              newErrors.timeSlot = 'Selected time slot is not available';
+              break;
+            }
           }
         }
       }
@@ -364,53 +385,143 @@ export default function BookArtistPage() {
     try {
       setSubmitting(true);
       
-      // Calculate pricing
-      const artistPrice = artist?.pricePerHour || 0;
-      const startHour = parseInt(formData.startTime.split(':')[0]);
-      const endHour = parseInt(formData.endTime.split(':')[0]);
-      const hours = endHour - startHour;
-      const totalArtistPrice = artistPrice * hours;
+      // Use new optimized pricing calculation
+      console.log('🔄 Processing booking with optimized pricing...');
       
-      // Calculate equipment price from regular packages
-      let equipmentPrice = 0;
-      formData.selectedEquipmentPackages.forEach(packageId => {
-        const pkg = equipmentPackages.find(p => p._id === packageId);
-        if (pkg) {
-          equipmentPrice += pkg.totalPrice;
-        }
-      });
-
-      // Calculate price from custom packages
-      formData.selectedCustomPackages.forEach(packageId => {
-        const customPkg = customPackages.find(p => p._id === packageId);
-        if (customPkg) {
-          equipmentPrice += customPkg.totalPricePerDay;
-        }
-      });
-      
-      const bookingData = {
+      const pricingData = {
         artistId,
         eventType: 'private' as const,
-        eventDate: formData.eventDate,
-        startTime: formData.startTime,
-        endTime: formData.endTime,
-        artistPrice: totalArtistPrice,
-        equipmentPrice,
-        totalPrice: totalArtistPrice + equipmentPrice,
-        userDetails: formData.userDetails,
-        venueDetails: formData.venueDetails,
-        eventDescription: formData.eventDescription,
-        specialRequests: formData.specialRequests,
+        isMultiDay: isMultiDayBooking,
+        ...(isMultiDayBooking ? {
+          eventDates: formData.eventDates
+        } : {
+          eventDate: formData.eventDate,
+          startTime: formData.startTime,
+          endTime: formData.endTime
+        }),
         selectedEquipmentPackages: formData.selectedEquipmentPackages,
-        selectedCustomPackages: formData.selectedCustomPackages,
+        selectedCustomPackages: formData.selectedCustomPackages
       };
+
+      let pricingResponse;
+      try {
+        // Single API call for complete pricing calculation
+        pricingResponse = await BookingService.calculateBookingPricing(pricingData);
+        console.log('✅ Optimized pricing response:', pricingResponse);
+      } catch (error) {
+        console.error('❌ Optimized pricing failed, falling back to legacy:', error);
+        
+        // Fallback to legacy calculation if new endpoint fails
+        let totalHours = 0;
+        let totalArtistPrice = 0;
+        
+        if (isMultiDayBooking && formData.eventDates.length > 0) {
+          formData.eventDates.forEach(dayData => {
+            const startHour = parseInt(dayData.startTime.split(':')[0]);
+            const endHour = parseInt(dayData.endTime.split(':')[0]);
+            const dayHours = endHour - startHour;
+            totalHours += dayHours;
+          });
+          
+          const fallbackResponse = await ArtistService.calculateBookingCost(
+            artistId, 'private', 8, totalHours
+          );
+          totalArtistPrice = fallbackResponse.totalCost;
+        } else {
+          const startHour = parseInt(formData.startTime.split(':')[0]);
+          const endHour = parseInt(formData.endTime.split(':')[0]);
+          totalHours = endHour - startHour;
+          
+          const fallbackResponse = await ArtistService.calculateBookingCost(
+            artistId, 'private', startHour, totalHours
+          );
+          totalArtistPrice = fallbackResponse.totalCost;
+        }
+        
+        // Create fallback pricing response structure
+        pricingResponse = {
+          artistFee: { amount: totalArtistPrice, totalHours },
+          equipmentFee: { amount: 0 },
+          totalAmount: totalArtistPrice
+        };
+      }
+
+      let bookingData: any;
+      
+      if (isMultiDayBooking && formData.eventDates.length > 0) {
+        // Multi-day booking data structure
+        bookingData = {
+          artistId,
+          eventType: 'private' as const,
+          isMultiDay: true,
+          eventDates: formData.eventDates,
+          totalHours: pricingResponse.artistFee.totalHours,
+          artistPrice: pricingResponse.artistFee.amount,
+          userDetails: formData.userDetails,
+          venueDetails: formData.venueDetails,
+          eventDescription: formData.eventDescription,
+          specialRequests: formData.specialRequests,
+          selectedEquipmentPackages: formData.selectedEquipmentPackages,
+          selectedCustomPackages: formData.selectedCustomPackages,
+        };
+      } else {
+        // Single-day booking data structure
+        
+        // Check availability before booking (respects cooldown, max hours, etc.)
+        try {
+          const startHour = parseInt(formData.startTime.split(':')[0]);
+          const endHour = parseInt(formData.endTime.split(':')[0]);
+          const hours = endHour - startHour;
+          
+          const availabilityCheck = await ArtistService.checkAvailability(
+            artistId,
+            formData.eventDate,
+            startHour,
+            hours
+          );
+          
+          if (!availabilityCheck.isAvailable) {
+            throw new Error(`Booking not available: ${availabilityCheck.reason}`);
+          }
+          console.log('✅ Availability check passed');
+        } catch (error: any) {
+          throw new Error(`Availability check failed: ${error.message}`);
+        }
+        
+        bookingData = {
+          artistId,
+          eventType: 'private' as const,
+          eventDate: formData.eventDate,
+          startTime: formData.startTime,
+          endTime: formData.endTime,
+          artistPrice: pricingResponse.artistFee.amount,
+          userDetails: formData.userDetails,
+          venueDetails: formData.venueDetails,
+          eventDescription: formData.eventDescription,
+          specialRequests: formData.specialRequests,
+          selectedEquipmentPackages: formData.selectedEquipmentPackages,
+          selectedCustomPackages: formData.selectedCustomPackages,
+        };
+      }
+      
+      // Add total pricing to booking data
+      bookingData.equipmentPrice = pricingResponse.equipmentFee.amount;
+      bookingData.totalPrice = pricingResponse.totalAmount;
+      
+      console.log('📋 Final optimized booking data:', {
+        artistPrice: pricingResponse.artistFee.amount,
+        equipmentPrice: pricingResponse.equipmentFee.amount,
+        totalPrice: pricingResponse.totalAmount,
+        totalHours: pricingResponse.artistFee.totalHours,
+        isMultiDay: isMultiDayBooking
+      });
 
       const response = await BookingService.createArtistBooking(bookingData);
       
       // Redirect to success page or booking confirmation
       i18nRouter.push('/dashboard/user/bookings');
     } catch (error: any) {
-      console.error('Error creating booking:', error);
+      console.error('❌ Error creating booking:', error);
       setErrorModal({
         show: true,
         title: 'Booking Failed',
@@ -638,8 +749,12 @@ export default function BookArtistPage() {
                 setFormData={setFormData}
                 availability={availability}
                 errors={errors}
+                setErrors={setErrors}
+                isMultiDayBooking={isMultiDayBooking}
+                setIsMultiDayBooking={setIsMultiDayBooking}
                 onMonthChange={handleMonthChange}
                 artistId={artistId}
+                artist={artist}
                 fetchDateAvailability={fetchDateAvailability}
               />
             )}
@@ -791,29 +906,157 @@ interface StepProps {
   errors: { [key: string]: string };
 }
 
-function DateTimeStep({ formData, setFormData, availability, errors, onMonthChange, artistId, fetchDateAvailability }: StepProps & { 
+function DateTimeStep({ formData, setFormData, availability, errors, setErrors, isMultiDayBooking, setIsMultiDayBooking, onMonthChange, artistId, artist, fetchDateAvailability }: StepProps & { 
   availability: AvailabilityData;
+  setErrors: (errors: { [key: string]: string }) => void;
+  isMultiDayBooking: boolean;
+  setIsMultiDayBooking: (value: boolean) => void;
   onMonthChange: (month: number, year: number) => Promise<void>;
   artistId: string;
+  artist: Artist | null;
   fetchDateAvailability: (date: string) => Promise<any>;
 }) {
+  const [isMultiDay, setIsMultiDay] = useState(isMultiDayBooking);
+  const [focusedDate, setFocusedDate] = useState<string>(''); // Track which date is currently being viewed in calendar
+
+  const clearValidationErrors = () => {
+    // Clear any existing validation errors when user makes selections
+    setErrors({});
+  };
+
   const handleDateSelect = async (date: string) => {
+    // Clear validation errors when date is selected
+    clearValidationErrors();
+    
     // Fetch availability for this specific date
     try {
       await fetchDateAvailability(date);
-      setFormData({ ...formData, eventDate: date });
+      
+      if (isMultiDay) {
+        // Multi-day mode: Add to eventDates array if not exists, or focus on existing date
+        const existingDate = formData.eventDates.find(d => d.date === date);
+        if (!existingDate) {
+          setFormData({ 
+            ...formData, 
+            eventDates: [...formData.eventDates, { date, startTime: '', endTime: '' }]
+          });
+        }
+        setFocusedDate(date); // Set this date as focused for calendar display
+      } else {
+        // Single-day mode: Set eventDate
+        setFormData({ ...formData, eventDate: date });
+      }
     } catch (error) {
       console.error('❌ Error fetching date availability:', error);
       // Still set the date even if availability fetch fails
-      setFormData({ ...formData, eventDate: date });
+      if (isMultiDay) {
+        const existingDate = formData.eventDates.find(d => d.date === date);
+        if (!existingDate) {
+          setFormData({ 
+            ...formData, 
+            eventDates: [...formData.eventDates, { date, startTime: '', endTime: '' }]
+          });
+        }
+        setFocusedDate(date); // Set this date as focused for calendar display
+      } else {
+        setFormData({ ...formData, eventDate: date });
+      }
     }
   };
 
-  const handleTimeSelect = (startTime: string, endTime: string) => {
-    setFormData({ 
-      ...formData, 
-      startTime, 
-      endTime 
+  const handleTimeSelect = (startTime: string, endTime: string, totalCost?: number) => {
+    // Clear validation errors when time is selected
+    clearValidationErrors();
+    
+    if (isMultiDay && focusedDate) {
+      // Multi-day mode: Update the focused date's time
+      updateMultiDayTime(focusedDate, startTime, endTime);
+    } else if (!isMultiDay) {
+      setFormData({ 
+        ...formData, 
+        startTime, 
+        endTime 
+      });
+    }
+    
+    // Optional: Store the dynamic pricing cost if provided
+    if (totalCost !== undefined) {
+      console.log('Dynamic pricing cost received:', totalCost);
+      // You could store this in state if needed for display
+    }
+  };
+
+  const handleMultiDayToggle = () => {
+    const newIsMultiDay = !isMultiDay;
+    setIsMultiDay(newIsMultiDay);
+    setIsMultiDayBooking(newIsMultiDay); // Update parent state
+    
+    // Clear validation errors when switching modes
+    clearValidationErrors();
+    
+    // Clear existing selections when switching modes
+    if (!isMultiDay) {
+      // Switching to multi-day: move single date to array
+      if (formData.eventDate) {
+        setFormData({
+          ...formData,
+          eventDates: [{ date: formData.eventDate, startTime: formData.startTime, endTime: formData.endTime }],
+          eventDate: '',
+          startTime: '',
+          endTime: ''
+        });
+        setFocusedDate(formData.eventDate); // Focus on the moved date
+      }
+    } else {
+      // Switching to single-day: clear multi-day data
+      setFormData({
+        ...formData,
+        eventDates: [],
+        eventDate: '',
+        startTime: '',
+        endTime: ''
+      });
+      setFocusedDate(''); // Clear focused date
+    }
+  };
+
+  const removeDateFromMultiDay = (dateToRemove: string) => {
+    const newEventDates = formData.eventDates.filter(d => d.date !== dateToRemove);
+    setFormData({
+      ...formData,
+      eventDates: newEventDates
+    });
+    
+    // If we removed the focused date, focus on the first remaining date
+    if (focusedDate === dateToRemove) {
+      const newFocusedDate = newEventDates.length > 0 ? newEventDates[0].date : '';
+      setFocusedDate(newFocusedDate);
+      if (newFocusedDate) {
+        fetchDateAvailability(newFocusedDate);
+      }
+    }
+  };
+
+  const updateMultiDayTime = (date: string, startTime: string, endTime: string) => {
+    // Clear validation errors when time is updated
+    clearValidationErrors();
+    
+    // Basic validation: ensure end time is after start time
+    if (startTime && endTime) {
+      const startHour = parseInt(startTime.split(':')[0]);
+      const endHour = parseInt(endTime.split(':')[0]);
+      
+      if (endHour <= startHour) {
+        // Reset end time if it's not after start time
+        endTime = '';
+      }
+    }
+    
+    setFormData({
+      ...formData,
+      eventDates: formData.eventDates.map(d => 
+        d.date === date ? { ...d, startTime, endTime } : d
+      )
     });
   };
 
@@ -823,16 +1066,157 @@ function DateTimeStep({ formData, setFormData, availability, errors, onMonthChan
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold text-gray-900">Select Date & Time</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold text-gray-900">Select Date & Time</h2>
+        
+        {/* Multi-day booking toggle */}
+        <div className="flex items-center space-x-3">
+          <span className="text-sm font-medium text-gray-700">Single Day</span>
+          <button
+            onClick={handleMultiDayToggle}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              isMultiDay ? 'bg-purple-600' : 'bg-gray-200'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                isMultiDay ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+          <span className="text-sm font-medium text-gray-700">Multiple Days</span>
+        </div>
+      </div>
+
+      {/* Multi-day mode info */}
+      {isMultiDay && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-start">
+            <Info className="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-blue-800 font-medium">Multi-Day Booking</p>
+              <p className="text-blue-700 text-sm mt-1">
+                You can book multiple days. Each day can have up to {artist?.maximumPerformanceHours || 4} hours of performance.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Selected dates display for multi-day */}
+      {isMultiDay && formData.eventDates.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-lg font-medium text-gray-900">Selected Dates</h3>
+          <p className="text-sm text-gray-600">Click on a date to edit its time slots on the calendar</p>
+          {formData.eventDates.map((dateItem, index) => (
+            <div 
+              key={dateItem.date} 
+              className={`rounded-lg p-4 border cursor-pointer transition-all ${
+                focusedDate === dateItem.date 
+                  ? 'bg-purple-50 border-purple-300 ring-2 ring-purple-200' 
+                  : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+              }`}
+              onClick={() => {
+                setFocusedDate(dateItem.date);
+                fetchDateAvailability(dateItem.date);
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <span className={`font-medium ${focusedDate === dateItem.date ? 'text-purple-900' : 'text-gray-900'}`}>
+                        Day {index + 1}: {dateItem.date}
+                      </span>
+                      {focusedDate === dateItem.date && (
+                        <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
+                          Editing
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <select
+                        value={dateItem.startTime ? dateItem.startTime.split(':')[0] : ''}
+                        onChange={(e) => updateMultiDayTime(dateItem.date, `${e.target.value}:00`, dateItem.endTime)}
+                        className="px-2 py-1 border border-gray-300 rounded text-sm"
+                      >
+                        <option value="">Start Hour</option>
+                        {Array.from({ length: 24 }, (_, i) => (
+                          <option key={i} value={i.toString().padStart(2, '0')}>
+                            {i.toString().padStart(2, '0')}:00
+                          </option>
+                        ))}
+                      </select>
+                      <span className="text-gray-500">to</span>
+                      <select
+                        value={dateItem.endTime ? dateItem.endTime.split(':')[0] : ''}
+                        onChange={(e) => updateMultiDayTime(dateItem.date, dateItem.startTime, `${e.target.value}:00`)}
+                        className="px-2 py-1 border border-gray-300 rounded text-sm"
+                        disabled={!dateItem.startTime}
+                      >
+                        <option value="">End Hour</option>
+                        {Array.from({ length: 24 }, (_, i) => {
+                          const startHour = dateItem.startTime ? parseInt(dateItem.startTime.split(':')[0]) : -1;
+                          const maxHours = artist?.maximumPerformanceHours || 8;
+                          
+                          // Only show hours that are:
+                          // 1. After the start time
+                          // 2. Within the maximum performance hours limit
+                          if (i > startHour && i <= startHour + maxHours && i <= 23) {
+                            return (
+                              <option key={i} value={i.toString().padStart(2, '0')}>
+                                {i.toString().padStart(2, '0')}:00
+                              </option>
+                            );
+                          }
+                          return null;
+                        })}
+                      </select>
+                      {dateItem.startTime && dateItem.endTime && (
+                        <span className="text-xs text-gray-500 ml-2">
+                          ({parseInt(dateItem.endTime.split(':')[0]) - parseInt(dateItem.startTime.split(':')[0])} hrs)
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => removeDateFromMultiDay(dateItem.date)}
+                  className="text-red-500 hover:text-red-700 p-1"
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       
       <AvailabilityCalendar
         availability={availability}
-        selectedDate={formData.eventDate}
-        selectedStartTime={formData.startTime}
-        selectedEndTime={formData.endTime}
+        selectedDate={
+          isMultiDay 
+            ? (focusedDate || (formData.eventDates.length > 0 ? formData.eventDates[0].date : ''))
+            : formData.eventDate
+        }
+        selectedStartTime={
+          isMultiDay 
+            ? (formData.eventDates.find(d => d.date === focusedDate)?.startTime || '')
+            : formData.startTime
+        }
+        selectedEndTime={
+          isMultiDay 
+            ? (formData.eventDates.find(d => d.date === focusedDate)?.endTime || '')
+            : formData.endTime
+        }
         onDateSelect={handleDateSelect}
         onTimeSelect={handleTimeSelect}
         onMonthChange={handleMonthChange}
+        artistProfileId={artistId}
+        performanceType="private"
+        maxDuration={artist?.maximumPerformanceHours || 4}
+        showPricing={true}
+        userRole="user"
       />
       
       {errors.eventDate && <p className="text-red-500 text-sm mt-1">{errors.eventDate}</p>}
@@ -1318,10 +1702,124 @@ function ReviewStep({ formData, artist, equipmentPackages, customPackages }: {
   equipmentPackages: EquipmentPackage[];
   customPackages: CustomEquipmentPackage[]
 }) {
-  const startHour = parseInt(formData.startTime.split(':')[0]);
-  const endHour = parseInt(formData.endTime.split(':')[0]);
-  const hours = endHour - startHour;
-  const artistPrice = artist.pricePerHour * hours;
+  const [artistPrice, setArtistPrice] = useState<number>(0);
+  const [isDynamicPricing, setIsDynamicPricing] = useState<boolean>(false);
+  const [loadingPrice, setLoadingPrice] = useState<boolean>(false);
+  
+  // Determine if this is a multi-day booking
+  const isMultiDayBooking = formData.eventDates && formData.eventDates.length > 0;
+  
+  // Calculate booking details based on single or multi-day
+  const bookingDetails = isMultiDayBooking 
+    ? formData.eventDates.map(dateItem => {
+        const startHour = parseInt(dateItem.startTime.split(':')[0]);
+        const endHour = parseInt(dateItem.endTime.split(':')[0]);
+        const hours = endHour - startHour;
+        return { 
+          date: dateItem.date, 
+          startTime: dateItem.startTime, 
+          endTime: dateItem.endTime, 
+          startHour, 
+          hours 
+        };
+      })
+    : [{
+        date: formData.eventDate,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
+        startHour: parseInt(formData.startTime.split(':')[0]),
+        hours: parseInt(formData.endTime.split(':')[0]) - parseInt(formData.startTime.split(':')[0])
+      }];
+  
+  const totalHours = bookingDetails.reduce((sum, detail) => sum + detail.hours, 0);
+  
+  // Calculate artist price using optimized backend pricing
+  useEffect(() => {
+    const calculateArtistPrice = async () => {
+      if (bookingDetails.some(detail => !detail.startTime || !detail.endTime)) {
+        setLoadingPrice(false);
+        return;
+      }
+      
+      // Add a slight delay before showing loading spinner to avoid flash
+      const loadingTimer = setTimeout(() => {
+        setLoadingPrice(true);
+      }, 300);
+      try {
+        // Use new optimized pricing calculation
+        const pricingData = {
+          artistId: artist._id,
+          eventType: 'private' as const,
+          ...(isMultiDayBooking ? {
+            eventDates: bookingDetails.map(detail => ({
+              date: detail.date,
+              startTime: detail.startTime,
+              endTime: detail.endTime
+            }))
+          } : {
+            eventDate: bookingDetails[0].date,
+            startTime: bookingDetails[0].startTime,
+            endTime: bookingDetails[0].endTime
+          }),
+          selectedEquipmentPackages: [], // Equipment calculated separately below
+          selectedCustomPackages: []
+        };
+
+        console.log('🔄 ReviewStep: Using optimized pricing calculation');
+        const pricingResponse = await BookingService.calculateBookingPricing(pricingData);
+        
+        setArtistPrice(pricingResponse.artistFee.amount);
+        setIsDynamicPricing(true);
+        console.log('✅ ReviewStep optimized pricing:', pricingResponse.artistFee.amount, 'KWD for', pricingResponse.artistFee.totalHours, 'hours');
+        
+      } catch (error) {
+        console.error('❌ Optimized pricing failed, falling back to legacy:', error);
+        
+        // Fallback to legacy pricing if new endpoint fails
+        try {
+          if (isMultiDayBooking) {
+            console.log('� ReviewStep: Fallback to legacy multi-day pricing for', totalHours, 'total hours');
+            
+            const pricingResponse = await ArtistService.calculateBookingCost(
+              artist._id,
+              'private',
+              8, // Standard start time for pricing calculation
+              totalHours // Use total hours to get correct pricing tier
+            );
+            
+            setArtistPrice(pricingResponse.totalCost);
+            setIsDynamicPricing(true);
+            console.log('✅ ReviewStep legacy multi-day pricing:', pricingResponse.totalCost, 'KWD for', totalHours, 'hours');
+          } else {
+            // For single-day bookings, use the day-specific calculation
+            const detail = bookingDetails[0];
+            const pricingResponse = await ArtistService.calculateBookingCost(
+              artist._id,
+              'private',
+              detail.startHour,
+              detail.hours
+            );
+            
+            setArtistPrice(pricingResponse.totalCost);
+            setIsDynamicPricing(true);
+            console.log('✅ ReviewStep legacy single-day pricing:', pricingResponse.totalCost, 'KWD');
+          }
+        } catch (legacyError) {
+          // Final fallback to static pricing
+          const legacyPrice = (artist.pricePerHour || 0) * totalHours;
+          setArtistPrice(legacyPrice);
+          setIsDynamicPricing(false);
+          console.log('⚠️ ReviewStep final fallback to static pricing:', legacyPrice, 'KWD');
+        }
+      }
+      
+      // Clear the loading timer and set loading to false
+      clearTimeout(loadingTimer);
+      setLoadingPrice(false);
+    };
+    
+    calculateArtistPrice();
+  }, [bookingDetails, artist._id, artist.pricePerHour, totalHours, isMultiDayBooking]);
   
   // Calculate equipment price
   let equipmentPrice = 0;
@@ -1354,18 +1852,52 @@ function ReviewStep({ formData, artist, equipmentPackages, customPackages }: {
             <span>Artist:</span>
             <span className="font-medium">{artist.stageName}</span>
           </div>
-          <div className="flex justify-between">
-            <span>Date:</span>
-            <span className="font-medium">{formData.eventDate}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Time:</span>
-            <span className="font-medium">{formData.startTime} - {formData.endTime}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Duration:</span>
-            <span className="font-medium">{hours} hours</span>
-          </div>
+          
+          {/* Multi-day or single-day display */}
+          {isMultiDayBooking ? (
+            <>
+              <div className="flex justify-between">
+                <span>Booking Type:</span>
+                <span className="font-medium">Multi-Day ({bookingDetails.length} days)</span>
+              </div>
+              {bookingDetails.map((detail, index) => (
+                <div key={detail.date} className="pl-4 border-l-2 border-purple-200 space-y-2">
+                  <div className="flex justify-between">
+                    <span>Day {index + 1}:</span>
+                    <span className="font-medium">{detail.date}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Time:</span>
+                    <span className="font-medium">{detail.startTime} - {detail.endTime}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Duration:</span>
+                    <span className="font-medium">{detail.hours} hours</span>
+                  </div>
+                </div>
+              ))}
+              <div className="flex justify-between pt-2 border-t border-gray-200">
+                <span className="font-medium">Total Duration:</span>
+                <span className="font-medium">{totalHours} hours</span>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex justify-between">
+                <span>Date:</span>
+                <span className="font-medium">{formData.eventDate}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Time:</span>
+                <span className="font-medium">{formData.startTime} - {formData.endTime}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Duration:</span>
+                <span className="font-medium">{totalHours} hours</span>
+              </div>
+            </>
+          )}
+          
           <div className="flex justify-between">
             <span>Venue:</span>
             <span className="font-medium">{formData.venueDetails.city}, {formData.venueDetails.state}</span>
@@ -1379,8 +1911,30 @@ function ReviewStep({ formData, artist, equipmentPackages, customPackages }: {
         
         <div className="space-y-3">
           <div className="flex justify-between">
-            <span>Artist Fee ({hours} hours × {artist.pricePerHour} KWD/hour):</span>
-            <span className="font-medium">{artistPrice} KWD</span>
+            {loadingPrice ? (
+              <span className="flex items-center">
+                <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Calculating artist fee...
+              </span>
+            ) : isDynamicPricing ? (
+              <span>
+                Artist Fee ({totalHours} hours - Dynamic Pricing):
+                <div className="text-xs text-gray-500 mt-1">
+                  {isMultiDayBooking 
+                    ? `${bookingDetails.length} days with variable rates`
+                    : `Hours ${bookingDetails[0]?.startHour}:00 - ${bookingDetails[0]?.startHour + bookingDetails[0]?.hours}:00 with variable rates`
+                  }
+                </div>
+              </span>
+            ) : (
+              <span>Artist Fee ({totalHours} hours × {artist.pricePerHour} KWD/hour):</span>
+            )}
+            <span className="font-medium">
+              {loadingPrice ? '...' : `${artistPrice} KWD`}
+            </span>
           </div>
           {(selectedPackages.length > 0 || selectedCustomPackages.length > 0) && (
             <div className="space-y-2">

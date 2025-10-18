@@ -1,5 +1,46 @@
 import { API_CONFIG, apiRequest } from '@/lib/api-config';
 
+export interface PricingCalculationRequest {
+  artistId: string;
+  eventType: 'private' | 'public';
+  isMultiDay?: boolean;
+  eventDates?: Array<{
+    date: string;
+    startTime: string;
+    endTime: string;
+  }>;
+  eventDate?: string;
+  startTime?: string;
+  endTime?: string;
+  selectedEquipmentPackages?: string[];
+  selectedCustomPackages?: string[];
+}
+
+export interface PricingCalculationResponse {
+  artistFee: {
+    amount: number;
+    totalHours: number;
+    pricingTier: string;
+    breakdown: Array<{
+      date: string;
+      hours: number;
+      rate: number;
+    }>;
+  };
+  equipmentFee: {
+    amount: number;
+    packages: Array<{
+      id: string;
+      name: string;
+      price: number;
+      type: 'provider' | 'custom';
+    }>;
+  };
+  totalAmount: number;
+  currency: string;
+  calculatedAt: string;
+}
+
 export interface BookingRequest {
   artistId: string;
   eventType: 'private' | 'public';
@@ -69,6 +110,14 @@ export interface CancelBookingRequest {
 }
 
 export class BookingService {
+  // NEW: Calculate complete pricing on backend (OPTIMAL APPROACH)
+  static async calculateBookingPricing(data: PricingCalculationRequest): Promise<PricingCalculationResponse> {
+    return apiRequest<PricingCalculationResponse>(API_CONFIG.ENDPOINTS.BOOKINGS.CALCULATE_PRICING, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   static async createArtistBooking(data: BookingRequest): Promise<BookingResponse> {
     return apiRequest<BookingResponse>('/bookings/combine', {
       method: 'POST',

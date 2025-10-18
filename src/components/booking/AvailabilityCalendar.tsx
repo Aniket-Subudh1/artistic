@@ -1,48 +1,85 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Calendar, Clock } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { ChevronLeft, ChevronRight, Calendar, Clock, DollarSign, AlertCircle, Info } from 'lucide-react';
+import { ArtistService, DateAvailability, PerformanceType } from '@/services/artist.service';
 
 interface AvailabilityData {
-  [date: string]: number[]; // date -> array of unavailable hours
+  [date: string]: number[]; 
+}
+
+interface TimeSlotInfo {
+  hour: number;
+  isAvailable: boolean;
+  price: number;
+  reason?: string;
+  isSelected: boolean;
 }
 
 interface AvailabilityCalendarProps {
-  availability: AvailabilityData;
+  // Legacy props (for backward compatibility)
+  availability?: AvailabilityData;
   selectedDate: string;
   selectedStartTime: string;
   selectedEndTime: string;
   onDateSelect: (date: string) => void;
-  onTimeSelect: (startTime: string, endTime: string) => void;
+  onTimeSelect: (startTime: string, endTime: string, totalCost?: number) => void;
   onMonthChange: (month: number, year: number) => void;
+  
+  // New props for dynamic pricing
+  artistProfileId?: string;
+  performanceType?: PerformanceType;
+  maxDuration?: number;
+  showPricing?: boolean; // Whether to show pricing information
+  userRole?: 'user' | 'artist' | 'admin'; // User role for access control
 }
 
 export function AvailabilityCalendar({
-  availability,
+  availability: legacyAvailability,
   selectedDate,
   selectedStartTime,
   selectedEndTime,
   onDateSelect,
   onTimeSelect,
   onMonthChange,
+  artistProfileId,
+  performanceType = 'private', // Default to private for normal users
+  maxDuration = 8,
+  showPricing = true,
+  userRole = 'user',
 }: AvailabilityCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedTimeSlots, setSelectedTimeSlots] = useState<number[]>([]);
-
-  useEffect(() => {
-    console.log('Calendar received availability data:', availability);
-    console.log('Selected date:', selectedDate);
-    if (selectedDate && availability[selectedDate]) {
-      console.log('Unavailable hours for selected date:', availability[selectedDate]);
-    }
-  }, [availability, selectedDate]);
+  const [dateAvailability, setDateAvailability] = useState<DateAvailability | null>(null);
+  const [isLoadingAvailability, setIsLoadingAvailability] = useState(false);
+  const [totalCost, setTotalCost] = useState(0);
+  const [useDynamicPricing, setUseDynamicPricing] = useState(false);
 
   const today = new Date();
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
-
   const timeSlots = Array.from({ length: 24 }, (_, i) => i);
 
+  // Determine if we should use dynamic pricing or legacy availability
+  useEffect(() => {
+    setUseDynamicPricing(!!artistProfileId && showPricing);
+  }, [artistProfileId, showPricing]);
+
+  // Load dynamic availability for selected date
+  useEffect(() => {
+    if (selectedDate && artistProfileId && useDynamicPricing) {
+      loadDateAvailability(selectedDate);
+    }
+  }, [selectedDate, artistProfileId, performanceType, useDynamicPricing]);
+
+  // Legacy availability logging (keep for backward compatibility)
+  useEffect(() => {
+    if (!useDynamicPricing && legacyAvailability) {
+      // Note: Availability data received
+    }
+  }, [legacyAvailability, selectedDate, useDynamicPricing]);
+
+  // Update selected time slots when time selection changes
   useEffect(() => {
     if (selectedStartTime && selectedEndTime) {
       const startHour = parseInt(selectedStartTime.split(':')[0]);
@@ -52,8 +89,55 @@ export function AvailabilityCalendar({
         slots.push(hour);
       }
       setSelectedTimeSlots(slots);
+      if (useDynamicPricing) {
+        calculateTotalCost(slots);
+      }
+    } else {
+      setSelectedTimeSlots([]);
+      setTotalCost(0);
     }
-  }, [selectedStartTime, selectedEndTime]);
+  }, [selectedStartTime, selectedEndTime, dateAvailability, useDynamicPricing]);
+
+  const loadDateAvailability = useCallback(async (date: string) => {
+    if (!artistProfileId) return;
+    
+    // Prevent duplicate calls for the same date
+    if (dateAvailability && dateAvailability.date === date) {
+      return;
+    }
+    
+    setIsLoadingAvailability(true);
+    try {
+      const availability = await ArtistService.getDateAvailability(
+        artistProfileId,
+        date,
+        performanceType
+      );
+      
+      setDateAvailability(availability);
+    } catch (error) {
+      console.error('Failed to load date availability');
+      setDateAvailability(null);
+    } finally {
+      setIsLoadingAvailability(false);
+    }
+  }, [artistProfileId, performanceType, dateAvailability]);
+
+  const calculateTotalCost = (timeSlots: number[]) => {
+    if (!dateAvailability) {
+      setTotalCost(0);
+      return;
+    }
+
+    let cost = 0;
+    timeSlots.forEach(hour => {
+      const slot = dateAvailability.timeSlots.find(s => s.hour === hour);
+      if (slot) {
+        cost += slot.price;
+      }
+    });
+    setTotalCost(cost);
+  };
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -104,43 +188,44 @@ export function AvailabilityCalendar({
     
     // Check if date is in the past
     if (targetDate < today) {
-      console.log(`❌ Date ${dateStr} is in the past`);
       return false;
     }
     
     // Check if date is within 24 hours from now
     const twentyFourHoursLater = new Date(now.getTime() + 24 * 60 * 60 * 1000);
     if (targetDate < twentyFourHoursLater) {
-      console.log(`❌ Date ${dateStr} is within 24 hours`);
       return false;
     }
     
-    // Check unavailable hours for this date
-    const unavailableHours = availability[dateStr] || [];
-    console.log(`🔍 Checking date availability for ${dateStr}:`);
-    console.log(`   Unavailable hours:`, unavailableHours);
-    console.log(`   Length:`, unavailableHours.length);
+    // Use dynamic availability if artistProfileId is provided and date is selected
+    if (useDynamicPricing && selectedDate === dateStr && dateAvailability) {
+      const availableSlots = dateAvailability.timeSlots.filter(slot => slot.isAvailable);
+      if (availableSlots.length === 0) {
+        return false;
+      }
+      return true;
+    }
+    
+    // Fallback to legacy availability check
+    const unavailableHours = legacyAvailability?.[dateStr] || [];
     
     // If this date has unavailable hours, check if ALL hours are unavailable
     if (unavailableHours.length > 0) {
       // If all 24 hours are unavailable, the entire date is unavailable
       if (unavailableHours.length >= 24) {
-        console.log(`❌ Date ${dateStr} is completely unavailable - all ${unavailableHours.length} hours marked`);
         return false;
       } else {
-        console.log(`⚠️ Date ${dateStr} is partially unavailable - ${unavailableHours.length} hours marked`);
         // Date is still selectable if some hours are available
         return true;
       }
     }
     
-    console.log(`✅ Date ${dateStr} is fully available`);
     return true;
   };
 
   const getAvailableTimeSlots = (day: number) => {
     const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    const unavailableHours = availability[dateStr] || [];
+    const unavailableHours = legacyAvailability?.[dateStr] || [];
     const targetDate = new Date(dateStr);
     const now = new Date();
     
@@ -172,19 +257,34 @@ export function AvailabilityCalendar({
     setSelectedTimeSlots([]);
   };
 
-  const handleTimeSlotClick = (hour: number) => {
+  const handleTimeSlotClick = async (hour: number) => {
     if (!selectedDate) return;
     
-    const unavailableHours = availability[selectedDate] || [];
+    // Check availability using dynamic data if available, otherwise use legacy
+    let isUnavailable = false;
+    let isWithin24Hours = false;
+    
+    if (useDynamicPricing && dateAvailability) {
+      // Use dynamic availability data
+      const slot = dateAvailability.timeSlots.find(s => s.hour === hour);
+      isUnavailable = !slot?.isAvailable;
+    } else {
+      // Use legacy availability data
+      const unavailableHours = legacyAvailability?.[selectedDate] || [];
+      isUnavailable = unavailableHours.includes(hour);
+    }
+    
+    // Check 24-hour rule regardless of availability source
     const targetDate = new Date(selectedDate);
     const slotDateTime = new Date(targetDate);
     slotDateTime.setHours(hour, 0, 0, 0);
     const now = new Date();
     const twentyFourHoursLater = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    isWithin24Hours = slotDateTime < twentyFourHoursLater;
     
-    // Check if slot is unavailable (from backend or 24-hour rule)
-    if (unavailableHours.includes(hour) || slotDateTime < twentyFourHoursLater) {
-      return; // Don't allow selection
+    // Don't allow selection if unavailable or within 24 hours
+    if (isUnavailable || isWithin24Hours) {
+      return;
     }
 
     let newSelectedSlots = [...selectedTimeSlots];
@@ -195,6 +295,13 @@ export function AvailabilityCalendar({
     } else {
       // Add hour to selection
       newSelectedSlots.push(hour);
+      
+      // Check maximum performance hours constraint
+      if (useDynamicPricing && dateAvailability?.maxPerformanceHours) {
+        if (newSelectedSlots.length > dateAvailability.maxPerformanceHours) {
+          return; // Don't allow selection beyond max hours
+        }
+      }
     }
     
     // Sort and ensure contiguous selection
@@ -209,18 +316,68 @@ export function AvailabilityCalendar({
       const allSlotsAvailable = newSelectedSlots.every(h => {
         const slotTime = new Date(targetDate);
         slotTime.setHours(h, 0, 0, 0);
-        return !unavailableHours.includes(h) && slotTime >= twentyFourHoursLater;
+        
+        if (useDynamicPricing && dateAvailability) {
+          const slot = dateAvailability.timeSlots.find(s => s.hour === h);
+          return slot?.isAvailable && slotTime >= twentyFourHoursLater;
+        } else {
+          const unavailableHours = legacyAvailability?.[selectedDate] || [];
+          return !unavailableHours.includes(h) && slotTime >= twentyFourHoursLater;
+        }
       });
       
       if (isContiguous && allSlotsAvailable) {
+        // Additional validation for consecutive booking constraints
+        if (useDynamicPricing && artistProfileId) {
+          try {
+            const validation = await ArtistService.validateConsecutiveBooking(
+              artistProfileId,
+              selectedDate,
+              minHour,
+              newSelectedSlots.length
+            );
+            
+            if (!validation.isValid) {
+              return;
+            }
+          } catch (error) {
+            console.error('Validation error');
+            return;
+          }
+        }
+        
         setSelectedTimeSlots(newSelectedSlots);
         const startTime = `${String(minHour).padStart(2, '0')}:00`;
         const endTime = `${String(maxHour + 1).padStart(2, '0')}:00`;
-        onTimeSelect(startTime, endTime);
+        
+        // Pass total cost if using dynamic pricing
+        if (useDynamicPricing && totalCost > 0) {
+          onTimeSelect(startTime, endTime, totalCost);
+        } else {
+          onTimeSelect(startTime, endTime);
+        }
       }
     } else {
       setSelectedTimeSlots([]);
       onTimeSelect('', '');
+    }
+  };
+
+  const getSlotAvailability = (hour: number) => {
+    if (useDynamicPricing && dateAvailability) {
+      const slot = dateAvailability.timeSlots.find(s => s.hour === hour);
+      return {
+        isUnavailable: !slot?.isAvailable,
+        reason: slot?.reason,
+        price: slot?.price || 0
+      };
+    } else {
+      const unavailableHours = legacyAvailability?.[selectedDate] || [];
+      return {
+        isUnavailable: unavailableHours.includes(hour),
+        reason: undefined,
+        price: 0
+      };
     }
   };
 
@@ -330,7 +487,7 @@ export function AvailabilityCalendar({
               const isToday = new Date().toDateString() === new Date(dateStr).toDateString();
               
               // Check if completely unavailable
-              const unavailableHours = availability[dateStr] || [];
+              const unavailableHours = legacyAvailability?.[dateStr] || [];
               const isCompletelyUnavailable = unavailableHours.length >= 24;
               
               return (
@@ -371,6 +528,24 @@ export function AvailabilityCalendar({
         {/* Time Slots */}
         {selectedDate && (
           <div>
+            {/* Dynamic Pricing Info Banner */}
+            {useDynamicPricing && showPricing && (
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center">
+                  <Info className="w-4 h-4 text-blue-600 mr-2" />
+                  <span className="text-sm text-blue-800">
+                    Dynamic pricing active - prices may vary by time slot. Artist availability includes performance constraints and cooldown periods.
+                  </span>
+                </div>
+                {isLoadingAvailability && (
+                  <div className="mt-2 flex items-center text-sm text-blue-600">
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-2"></div>
+                    Loading availability and pricing...
+                  </div>
+                )}
+              </div>
+            )}
+            
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
                 <Clock className="w-4 h-4 text-gray-500 mr-2" />
@@ -420,11 +595,10 @@ export function AvailabilityCalendar({
                 </h4>
                 <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                   {timeSlots.slice(0, 6).map(hour => {
-                    const unavailableHours = availability[selectedDate] || [];
-                    const isUnavailable = unavailableHours.includes(hour);
+                    const slotInfo = getSlotAvailability(hour);
                     const isSelected = selectedTimeSlots.includes(hour);
                     const isWithin24Hours = isSlotWithin24Hours(hour);
-                    const isDisabled = isUnavailable || isWithin24Hours;
+                    const isDisabled = slotInfo.isUnavailable || isWithin24Hours;
                     
                     return (
                       <button
@@ -433,13 +607,18 @@ export function AvailabilityCalendar({
                         disabled={isDisabled}
                         className={`
                           p-3 text-xs rounded-lg border-2 transition-all duration-200 font-medium relative
-                          ${getTimeSlotClass(hour, isUnavailable, isSelected, isWithin24Hours)}
+                          ${getTimeSlotClass(hour, slotInfo.isUnavailable, isSelected, isWithin24Hours)}
                         `}
                       >
                         <div className="text-center">
                           <div className="font-semibold">{formatTime24(hour)}</div>
                           <div className="text-[10px] opacity-75">{formatTimeSlot(hour)}</div>
-                          {isUnavailable && !isWithin24Hours && (
+                          {showPricing && slotInfo.price > 0 && (
+                            <div className="text-[9px] text-green-600 font-bold">
+                              {slotInfo.price} KWD
+                            </div>
+                          )}
+                          {slotInfo.isUnavailable && !isWithin24Hours && (
                             <div className="absolute top-0 right-0 w-2 h-2 bg-red-600 rounded-full"></div>
                           )}
                         </div>
@@ -456,11 +635,10 @@ export function AvailabilityCalendar({
                 </h4>
                 <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                   {timeSlots.slice(6, 12).map(hour => {
-                    const unavailableHours = availability[selectedDate] || [];
-                    const isUnavailable = unavailableHours.includes(hour);
+                    const slotInfo = getSlotAvailability(hour);
                     const isSelected = selectedTimeSlots.includes(hour);
                     const isWithin24Hours = isSlotWithin24Hours(hour);
-                    const isDisabled = isUnavailable || isWithin24Hours;
+                    const isDisabled = slotInfo.isUnavailable || isWithin24Hours;
                     
                     return (
                       <button
@@ -469,12 +647,17 @@ export function AvailabilityCalendar({
                         disabled={isDisabled}
                         className={`
                           p-3 text-xs rounded-lg border-2 transition-all duration-200 font-medium
-                          ${getTimeSlotClass(hour, isUnavailable, isSelected, isWithin24Hours)}
+                          ${getTimeSlotClass(hour, slotInfo.isUnavailable, isSelected, isWithin24Hours)}
                         `}
                       >
                         <div className="text-center">
                           <div className="font-semibold">{formatTime24(hour)}</div>
                           <div className="text-[10px] opacity-75">{formatTimeSlot(hour)}</div>
+                          {showPricing && slotInfo.price > 0 && (
+                            <div className="text-[9px] text-green-600 font-bold">
+                              {slotInfo.price} KWD
+                            </div>
+                          )}
                         </div>
                       </button>
                     );
@@ -489,11 +672,10 @@ export function AvailabilityCalendar({
                 </h4>
                 <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                   {timeSlots.slice(12, 18).map(hour => {
-                    const unavailableHours = availability[selectedDate] || [];
-                    const isUnavailable = unavailableHours.includes(hour);
+                    const slotInfo = getSlotAvailability(hour);
                     const isSelected = selectedTimeSlots.includes(hour);
                     const isWithin24Hours = isSlotWithin24Hours(hour);
-                    const isDisabled = isUnavailable || isWithin24Hours;
+                    const isDisabled = slotInfo.isUnavailable || isWithin24Hours;
                     
                     return (
                       <button
@@ -502,12 +684,17 @@ export function AvailabilityCalendar({
                         disabled={isDisabled}
                         className={`
                           p-3 text-xs rounded-lg border-2 transition-all duration-200 font-medium
-                          ${getTimeSlotClass(hour, isUnavailable, isSelected, isWithin24Hours)}
+                          ${getTimeSlotClass(hour, slotInfo.isUnavailable, isSelected, isWithin24Hours)}
                         `}
                       >
                         <div className="text-center">
                           <div className="font-semibold">{formatTime24(hour)}</div>
                           <div className="text-[10px] opacity-75">{formatTimeSlot(hour)}</div>
+                          {showPricing && slotInfo.price > 0 && (
+                            <div className="text-[9px] text-green-600 font-bold">
+                              {slotInfo.price} KWD
+                            </div>
+                          )}
                         </div>
                       </button>
                     );
@@ -522,11 +709,10 @@ export function AvailabilityCalendar({
                 </h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {timeSlots.slice(18, 22).map(hour => {
-                    const unavailableHours = availability[selectedDate] || [];
-                    const isUnavailable = unavailableHours.includes(hour);
+                    const slotInfo = getSlotAvailability(hour);
                     const isSelected = selectedTimeSlots.includes(hour);
                     const isWithin24Hours = isSlotWithin24Hours(hour);
-                    const isDisabled = isUnavailable || isWithin24Hours;
+                    const isDisabled = slotInfo.isUnavailable || isWithin24Hours;
                     
                     return (
                       <button
@@ -535,12 +721,17 @@ export function AvailabilityCalendar({
                         disabled={isDisabled}
                         className={`
                           p-3 text-xs rounded-lg border-2 transition-all duration-200 font-medium
-                          ${getTimeSlotClass(hour, isUnavailable, isSelected, isWithin24Hours)}
+                          ${getTimeSlotClass(hour, slotInfo.isUnavailable, isSelected, isWithin24Hours)}
                         `}
                       >
                         <div className="text-center">
                           <div className="font-semibold">{formatTime24(hour)}</div>
                           <div className="text-[10px] opacity-75">{formatTimeSlot(hour)}</div>
+                          {showPricing && slotInfo.price > 0 && (
+                            <div className="text-[9px] text-green-600 font-bold">
+                              {slotInfo.price} KWD
+                            </div>
+                          )}
                         </div>
                       </button>
                     );
@@ -555,11 +746,10 @@ export function AvailabilityCalendar({
                 </h4>
                 <div className="grid grid-cols-2 gap-2">
                   {timeSlots.slice(22, 24).map(hour => {
-                    const unavailableHours = availability[selectedDate] || [];
-                    const isUnavailable = unavailableHours.includes(hour);
+                    const slotInfo = getSlotAvailability(hour);
                     const isSelected = selectedTimeSlots.includes(hour);
                     const isWithin24Hours = isSlotWithin24Hours(hour);
-                    const isDisabled = isUnavailable || isWithin24Hours;
+                    const isDisabled = slotInfo.isUnavailable || isWithin24Hours;
                     
                     return (
                       <button
@@ -568,12 +758,17 @@ export function AvailabilityCalendar({
                         disabled={isDisabled}
                         className={`
                           p-3 text-xs rounded-lg border-2 transition-all duration-200 font-medium
-                          ${getTimeSlotClass(hour, isUnavailable, isSelected, isWithin24Hours)}
+                          ${getTimeSlotClass(hour, slotInfo.isUnavailable, isSelected, isWithin24Hours)}
                         `}
                       >
                         <div className="text-center">
                           <div className="font-semibold">{formatTime24(hour)}</div>
                           <div className="text-[10px] opacity-75">{formatTimeSlot(hour)}</div>
+                          {showPricing && slotInfo.price > 0 && (
+                            <div className="text-[9px] text-green-600 font-bold">
+                              {slotInfo.price} KWD
+                            </div>
+                          )}
                         </div>
                       </button>
                     );
@@ -594,7 +789,24 @@ export function AvailabilityCalendar({
                     </p>
                     <p className="text-xs text-purple-600">
                       Duration: {selectedTimeSlots.length} hour{selectedTimeSlots.length > 1 ? 's' : ''}
+                      {useDynamicPricing && dateAvailability?.maxPerformanceHours && (
+                        <span className="ml-2 text-xs">
+                          (Max: {dateAvailability.maxPerformanceHours} hours)
+                        </span>
+                      )}
+                      {useDynamicPricing && dateAvailability?.maxPerformanceHours && 
+                       selectedTimeSlots.length === dateAvailability.maxPerformanceHours && (
+                        <span className="ml-2 text-xs text-amber-600 font-medium">
+                          ⚠️ Maximum reached
+                        </span>
+                      )}
                     </p>
+                    {useDynamicPricing && totalCost > 0 && (
+                      <p className="text-lg font-bold text-green-600 mt-2">
+                        <DollarSign className="w-4 h-4 inline mr-1" />
+                        Total: {totalCost} KWD
+                      </p>
+                    )}
                   </div>
                   <div className="text-right">
                     <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center">

@@ -20,22 +20,27 @@ import {
   EyeOff,
   Camera,
   Upload,
-  Trash2
+  Trash2,
+  ArrowLeft,
+  ArrowRight
 } from 'lucide-react';
 import { ArtistService, Artist, ArtistType } from '@/services/artist.service';
 import { AdminService } from '@/services/admin.service';
 import { UserService } from '@/services/user.service';
 import { ImageCropper } from '@/components/ui/ImageCropper';
+import { PricingSettings } from './PricingSettings';
 
 export function ArtistManagement() {
   const [artists, setArtists] = useState<Artist[]>([]);
   const [artistTypes, setArtistTypes] = useState<ArtistType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCreatingArtist, setIsCreatingArtist] = useState(false); // New loading state for creation
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createStep, setCreateStep] = useState(1); // Multi-step form state
   const [selectedArtist, setSelectedArtist] = useState<Artist | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
 
@@ -56,7 +61,35 @@ export function ArtistManagement() {
     category: '',
     country: '',
     performPreference: [] as string[],
-    youtubeLink: ''
+    youtubeLink: '',
+    cooldownPeriodHours: 2,
+    maximumPerformanceHours: 4,
+  });
+
+  // Pricing form state
+  const [pricingForm, setPricingForm] = useState({
+    pricingMode: 'duration' as 'duration' | 'timeslot',
+    // Legacy duration-based pricing
+    privatePricing: [{ hours: 1, amount: 0 }],
+    publicPricing: [{ hours: 1, amount: 0 }],
+    workshopPricing: [{ hours: 1, amount: 0 }],
+    internationalPricing: [{ hours: 1, amount: 0 }],
+    // Time slot pricing
+    privateTimeSlotPricing: [] as { hour: number; rate: number }[],
+    publicTimeSlotPricing: [] as { hour: number; rate: number }[],
+    workshopTimeSlotPricing: [] as { hour: number; rate: number }[],
+    internationalTimeSlotPricing: [] as { hour: number; rate: number }[],
+    // Base rates
+    basePrivateRate: 0,
+    basePublicRate: 0,
+    baseWorkshopRate: 0,
+    baseInternationalRate: 0,
+  });
+
+  // Artist settings (extracted from main form for clarity)
+  const [artistSettings, setArtistSettings] = useState({
+    cooldownPeriodHours: 2,
+    maximumPerformanceHours: 4,
   });
 
   const [newSkill, setNewSkill] = useState('');
@@ -121,18 +154,69 @@ export function ArtistManagement() {
 
   const handleCreateArtist = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
-
-    // Validate required fields
-    if (!createArtistForm.firstName || !createArtistForm.lastName || !createArtistForm.email || 
-        !createArtistForm.phoneNumber || !createArtistForm.stageName || !createArtistForm.artistType ||
-        !createArtistForm.category || !createArtistForm.country || !createArtistForm.gender) {
-      setError('Please fill in all required fields');
+    
+    if (createStep === 1) {
+      // Validate step 1 fields
+      if (!createArtistForm.firstName || !createArtistForm.lastName || !createArtistForm.email || 
+          !createArtistForm.phoneNumber || !createArtistForm.stageName || !createArtistForm.artistType ||
+          !createArtistForm.category || !createArtistForm.country || !createArtistForm.gender) {
+        setError('Please fill in all required fields');
+        return;
+      }
+      // Move to step 2
+      setCreateStep(2);
       return;
     }
 
+    // Step 2 - Final submission
+    setError('');
+    setSuccess('');
+    
+    // Validate pricing configuration before starting creation
+    const hasTimeSlotPricing = (pricingForm.privateTimeSlotPricing.length > 0 || 
+           pricingForm.publicTimeSlotPricing.length > 0 ||
+           pricingForm.workshopTimeSlotPricing.length > 0 ||
+           pricingForm.internationalTimeSlotPricing.length > 0 ||
+           pricingForm.basePrivateRate > 0 ||
+           pricingForm.basePublicRate > 0 ||
+           pricingForm.baseWorkshopRate > 0 ||
+           pricingForm.baseInternationalRate > 0);
+           
+    const hasDurationPricing = (pricingForm.privatePricing.some(p => p.amount > 0) ||
+           pricingForm.publicPricing.some(p => p.amount > 0) ||
+           pricingForm.workshopPricing.some(p => p.amount > 0) ||
+           pricingForm.internationalPricing.some(p => p.amount > 0));
+
+    // Require at least one pricing configuration
+    if (pricingForm.pricingMode === 'timeslot' && !hasTimeSlotPricing) {
+      setError('Please configure at least one time slot pricing or base rate before creating the artist.');
+      return;
+    }
+    
+    if (pricingForm.pricingMode === 'duration' && !hasDurationPricing) {
+      setError('Please configure at least one duration pricing before creating the artist.');
+      return;
+    }
+    
+    setIsCreatingArtist(true); // Start loading
+    
     try {
+      // Prepare artist data with performance settings
+      const artistData = {
+        ...createArtistForm,
+        // Map frontend field names to backend field names
+        cooldownPeriod: artistSettings.cooldownPeriodHours,
+        maximumPerformHour: artistSettings.maximumPerformanceHours,
+      };
+
+      // Validate required fields before sending
+      const requiredFields: (keyof typeof artistData)[] = ['firstName', 'lastName', 'email', 'phoneNumber', 'stageName', 'artistType', 'category', 'country', 'gender', 'cooldownPeriod', 'maximumPerformHour'];
+      const missingFields = requiredFields.filter(field => !artistData[field]);
+      
+      if (missingFields.length > 0) {
+        throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+      }
+
       // Prepare files object
       const files: {
         profileImage?: File;
@@ -142,44 +226,130 @@ export function ArtistManagement() {
       if (profileImage) files.profileImage = profileImage;
       if (coverImage) files.profileCoverImage = coverImage;
 
-      await ArtistService.createArtist(createArtistForm, files);
+      const createdArtist = await ArtistService.createArtist(artistData, files);
+      
+   
+      if (createdArtist && createdArtist.profile && createdArtist.profile._id) {        
+        const hasTimeSlotPricing = (pricingForm.privateTimeSlotPricing.length > 0 || 
+               pricingForm.publicTimeSlotPricing.length > 0 ||
+               pricingForm.workshopTimeSlotPricing.length > 0 ||
+               pricingForm.internationalTimeSlotPricing.length > 0 ||
+               pricingForm.basePrivateRate > 0 ||
+               pricingForm.basePublicRate > 0 ||
+               pricingForm.baseWorkshopRate > 0 ||
+               pricingForm.baseInternationalRate > 0);
+               
+        const hasDurationPricing = (pricingForm.privatePricing.some(p => p.amount > 0) ||
+               pricingForm.publicPricing.some(p => p.amount > 0) ||
+               pricingForm.workshopPricing.some(p => p.amount > 0) ||
+               pricingForm.internationalPricing.some(p => p.amount > 0));
+
+        // If any pricing is configured, it MUST be saved successfully for artist creation to complete
+        if ((pricingForm.pricingMode === 'timeslot' && hasTimeSlotPricing) || 
+            (pricingForm.pricingMode === 'duration' && hasDurationPricing)) {
+          
+          // Check if pricing already exists to avoid conflicts
+          let existingPricing = null;
+          try {
+            existingPricing = await ArtistService.getArtistPricing(createdArtist.profile._id);
+          } catch (getError: any) {
+            if (getError.status !== 404) {
+              // If it's not a 404 (not found), it's a real error that should fail the creation
+              throw new Error(`Failed to check existing pricing: ${getError.message}`);
+            }
+            // 404 is fine - means no existing pricing
+          }
+          
+          if (existingPricing) {
+            await ArtistService.updateArtistBasicPricing(createdArtist.profile._id, pricingForm);
+          } else {
+            await ArtistService.createArtistPricing(createdArtist.profile._id, pricingForm);
+          }
+        }
+      }
+
       setSuccess('Artist created successfully!');
-      setShowCreateModal(false);
-      // Reset form
-      setCreateArtistForm({
-        firstName: '',
-        lastName: '',
-        phoneNumber: '',
-        email: '',
-        stageName: '',
-        about: '',
-        yearsOfExperience: 0,
-        skills: [],
-        musicLanguages: [],
-        awards: [],
-        pricePerHour: 0,
-        gender: '',
-        artistType: '',
-        category: '',
-        country: '',
-        performPreference: [],
-        youtubeLink: ''
-      });
-      setNewSkill('');
-      setNewLanguage('');
-      setNewAward('');
-      setNewPerformPreference('');
       
-      // Reset image states
-      setProfileImage(null);
-      setCoverImage(null);
-      setProfileImagePreview('');
-      setCoverImagePreview('');
+      await loadData();
       
-      loadData();
+      setTimeout(() => {
+        setIsCreatingArtist(false); 
+        setShowCreateModal(false);
+        setCreateStep(1); 
+        resetCreateForm();
+      }, 1000); 
+      
     } catch (error: any) {
-      setError('Failed to create artist: ' + (error.message || 'Unknown error'));
+      console.error('Failed to create artist:', error);
+      
+      // Determine if this was an artist creation failure or pricing failure
+      let errorMessage = 'Failed to create artist: ';
+      
+      if (error.message && error.message.includes('pricing')) {
+        errorMessage += `Pricing configuration error - ${error.message}. Please verify all pricing settings are correctly filled.`;
+      } else if (error.message && error.message.includes('Failed to check existing pricing')) {
+        errorMessage += `Unable to validate pricing data - ${error.message}. Please try again.`;
+      } else {
+        errorMessage += error.message || 'Unknown error occurred during artist creation.';
+      }
+      
+      setError(errorMessage);
+      setIsCreatingArtist(false); // End loading on error
     }
+  };
+
+  const resetCreateForm = () => {
+    setCreateArtistForm({
+      firstName: '',
+      lastName: '',
+      phoneNumber: '',
+      email: '',
+      stageName: '',
+      about: '',
+      yearsOfExperience: 0,
+      skills: [],
+      musicLanguages: [],
+      awards: [],
+      pricePerHour: 0,
+      gender: '',
+      artistType: '',
+      category: '',
+      country: '',
+      performPreference: [],
+      youtubeLink: '',
+      cooldownPeriodHours: 2,
+      maximumPerformanceHours: 4,
+    });
+    setPricingForm({
+      pricingMode: 'duration',
+      privatePricing: [{ hours: 1, amount: 0 }],
+      publicPricing: [{ hours: 1, amount: 0 }],
+      workshopPricing: [{ hours: 1, amount: 0 }],
+      internationalPricing: [{ hours: 1, amount: 0 }],
+      privateTimeSlotPricing: [],
+      publicTimeSlotPricing: [],
+      workshopTimeSlotPricing: [],
+      internationalTimeSlotPricing: [],
+      basePrivateRate: 0,
+      basePublicRate: 0,
+      baseWorkshopRate: 0,
+      baseInternationalRate: 0,
+    });
+    setArtistSettings({
+      cooldownPeriodHours: 2,
+      maximumPerformanceHours: 4,
+    });
+    setCreateStep(1);
+    setNewSkill('');
+    setNewLanguage('');
+    setNewAward('');
+    setNewPerformPreference('');
+    
+    // Reset image states
+    setProfileImage(null);
+    setCoverImage(null);
+    setProfileImagePreview('');
+    setCoverImagePreview('');
   };
 
   const addSkill = () => {
@@ -322,7 +492,12 @@ export function ArtistManagement() {
         </div>
         <div className="flex gap-2">
           <button
-            onClick={() => setShowCreateModal(true)}
+            onClick={() => {
+              setShowCreateModal(true);
+              setError(''); // Clear any previous errors
+              setSuccess(''); // Clear any previous success messages
+              setCreateStep(1); // Reset to step 1
+            }}
             className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
@@ -682,12 +857,29 @@ export function ArtistManagement() {
       {/* Create Artist Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900">Add New Artist</h2>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Add New Artist - Step {createStep} of 2
+                  </h2>
+                  <div className="flex items-center mt-2 space-x-2">
+                    <div className={`w-4 h-4 rounded-full ${createStep >= 1 ? 'bg-purple-600' : 'bg-gray-300'}`} />
+                    <div className="w-8 h-1 bg-gray-300">
+                      <div className={`h-full bg-purple-600 transition-all duration-300 ${createStep >= 2 ? 'w-full' : 'w-0'}`} />
+                    </div>
+                    <div className={`w-4 h-4 rounded-full ${createStep >= 2 ? 'bg-purple-600' : 'bg-gray-300'}`} />
+                  </div>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {createStep === 1 ? 'Basic Information' : 'Pricing & Performance Settings'}
+                  </p>
+                </div>
                 <button
-                  onClick={() => setShowCreateModal(false)}
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    resetCreateForm();
+                  }}
                   className="text-gray-400 hover:text-gray-600"
                 >
                   <X className="w-5 h-5" />
@@ -695,6 +887,9 @@ export function ArtistManagement() {
               </div>
 
               <form onSubmit={handleCreateArtist} className="space-y-6">
+                {createStep === 1 ? (
+                  <>
+                    {/* Step 1: Basic Information */}
                 {/* Personal Information */}
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 mb-4">Personal Information</h3>
@@ -1134,18 +1329,90 @@ export function ArtistManagement() {
                 <div className="flex gap-4 pt-6 border-t border-gray-200">
                   <button
                     type="button"
-                    onClick={() => setShowCreateModal(false)}
+                    onClick={() => {
+                      setShowCreateModal(false);
+                      resetCreateForm();
+                    }}
                     className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                    className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center space-x-2"
                   >
-                    Create Artist
+                    <span>Next Step</span>
+                    <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Step 2: Pricing & Performance Settings */}
+                    <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                      <div className="flex items-center">
+                        <svg className="w-5 h-5 text-amber-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.694-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                        <h4 className="text-amber-800 font-medium">Pricing Configuration Required</h4>
+                      </div>
+                      <p className="text-amber-700 text-sm mt-1">
+                        You must configure at least one pricing option before the artist can be created. 
+                        This ensures users can book the artist with proper pricing information.
+                      </p>
+                    </div>
+                    
+                    <PricingSettings
+                      pricingForm={pricingForm}
+                      setPricingForm={setPricingForm}
+                      artistSettings={artistSettings}
+                      setArtistSettings={setArtistSettings}
+                    />
+
+                    {/* Form Actions */}
+                    <div className="flex gap-4 pt-6 border-t border-gray-200">
+                      <button
+                        type="button"
+                        onClick={() => setCreateStep(1)}
+                        disabled={isCreatingArtist}
+                        className={`flex-1 px-4 py-2 border border-gray-300 rounded-lg transition-colors flex items-center justify-center space-x-2 ${
+                          isCreatingArtist 
+                            ? 'text-gray-400 cursor-not-allowed bg-gray-50' 
+                            : 'text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                        <span>Previous Step</span>
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isCreatingArtist}
+                        className={`flex-1 px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2 ${
+                          success && isCreatingArtist
+                            ? 'bg-green-500 text-white cursor-not-allowed'
+                            : isCreatingArtist 
+                              ? 'bg-purple-400 text-white cursor-not-allowed' 
+                              : 'bg-purple-600 text-white hover:bg-purple-700'
+                        }`}
+                      >
+                        {isCreatingArtist && !success && (
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        )}
+                        {success && isCreatingArtist && (
+                          <CheckCircle className="w-4 h-4" />
+                        )}
+                        <span>
+                          {success && isCreatingArtist 
+                            ? 'Artist Created!' 
+                            : isCreatingArtist 
+                              ? 'Creating Artist...' 
+                              : 'Create Artist'
+                          }
+                        </span>
+                      </button>
+                    </div>
+                  </>
+                )}
               </form>
             </div>
           </div>

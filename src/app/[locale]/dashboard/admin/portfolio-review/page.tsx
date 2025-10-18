@@ -91,7 +91,7 @@ export default function AdminPortfolioReviewPage() {
       setSelectedItem(null);
     } catch (error) {
       console.error('Error reviewing portfolio item:', error);
-      alert('Failed to review portfolio item');
+      console.error('Failed to review portfolio item');
     } finally {
       setReviewingItem(null);
     }

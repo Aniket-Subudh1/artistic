@@ -141,6 +141,7 @@ export const API_CONFIG = {
       PENDING: '/bookings/pending',
       APPROVE: (id: string) => `/bookings/${id}/approve`,
       REJECT: (id: string) => `/bookings/${id}/reject`,
+      CALCULATE_PRICING: '/bookings/calculate-pricing',
     },
     EVENTS: {
       LIST_ALL: '/events',

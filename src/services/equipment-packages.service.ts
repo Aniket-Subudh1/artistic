@@ -65,7 +65,6 @@ class EquipmentPackagesService {
         body: JSON.stringify(packageData),
       });
     } catch (error: any) {
-      console.error('Error creating package:', error);
       throw new Error(error.message || 'Failed to create package');
     }
   }
@@ -76,7 +75,6 @@ class EquipmentPackagesService {
         method: 'GET',
       });
     } catch (error: any) {
-      console.error('Error fetching my packages:', error);
       throw new Error(error.message || 'Failed to fetch packages');
     }
   }
@@ -87,7 +85,6 @@ class EquipmentPackagesService {
         method: 'POST',
       });
     } catch (error: any) {
-      console.error('Error submitting package for review:', error);
       throw new Error(error.message || 'Failed to submit package for review');
     }
   }

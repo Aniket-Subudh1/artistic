@@ -77,7 +77,6 @@ export class TermsAndConditionsService {
       // Sort by version descending to get the latest
       return categoryTerms.sort((a, b) => b.version - a.version)[0];
     } catch (error) {
-      console.error('Error fetching terms by category:', error);
       return null;
     }
   }

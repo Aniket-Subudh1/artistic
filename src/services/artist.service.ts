@@ -62,7 +62,55 @@ export interface CreateArtistRequest {
   country: string;
   performPreference: string[];
   youtubeLink?: string;
+  cooldownPeriodHours?: number;
+  maximumPerformanceHours?: number;
 }
+
+// New pricing-related interfaces
+export interface TimeSlotPricing {
+  hour: number;
+  rate: number;
+}
+
+export interface PricingEntry {
+  hours: number;
+  amount: number;
+}
+
+export interface ArtistPricingData {
+  pricingMode: 'duration' | 'timeslot';
+  // Legacy duration-based pricing
+  privatePricing?: PricingEntry[];
+  publicPricing?: PricingEntry[];
+  workshopPricing?: PricingEntry[];
+  internationalPricing?: PricingEntry[];
+  // Time slot pricing
+  privateTimeSlotPricing?: TimeSlotPricing[];
+  publicTimeSlotPricing?: TimeSlotPricing[];
+  workshopTimeSlotPricing?: TimeSlotPricing[];
+  internationalTimeSlotPricing?: TimeSlotPricing[];
+  // Base rates
+  basePrivateRate?: number;
+  basePublicRate?: number;
+  baseWorkshopRate?: number;
+  baseInternationalRate?: number;
+}
+
+export interface TimeSlotAvailability {
+  hour: number;
+  isAvailable: boolean;
+  price: number;
+  reason?: string;
+}
+
+export interface DateAvailability {
+  date: string;
+  timeSlots: TimeSlotAvailability[];
+  maxPerformanceHours?: number;
+  cooldownPeriodHours?: number;
+}
+
+export type PerformanceType = 'private' | 'public' | 'workshop' | 'international';
 
 export interface UpdateArtistProfileRequest {
   about?: string;
@@ -106,6 +154,9 @@ export interface Artist {
   isVisible: boolean;
   createdAt: string;
   updatedAt: string;
+  // Performance constraints
+  cooldownPeriodHours?: number;
+  maximumPerformanceHours?: number;
 }
 
 export interface CreateArtistResponse {
@@ -155,7 +206,34 @@ export class ArtistService {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || 'Failed to create artist');
+      console.error('Artist creation failed:', {
+        status: response.status,
+        statusText: response.statusText,
+        errorData,
+        url: `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ARTIST.ONBOARD}`
+      });
+      
+      // Provide more detailed error message
+      let errorMessage = 'Failed to create artist';
+      if (errorData.message) {
+        errorMessage = errorData.message;
+      } else if (errorData.errors) {
+        // Handle validation errors
+        const validationErrors = Array.isArray(errorData.errors) 
+          ? errorData.errors.join(', ')
+          : JSON.stringify(errorData.errors);
+        errorMessage = `Validation failed: ${validationErrors}`;
+      } else if (response.status === 400) {
+        errorMessage = 'Bad request - please check all required fields';
+      } else if (response.status === 401) {
+        errorMessage = 'Unauthorized - please login again';
+      } else if (response.status === 403) {
+        errorMessage = 'Forbidden - insufficient permissions';
+      } else if (response.status === 500) {
+        errorMessage = 'Server error - please try again later';
+      }
+      
+      throw new Error(errorMessage);
     }
 
     return response.json();
@@ -373,6 +451,135 @@ export class ArtistService {
     return apiRequest(url, {
       method: 'POST',
       body: JSON.stringify({ reviewComment }),
+    });
+  }
+
+  // Pricing Management Methods
+  static async createArtistPricing(
+    artistProfileId: string, 
+    pricingData: ArtistPricingData
+  ): Promise<{ message: string }> {
+    return apiRequest(`/artist-pricing/${artistProfileId}`, {
+      method: 'POST',
+      body: JSON.stringify(pricingData),
+    });
+  }
+
+  static async getArtistPricing(artistProfileId: string): Promise<ArtistPricingData | null> {
+    try {
+      return await apiRequest<ArtistPricingData>(`/artist-pricing/${artistProfileId}`, {
+        method: 'GET',
+      });
+    } catch (error) {
+      // Return null if no pricing found
+      return null;
+    }
+  }
+
+  static async updateArtistBasicPricing(
+    artistProfileId: string, 
+    pricingData: ArtistPricingData
+  ): Promise<{ message: string }> {
+    return apiRequest(`/artist-pricing/${artistProfileId}/basic`, {
+      method: 'PUT',
+      body: JSON.stringify(pricingData),
+    });
+  }
+
+  static async updateArtistTimeSlotPricing(
+    artistProfileId: string, 
+    performanceType: PerformanceType,
+    timeSlotPricing: TimeSlotPricing[],
+    baseRate?: number
+  ): Promise<{ message: string }> {
+    return apiRequest(`/artist-pricing/${artistProfileId}/timeslot`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        performanceType,
+        timeSlotPricing,
+        baseRate,
+        pricingMode: 'timeslot'
+      }),
+    });
+  }
+
+  static async getAllTimeSlotPricing(artistProfileId: string): Promise<{
+    pricingMode: 'duration' | 'timeslot';
+    private: { timeSlotPricing: TimeSlotPricing[]; baseRate: number };
+    public: { timeSlotPricing: TimeSlotPricing[]; baseRate: number };
+    workshop: { timeSlotPricing: TimeSlotPricing[]; baseRate: number };
+    international: { timeSlotPricing: TimeSlotPricing[]; baseRate: number };
+  } | null> {
+    try {
+      return await apiRequest(`/artist-pricing/${artistProfileId}/timeslot/all`, {
+        method: 'GET',
+      });
+    } catch (error) {
+      return null;
+    }
+  }
+
+  static async getDateAvailability(
+    artistProfileId: string,
+    date: string,
+    performanceType: PerformanceType
+  ): Promise<DateAvailability> {
+    return apiRequest<DateAvailability>(
+      `/artist-pricing/${artistProfileId}/availability/${date}?performanceType=${performanceType}`,
+      {
+        method: 'GET',
+      }
+    );
+  }
+
+  static async calculateBookingCost(
+    artistProfileId: string,
+    performanceType: PerformanceType,
+    startHour: number,
+    duration: number
+  ): Promise<{ totalCost: number }> {
+    return apiRequest<{ totalCost: number }>(
+      `/artist-pricing/${artistProfileId}/booking/cost`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ performanceType, startHour, duration }),
+      }
+    );
+  }
+
+  static async checkAvailability(
+    artistProfileId: string,
+    date: string,
+    startHour: number,
+    duration: number
+  ): Promise<{ isAvailable: boolean; reason?: string }> {
+    return apiRequest<{ isAvailable: boolean; reason?: string }>(
+      `/artist-pricing/${artistProfileId}/availability/check`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ date, startHour, duration }),
+      }
+    );
+  }
+
+  static async validateConsecutiveBooking(
+    artistProfileId: string,
+    date: string,
+    startHour: number,
+    duration: number
+  ): Promise<{ isValid: boolean; reason?: string }> {
+    return apiRequest<{ isValid: boolean; reason?: string }>(
+      `/artist-pricing/${artistProfileId}/booking/validate`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ date, startHour, duration }),
+      }
+    );
+  }
+
+  static async deleteArtistPricing(artistProfileId: string): Promise<{ message: string }> {
+    return apiRequest(`/artist-pricing/${artistProfileId}`, {
+      method: 'DELETE',
     });
   }
 }

@@ -432,7 +432,6 @@ export function ArtistPortfolio() {
                 const description = formData.get('description') as string;
                 
                 if (!file || !title.trim()) {
-                  alert('Please provide a file and title');
                   return;
                 }
 
@@ -445,7 +444,6 @@ export function ArtistPortfolio() {
                 } else if (file.type.startsWith('audio/')) {
                   type = 'audio';
                 } else {
-                  alert('Unsupported file type. Please upload an image, video, or audio file.');
                   return;
                 }
 

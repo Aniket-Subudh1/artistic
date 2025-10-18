@@ -100,7 +100,6 @@ export class DashboardService {
       });
       return response;
     } catch (error) {
-      console.error('Error fetching dashboard overview:', error);
       // Return fallback data with role-specific stats
       return this.getFallbackData(role);
     }
@@ -164,7 +163,6 @@ export class DashboardService {
         pendingApprovals: (updateRequests.profileUpdateRequests?.length || 0) + (updateRequests.portfolioUpdateRequests?.length || 0),
       };
     } catch (error) {
-      console.error('Error fetching admin stats:', error);
       return {};
     }
   }
@@ -195,7 +193,6 @@ export class DashboardService {
         totalEarnings: profile?.bookings?.reduce((sum: number, booking: any) => sum + (booking.amount || 0), 0) || 0,
       };
     } catch (error) {
-      console.error('Error fetching artist stats:', error);
       return {};
     }
   }
@@ -234,7 +231,6 @@ export class DashboardService {
         monthlyEarnings: profile?.monthlyEarnings || 0,
       };
     } catch (error) {
-      console.error('Error fetching equipment provider stats:', error);
       return {};
     }
   }
@@ -263,7 +259,6 @@ export class DashboardService {
           return [];
       }
     } catch (error) {
-      console.error('Error fetching recent activity:', error);
       return [];
     }
   }
@@ -312,7 +307,6 @@ export class DashboardService {
 
       return activities.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5);
     } catch (error) {
-      console.error('Error fetching admin recent activity:', error);
       return [];
     }
   }
@@ -341,7 +335,6 @@ export class DashboardService {
 
       return activities.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     } catch (error) {
-      console.error('Error fetching artist recent activity:', error);
       return [];
     }
   }
@@ -370,7 +363,6 @@ export class DashboardService {
 
       return activities.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     } catch (error) {
-      console.error('Error fetching equipment provider recent activity:', error);
       return [];
     }
   }
