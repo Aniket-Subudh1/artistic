@@ -448,7 +448,6 @@ export default function ArtistProfilePage() {
               </div>
             )}
 
-            {/* Enhanced Pricing Details Section */}
             {(() => {
               
               const hasValidDynamicPricing = hasDynamicPricing && pricingData && (
@@ -476,7 +475,7 @@ export default function ArtistProfilePage() {
                     <div className="bg-white/70 rounded-2xl p-4 mb-4">
                       <h4 className="text-base font-bold text-[#391C71] mb-4 flex items-center">
                         <Users className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                        Private Performance
+                        {t('artistProfile.privatePerformance')}
                       </h4>
                       
                       {(() => {
@@ -498,7 +497,7 @@ export default function ArtistProfilePage() {
                                     pricingData.privatePricing.filter(p => p.amount > 0).map((price, index) => (
                                       <div key={index} className="flex justify-between items-center py-2 px-3 bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-xl border border-[#391C71]/10">
                                         <span className="font-medium text-gray-700">
-                                          {price.hours}h:
+                                          {t('artistProfile.hoursFormat', { hours: price.hours })}
                                         </span>
                                         <span className="font-bold text-[#391C71] text-lg">
                                           {price.amount} KWD
@@ -530,7 +529,7 @@ export default function ArtistProfilePage() {
                                     ))
                                   ) : pricingData.basePrivateRate && pricingData.basePrivateRate > 0 ? (
                                     <div className="flex justify-between items-center py-2 px-3 bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-xl border border-[#391C71]/10">
-                                      <span className="font-medium text-gray-700">Per Hour:</span>
+                                      <span className="font-medium text-gray-700">{t('artistProfile.perHourLabel')}</span>
                                       <span className="font-bold text-[#391C71] text-lg">
                                         {pricingData.basePrivateRate} KWD
                                       </span>
@@ -546,25 +545,25 @@ export default function ArtistProfilePage() {
                           return (
                             <div className="space-y-3">
                               <div className="flex justify-between items-center py-2 px-3 bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-xl border border-[#391C71]/10">
-                                <span className="font-medium text-gray-700">1h:</span>
+                                <span className="font-medium text-gray-700">{t('artistProfile.oneHour')}</span>
                                 <span className="font-bold text-[#391C71] text-lg">
                                   {artist?.pricePerHour || 0} KWD
                                 </span>
                               </div>
                               <div className="flex justify-between items-center py-2 px-3 bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-xl border border-[#391C71]/10">
-                                <span className="font-medium text-gray-700">2h:</span>
+                                <span className="font-medium text-gray-700">{t('artistProfile.twoHours')}</span>
                                 <span className="font-bold text-[#391C71] text-lg">
                                   {((artist?.pricePerHour || 0) * 2)} KWD
                                 </span>
                               </div>
                               <div className="flex justify-between items-center py-2 px-3 bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-xl border border-[#391C71]/10">
-                                <span className="font-medium text-gray-700">4h:</span>
+                                <span className="font-medium text-gray-700">{t('artistProfile.fourHours')}</span>
                                 <span className="font-bold text-[#391C71] text-lg">
                                   {((artist?.pricePerHour || 0) * 4)} KWD
                                 </span>
                               </div>
                               <div className="flex justify-between items-center py-2 px-3 bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-xl border border-[#391C71]/10">
-                                <span className="font-medium text-gray-700">8h:</span>
+                                <span className="font-medium text-gray-700">{t('artistProfile.eightHours')}</span>
                                 <span className="font-bold text-[#391C71] text-lg">
                                   {((artist?.pricePerHour || 0) * 8)} KWD
                                 </span>
@@ -812,7 +811,7 @@ export default function ArtistProfilePage() {
                                 </span>
                               </div>
                               <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
-                                Approved
+                                {t('artistProfile.approved')}
                               </span>
                             </div>
                           </div>

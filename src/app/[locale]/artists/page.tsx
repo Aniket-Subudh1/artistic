@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { ArtistService, Artist } from '@/services/artist.service';
+import { TranslatedDataWrapper } from '@/components/ui/TranslatedDataWrapper';
 import { Link } from '@/i18n/routing';
 import Image from 'next/image';
 import { 
@@ -19,6 +21,7 @@ import { Navbar } from '@/components/main/Navbar';
 import { Footer } from '@/components/main/Footer';
 
 export default function ArtistsPage() {
+  const t = useTranslations();
   const [artists, setArtists] = useState<Artist[]>([]);
   const [filteredArtists, setFilteredArtists] = useState<Artist[]>([]);
   const [loading, setLoading] = useState(true);
@@ -115,7 +118,7 @@ export default function ArtistsPage() {
         <div className="relative z-10 flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#391C71] mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading artists...</p>
+            <p className="text-gray-600">{t('artistsPage.loadingArtists')}</p>
           </div>
         </div>
       </div>
@@ -139,7 +142,7 @@ export default function ArtistsPage() {
         <div className="relative z-10 flex items-center justify-center min-h-screen">
           <div className="text-center">
             <Music className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Unable to load artists</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('artistsPage.unableToLoad')}</h3>
             <p className="text-gray-500">{error}</p>
           </div>
         </div>
@@ -175,13 +178,13 @@ export default function ArtistsPage() {
                   <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-3">
                     <Music className="w-8 h-8 text-white" />
                   </div>
-                  All Artists
+                  {t('artistsPage.title')}
                 </h1>
                 <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                  Discover talented artists for your next event. Browse by category, price, and availability.
+                  {t('artistsPage.subtitle')}
                 </p>
                 <div className="mt-4 text-sm text-[#391C71] font-semibold">
-                  {filteredArtists.length} of {artists.length} artists
+                  {t('artistsPage.artistsCount', { filtered: filteredArtists.length, total: artists.length })}
                 </div>
               </div>
             </div>
@@ -199,7 +202,7 @@ export default function ArtistsPage() {
                     <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                       type="text"
-                      placeholder="Search artists by name, skills, or description..."
+                      placeholder={t('artistsPage.searchPlaceholder')}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="w-full pl-12 pr-4 py-3 bg-white/80 border border-[#391C71]/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#391C71]/50 focus:border-transparent"
@@ -210,7 +213,7 @@ export default function ArtistsPage() {
                     className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white rounded-2xl hover:from-[#5B2C87] hover:to-[#391C71] transition-all duration-300 shadow-lg"
                   >
                     <SlidersHorizontal className="w-5 h-5" />
-                    Filters
+                    {t('artistsPage.filters')}
                   </button>
                 </div>
 
@@ -221,13 +224,13 @@ export default function ArtistsPage() {
                       
                       {/* Category Filter */}
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">{t('artistsPage.category')}</label>
                         <select
                           value={selectedCategory}
                           onChange={(e) => setSelectedCategory(e.target.value)}
                           className="w-full px-4 py-2 bg-white/80 border border-[#391C71]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#391C71]/50"
                         >
-                          <option value="">All Categories</option>
+                          <option value="">{t('artistsPage.allCategories')}</option>
                           {categories.map(category => (
                             <option key={category} value={category}>{category}</option>
                           ))}
@@ -237,19 +240,19 @@ export default function ArtistsPage() {
                       {/* Price Range */}
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Price Range (KWD/hour)
+                          {t('artistsPage.priceRange')}
                         </label>
                         <div className="flex gap-2">
                           <input
                             type="number"
-                            placeholder="Min"
+                            placeholder={t('artistsPage.minPrice')}
                             value={priceRange.min}
                             onChange={(e) => setPriceRange(prev => ({ ...prev, min: Number(e.target.value) }))}
                             className="w-full px-3 py-2 bg-white/80 border border-[#391C71]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#391C71]/50"
                           />
                           <input
                             type="number"
-                            placeholder="Max"
+                            placeholder={t('artistsPage.maxPrice')}
                             value={priceRange.max}
                             onChange={(e) => setPriceRange(prev => ({ ...prev, max: Number(e.target.value) }))}
                             className="w-full px-3 py-2 bg-white/80 border border-[#391C71]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#391C71]/50"
@@ -259,7 +262,7 @@ export default function ArtistsPage() {
 
                       {/* Date Filter */}
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Available Date</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">{t('artistsPage.availableDate')}</label>
                         <input
                           type="date"
                           value={selectedDate}
@@ -276,7 +279,7 @@ export default function ArtistsPage() {
                           className="w-full px-4 py-2 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition-colors duration-300 flex items-center justify-center gap-2"
                         >
                           <X className="w-4 h-4" />
-                          Clear
+                          {t('artistsPage.clear')}
                         </button>
                       </div>
                     </div>
@@ -291,13 +294,19 @@ export default function ArtistsPage() {
             <div className="text-center py-12">
               <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-12">
                 <Music className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No artists found</h3>
-                <p className="text-gray-500">Try adjusting your search criteria or filters</p>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">{t('artistsPage.noArtistsFound')}</h3>
+                <p className="text-gray-500">{t('artistsPage.adjustFilters')}</p>
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {filteredArtists.map((artist, index) => (
+            <TranslatedDataWrapper
+              data={filteredArtists}
+              translateFields={['stageName', 'about', 'skills', 'category', 'bio', 'description', 'specialization', 'experience', 'genre', 'style', 'performPreference', 'musicLanguages', 'awards', 'genres']}
+              preserveFields={['_id', 'profileImage', 'pricePerHour', 'yearsOfExperience', 'country', 'user', 'contactNumber', 'email', 'youtubeLink', 'createdAt', 'updatedAt']}
+            >
+              {(translatedArtists) => (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                  {translatedArtists.map((artist, index) => (
                 <Link 
                   key={artist._id} 
                   href={`/artist-profile/${artist._id}`}
@@ -368,7 +377,7 @@ export default function ArtistsPage() {
                             ))}
                             {artist.skills.length > 2 && (
                               <span className="inline-block px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-lg">
-                                +{artist.skills.length - 2} more
+                                {t('artistsPage.moreSkills', { count: artist.skills.length - 2 })}
                               </span>
                             )}
                           </div>
@@ -387,22 +396,24 @@ export default function ArtistsPage() {
                       {/* Price and Experience */}
                       <div className="flex justify-between items-center">
                         <div>
-                          <span className="font-bold text-gray-900 text-lg">
+                          <span className="font-bold text-gray-900 text-md">
                             {artist.pricePerHour} KWD/hour
                           </span>
                           <div className="text-xs text-gray-500">
-                            {artist.yearsOfExperience} years exp.
+                            {artist.yearsOfExperience} {t('artistsPage.yearsExp')}
                           </div>
                         </div>
                         <span className="bg-[#391C71] text-white px-4 py-2 rounded-full text-sm font-medium group-hover:bg-[#5B2C87] transition-all duration-300 shadow-lg">
-                          Book Now
+                          {t('artistsPage.bookNow')}
                         </span>
                       </div>
                     </div>
                   </div>
                 </Link>
-              ))}
-            </div>
+                  ))}
+                </div>
+              )}
+            </TranslatedDataWrapper>
           )}
         </div>
       </div>

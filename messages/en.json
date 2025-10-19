@@ -357,7 +357,14 @@
     "pricingMode": "Pricing mode",
     "durationBased": "Duration-based",
     "timeSlotBased": "Time slot-based",
-    "privatePerformance": "Private Performance"
+    "privatePerformance": "Private Performance",
+    "perHourLabel": "Per Hour:",
+    "oneHour": "1h:",
+    "twoHours": "2h:",
+    "fourHours": "4h:",
+    "eightHours": "8h:",
+    "hoursFormat": "{hours}h:",
+    "approved": "Approved"
   },
   "bookArtistForm": {
     "title": "Book Artist",
@@ -530,5 +537,26 @@
     "lateNight": "Late Night (10:00 PM - 11:00 PM)",
     "dynamicPricingInfo": "Dynamic pricing active - prices may vary by time slot. Artist availability includes performance constraints and cooldown periods.",
     "loadingAvailability": "Loading availability and pricing..."
+  },
+  "artistsPage": {
+    "title": "All Artists",
+    "subtitle": "Discover talented artists for your next event. Browse by category, price, and availability.",
+    "artistsCount": "{filtered} of {total} artists",
+    "searchPlaceholder": "Search artists by name, skills, or description...",
+    "filters": "Filters",
+    "category": "Category",
+    "allCategories": "All Categories",
+    "priceRange": "Price Range (KWD/hour)",
+    "minPrice": "Min",
+    "maxPrice": "Max",
+    "availableDate": "Available Date",
+    "clear": "Clear",
+    "loadingArtists": "Loading artists...",
+    "unableToLoad": "Unable to load artists",
+    "noArtistsFound": "No artists found",
+    "adjustFilters": "Try adjusting your search criteria or filters",
+    "bookNow": "Book Now",
+    "yearsExp": "years exp.",
+    "moreSkills": "+{count} more"
   }
 }

@@ -357,7 +357,14 @@
     "pricingMode": "وضع التسعير",
     "durationBased": "على أساس المدة",
     "timeSlotBased": "على أساس الفترات الزمنية",
-    "privatePerformance": "أداء خاص"
+    "privatePerformance": "أداء خاص",
+    "perHourLabel": "في الساعة:",
+    "oneHour": "ساعة واحدة:",
+    "twoHours": "ساعتان:",
+    "fourHours": "4 ساعات:",
+    "eightHours": "8 ساعات:",
+    "hoursFormat": "{hours} ساعة:",
+    "approved": "معتمد"
   },
   "bookArtistForm": {
     "title": "حجز فنان",
@@ -530,5 +537,26 @@
     "lateNight": "وقت متأخر من الليل (10:00 م - 11:00 م)",
     "dynamicPricingInfo": "التسعير الديناميكي نشط - قد تختلف الأسعار حسب الفترة الزمنية. توفر الفنان يشمل قيود الأداء وفترات الراحة.",
     "loadingAvailability": "جاري تحميل التوفر والأسعار..."
+  },
+  "artistsPage": {
+    "title": "جميع الفنانين",
+    "subtitle": "اكتشف الفنانين الموهوبين لحدثك القادم. تصفح حسب الفئة والسعر والتوفر.",
+    "artistsCount": "{filtered} من {total} فناناً",
+    "searchPlaceholder": "ابحث عن الفنانين بالاسم أو المهارات أو الوصف...",
+    "filters": "الفلاتر",
+    "category": "الفئة",
+    "allCategories": "جميع الفئات",
+    "priceRange": "نطاق السعر (د.ك/ساعة)",
+    "minPrice": "الحد الأدنى",
+    "maxPrice": "الحد الأقصى",
+    "availableDate": "التاريخ المتاح",
+    "clear": "مسح",
+    "loadingArtists": "جاري تحميل الفنانين...",
+    "unableToLoad": "غير قادر على تحميل الفنانين",
+    "noArtistsFound": "لم يتم العثور على فنانين",
+    "adjustFilters": "جرب تعديل معايير البحث أو الفلاتر",
+    "bookNow": "احجز الآن",
+    "yearsExp": "سنة خبرة",
+    "moreSkills": "+{count} مهارة أخرى"
   }
 }
