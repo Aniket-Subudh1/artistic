@@ -97,10 +97,26 @@ export default function PackageDetailsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#391C71] mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading package details...</p>
+      <div className="min-h-screen relative">
+        <div className="fixed inset-0 z-0">
+          <Image
+            src="/design.png"
+            alt="Background"
+            fill
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-50/80 via-white/50 to-pink-50/80"></div>
+        </div>
+        <Navbar />
+        <div className="relative z-10 flex flex-col min-h-screen">
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#391C71] mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading package details...</p>
+            </div>
+          </div>
+          <Footer />
         </div>
       </div>
     );
@@ -108,17 +124,33 @@ export default function PackageDetailsPage() {
 
   if (error || !packageData) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Package className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">Package not found</h2>
-          <p className="text-gray-600 mb-6">{error || 'The package you are looking for does not exist.'}</p>
-          <button
-            onClick={() => router.back()}
-            className="bg-[#391C71] text-white px-6 py-3 rounded-lg hover:bg-[#5B2C87] transition-colors"
-          >
-            Go Back
-          </button>
+      <div className="min-h-screen relative">
+        <div className="fixed inset-0 z-0">
+          <Image
+            src="/design.png"
+            alt="Background"
+            fill
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-50/80 via-white/50 to-pink-50/80"></div>
+        </div>
+        <Navbar />
+        <div className="relative z-10 flex flex-col min-h-screen">
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <Package className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+              <h2 className="text-2xl font-semibold text-gray-900 mb-2">Package not found</h2>
+              <p className="text-gray-600 mb-6">{error || 'The package you are looking for does not exist.'}</p>
+              <button
+                onClick={() => router.back()}
+                className="bg-[#391C71] text-white px-6 py-3 rounded-lg hover:bg-[#5B2C87] transition-colors"
+              >
+                Go Back
+              </button>
+            </div>
+          </div>
+          <Footer />
         </div>
       </div>
     );

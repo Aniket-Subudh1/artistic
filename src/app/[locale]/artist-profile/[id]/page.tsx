@@ -211,10 +211,15 @@ export default function ArtistProfilePage() {
           <div className="absolute inset-0 bg-gradient-to-br from-purple-50/80 via-white/50 to-pink-50/80"></div>
         </div>
         <Navbar />
-        <div className="relative z-10 flex justify-center items-center h-96">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#391C71]"></div>
+        <div className="relative z-10 flex flex-col min-h-screen">
+          <div className="flex-1 flex justify-center items-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#391C71] mx-auto mb-4"></div>
+              <p className="text-gray-600">{t('artistProfile.loading')}</p>
+            </div>
+          </div>
+          <Footer />
         </div>
-        <Footer />
       </div>
     );
   }
