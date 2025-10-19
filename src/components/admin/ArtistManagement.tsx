@@ -2180,48 +2180,77 @@ export function ArtistManagement() {
 
                 {/* Performance Preferences */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Performance Preferences</label>
-                  <p className="text-sm text-gray-600 mb-3">Select up to 4 performance preferences:</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    {[
-                      'Private Events',
-                      'Public Events', 
-                      'Workshops',
-                      'International Events',
-                      'Corporate Events',
-                      'Weddings',
-                      'Concerts',
-                      'Festivals'
-                    ].map((preference) => (
-                      <label key={preference} className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={editArtistForm.performPreference.includes(preference)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              if (editArtistForm.performPreference.length < 4) {
-                                setEditArtistForm(prev => ({
-                                  ...prev,
-                                  performPreference: [...prev.performPreference, preference]
-                                }));
-                              }
-                            } else {
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Performance Preferences</h3>
+                  <div className="space-y-3">
+                    <p className="text-sm text-gray-600">Select up to 4 performance preferences:</p>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      {['private', 'public', 'international', 'workshop'].map((pref) => (
+                        <button
+                          key={pref}
+                          type="button"
+                          onClick={() => {
+                            const isSelected = editArtistForm.performPreference.includes(pref);
+                            if (isSelected) {
+                              // Remove preference
                               setEditArtistForm(prev => ({
                                 ...prev,
-                                performPreference: prev.performPreference.filter(p => p !== preference)
+                                performPreference: prev.performPreference.filter(p => p !== pref)
+                              }));
+                            } else if (editArtistForm.performPreference.length < 4) {
+                              // Add preference if under limit
+                              setEditArtistForm(prev => ({
+                                ...prev,
+                                performPreference: [...prev.performPreference, pref]
                               }));
                             }
                           }}
-                          disabled={!editArtistForm.performPreference.includes(preference) && editArtistForm.performPreference.length >= 4}
-                          className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-                        />
-                        <span className="text-sm text-gray-700">{preference}</span>
-                      </label>
-                    ))}
+                          className={`p-3 text-sm border rounded-lg transition-colors ${
+                            editArtistForm.performPreference.includes(pref)
+                              ? 'bg-purple-100 border-purple-500 text-purple-700'
+                              : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                          } ${
+                            !editArtistForm.performPreference.includes(pref) && editArtistForm.performPreference.length >= 4
+                              ? 'opacity-50 cursor-not-allowed'
+                              : 'cursor-pointer'
+                          }`}
+                          disabled={!editArtistForm.performPreference.includes(pref) && editArtistForm.performPreference.length >= 4}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="capitalize font-medium">{pref}</span>
+                            {editArtistForm.performPreference.includes(pref) && (
+                              <CheckCircle className="w-4 h-4 text-purple-600" />
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                    
+                    <div className="text-xs text-gray-500">
+                      Selected: {editArtistForm.performPreference.length}/4
+                    </div>
+                    
+                    {/* Display selected preferences */}
+                    {editArtistForm.performPreference.length > 0 && (
+                      <div className="flex flex-wrap gap-2 pt-2">
+                        {editArtistForm.performPreference.map((preference, index) => (
+                          <span key={index} className="inline-flex items-center px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-full">
+                            {preference}
+                            <button
+                              type="button"
+                              onClick={() => setEditArtistForm(prev => ({
+                                ...prev,
+                                performPreference: prev.performPreference.filter(p => p !== preference)
+                              }))}
+                              className="ml-2 text-purple-600 hover:text-purple-800"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  {editArtistForm.performPreference.length >= 4 && (
-                    <p className="text-sm text-orange-600 mt-2">Maximum 4 preferences can be selected.</p>
-                  )}
                 </div>
 
                 {/* Pricing Settings */}
