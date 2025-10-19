@@ -494,11 +494,7 @@ export default function ArtistProfilePage() {
                                       ) : null}
                                     </>
                                   )}
-                                  <div className="mt-3 pt-3 border-t border-[#391C71]/20">
-                                    <p className="text-xs text-gray-600 text-center font-medium">
-                                      {pricingData.pricingMode === 'duration' ? '📅 Duration-based pricing' : '⏰ Time-slot based pricing'}
-                                    </p>
-                                  </div>
+                                  
                                 </div>
                               );
                             } else {
