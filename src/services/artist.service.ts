@@ -568,4 +568,22 @@ export class ArtistService {
       method: 'DELETE',
     });
   }
+
+  // Edit Artist by Admin
+  static async editArtist(
+    artistId: string,
+    editData: FormData
+  ): Promise<{ message: string; artist: Artist }> {
+    return apiRequest(`/artist/edit/${artistId}`, {
+      method: 'PATCH',
+      body: editData,
+    });
+  }
+
+  // Delete Artist by Admin
+  static async deleteArtist(artistId: string): Promise<{ message: string }> {
+    return apiRequest(`/artist/delete/${artistId}`, {
+      method: 'DELETE',
+    });
+  }
 }

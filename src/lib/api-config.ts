@@ -238,11 +238,18 @@ export const apiRequest = async <T>(
 ): Promise<T> => {
   const fullUrl = url.startsWith('http') ? url : `${API_CONFIG.BASE_URL}${url}`;
   
+  // Check if body is FormData to use appropriate headers
+  const isFormData = options.body instanceof FormData;
+  
   try {
     const response = await fetch(fullUrl, {
       ...options,
+      credentials: 'include', // Include credentials for CORS
       headers: {
-        ...(requireAuth ? getAuthHeaders() : { 'Content-Type': 'application/json' }),
+        ...(requireAuth 
+          ? (isFormData ? getMultipartAuthHeaders() : getAuthHeaders()) 
+          : (isFormData ? {} : { 'Content-Type': 'application/json' })
+        ),
         ...options.headers,
       },
     });

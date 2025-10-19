@@ -42,6 +42,9 @@ export function ArtistManagement() {
   const [createStep, setCreateStep] = useState(1); // Multi-step form state
   const [selectedArtist, setSelectedArtist] = useState<Artist | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [isEditingArtist, setIsEditingArtist] = useState(false);
+  const [isDeletingArtist, setIsDeletingArtist] = useState(false);
 
   const [createArtistForm, setCreateArtistForm] = useState({
     firstName: '',
@@ -64,6 +67,52 @@ export function ArtistManagement() {
     youtubeLink: '',
     cooldownPeriodHours: 2,
     maximumPerformanceHours: 4,
+  });
+
+  // Edit form state
+  const [editArtistForm, setEditArtistForm] = useState({
+    firstName: '',
+    lastName: '',
+    phoneNumber: '',
+    email: '',
+    stageName: '',
+    about: '',
+    yearsOfExperience: 0,
+    skills: [] as string[],
+    musicLanguages: [] as string[],
+    awards: [] as string[],
+    pricePerHour: 0,
+    gender: '',
+    artistType: '',
+    category: '',
+    customCategory: '', 
+    country: '',
+    performPreference: [] as string[],
+    youtubeLink: '',
+    cooldownPeriodHours: 2,
+    maximumPerformanceHours: 4,
+    isVisible: true,
+    isActive: true,
+  });
+
+  // Edit pricing form state
+  const [editPricingForm, setEditPricingForm] = useState({
+    pricingMode: 'duration' as 'duration' | 'timeslot',
+    // Legacy duration-based pricing
+    privatePricing: [{ hours: 1, amount: 0 }],
+    publicPricing: [{ hours: 1, amount: 0 }],
+    workshopPricing: [{ hours: 1, amount: 0 }],
+    internationalPricing: [{ hours: 1, amount: 0 }],
+    // Time slot pricing
+    privateTimeSlotPricing: [] as { hour: number; rate: number }[],
+    publicTimeSlotPricing: [] as { hour: number; rate: number }[],
+    workshopTimeSlotPricing: [] as { hour: number; rate: number }[],
+    internationalTimeSlotPricing: [] as { hour: number; rate: number }[],
+    // Base rates
+    basePrivateRate: 0,
+    basePublicRate: 0,
+    baseWorkshopRate: 0,
+    baseInternationalRate: 0,
   });
 
   // Pricing form state
@@ -95,6 +144,11 @@ export function ArtistManagement() {
   const [newSkill, setNewSkill] = useState('');
   const [newLanguage, setNewLanguage] = useState('');
   const [newAward, setNewAward] = useState('');
+
+  // Edit form specific inputs
+  const [editNewSkill, setEditNewSkill] = useState('');
+  const [editNewLanguage, setEditNewLanguage] = useState('');
+  const [editNewAward, setEditNewAward] = useState('');
 
   // Image upload states
   const [profileImage, setProfileImage] = useState<File | null>(null);
@@ -144,6 +198,217 @@ export function ArtistManagement() {
       loadData();
     } catch (error: any) {
       setError('Failed to update artist visibility: ' + (error.message || 'Unknown error'));
+    }
+  };
+
+  const handleDeleteArtist = async (artistId: string, artistName: string) => {
+    if (!confirm(`Are you sure you want to delete "${artistName}"? This action cannot be undone and will delete all associated data including the user account.`)) {
+      return;
+    }
+
+    setError('');
+    setSuccess('');
+    setIsDeletingArtist(true);
+
+    try {
+      await ArtistService.deleteArtist(artistId);
+      setSuccess(`Artist "${artistName}" deleted successfully!`);
+      loadData();
+    } catch (error: any) {
+      setError('Failed to delete artist: ' + (error.message || 'Unknown error'));
+    } finally {
+      setIsDeletingArtist(false);
+    }
+  };
+
+  const handleEditArtist = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedArtist) return;
+
+    setError('');
+    setSuccess('');
+
+    // Validate custom category if "Other" is selected
+    if (editArtistForm.category === 'OTHER' && !editArtistForm.customCategory.trim()) {
+      setError('Please enter a custom category');
+      return;
+    }
+
+    setIsEditingArtist(true);
+
+    try {
+      const formData = new FormData();
+      
+      // Add all form fields
+      Object.keys(editArtistForm).forEach(key => {
+        let value = (editArtistForm as any)[key];
+        
+        // Skip customCategory field as it's only used for UI logic
+        if (key === 'customCategory') {
+          return;
+        }
+        
+        // Handle category field - use custom category if "Other" is selected
+        if (key === 'category' && editArtistForm.category === 'OTHER') {
+          value = editArtistForm.customCategory;
+        }
+        
+        // Handle different data types properly for FormData
+        if (Array.isArray(value)) {
+          formData.append(key, JSON.stringify(value));
+        } else if (typeof value === 'boolean') {
+          formData.append(key, value.toString());
+        } else if (typeof value === 'number') {
+          formData.append(key, value.toString());
+        } else if (value !== null && value !== undefined) {
+          formData.append(key, String(value));
+        }
+      });
+
+      // Add pricing fields
+      Object.keys(editPricingForm).forEach(key => {
+        const value = (editPricingForm as any)[key];
+        
+        // Handle different data types properly for FormData
+        if (Array.isArray(value)) {
+          formData.append(key, JSON.stringify(value));
+        } else if (typeof value === 'boolean') {
+          formData.append(key, value.toString());
+        } else if (typeof value === 'number') {
+          formData.append(key, value.toString());
+        } else if (value !== null && value !== undefined) {
+          formData.append(key, String(value));
+        }
+      });
+
+      // Add images if selected
+      if (profileImage) {
+        formData.append('profileImage', profileImage);
+      }
+      if (coverImage) {
+        formData.append('profileCoverImage', coverImage);
+      }
+
+      await ArtistService.editArtist(selectedArtist._id, formData);
+      setSuccess('Artist updated successfully!');
+      setShowEditModal(false);
+      resetEditForm();
+      loadData();
+    } catch (error: any) {
+      console.error('Edit artist error:', error);
+      const errorMessage = error.data?.message || error.message || 'Unknown error';
+      setError('Failed to update artist: ' + errorMessage);
+    } finally {
+      setIsEditingArtist(false);
+    }
+  };
+
+  const resetEditForm = () => {
+    setEditArtistForm({
+      firstName: '',
+      lastName: '',
+      phoneNumber: '',
+      email: '',
+      stageName: '',
+      about: '',
+      yearsOfExperience: 0,
+      skills: [],
+      musicLanguages: [],
+      awards: [],
+      pricePerHour: 0,
+      gender: '',
+      artistType: '',
+      category: '',
+      customCategory: '',
+      country: '',
+      performPreference: [],
+      youtubeLink: '',
+      cooldownPeriodHours: 2,
+      maximumPerformanceHours: 4,
+      isVisible: true,
+      isActive: true,
+    });
+    setEditPricingForm({
+      pricingMode: 'duration',
+      privatePricing: [{ hours: 1, amount: 0 }],
+      publicPricing: [{ hours: 1, amount: 0 }],
+      workshopPricing: [{ hours: 1, amount: 0 }],
+      internationalPricing: [{ hours: 1, amount: 0 }],
+      privateTimeSlotPricing: [],
+      publicTimeSlotPricing: [],
+      workshopTimeSlotPricing: [],
+      internationalTimeSlotPricing: [],
+      basePrivateRate: 0,
+      basePublicRate: 0,
+      baseWorkshopRate: 0,
+      baseInternationalRate: 0,
+    });
+    setProfileImage(null);
+    setCoverImage(null);
+    setProfileImagePreview('');
+    setCoverImagePreview('');
+    setEditNewSkill('');
+    setEditNewLanguage('');
+    setEditNewAward('');
+  };
+
+  const populateEditForm = (artist: Artist) => {
+    const predefinedCategories = ['VOCALIST', 'INSTRUMENTALIST', 'BAND', 'DJ', 'DANCER'];
+    const isCustomCategory = artist.category && !predefinedCategories.includes(artist.category);
+    
+    setEditArtistForm({
+      firstName: artist.user?.firstName || '',
+      lastName: artist.user?.lastName || '',
+      phoneNumber: artist.user?.phoneNumber || '',
+      email: artist.user?.email || '',
+      stageName: artist.stageName || '',
+      about: artist.about || '',
+      yearsOfExperience: artist.yearsOfExperience || 0,
+      skills: artist.skills || [],
+      musicLanguages: artist.musicLanguages || [],
+      awards: artist.awards || [],
+      pricePerHour: artist.pricePerHour || 0,
+      gender: '', // Will need to be fetched from full artist profile
+      artistType: '', // Will need to be fetched from full artist profile
+      category: isCustomCategory ? 'OTHER' : (artist.category || ''),
+      customCategory: isCustomCategory ? artist.category || '' : '',
+      country: artist.country || '',
+      performPreference: artist.performPreference || [],
+      youtubeLink: artist.youtubeLink || '',
+      cooldownPeriodHours: artist.cooldownPeriodHours || 2,
+      maximumPerformanceHours: artist.maximumPerformanceHours || 4,
+      isVisible: artist.isVisible !== false,
+      isActive: artist.user?.isActive !== false,
+    });
+    
+    // Load pricing data for the artist
+    loadPricingData(artist._id);
+  };
+
+  const loadPricingData = async (artistId: string) => {
+    try {
+      const pricing = await ArtistService.getArtistPricing(artistId);
+      if (pricing) {
+        setEditPricingForm({
+          pricingMode: pricing.pricingMode || 'duration',
+          privatePricing: pricing.privatePricing || [{ hours: 1, amount: 0 }],
+          publicPricing: pricing.publicPricing || [{ hours: 1, amount: 0 }],
+          workshopPricing: pricing.workshopPricing || [{ hours: 1, amount: 0 }],
+          internationalPricing: pricing.internationalPricing || [{ hours: 1, amount: 0 }],
+          privateTimeSlotPricing: pricing.privateTimeSlotPricing || [],
+          publicTimeSlotPricing: pricing.publicTimeSlotPricing || [],
+          workshopTimeSlotPricing: pricing.workshopTimeSlotPricing || [],
+          internationalTimeSlotPricing: pricing.internationalTimeSlotPricing || [],
+          basePrivateRate: pricing.basePrivateRate || 0,
+          basePublicRate: pricing.basePublicRate || 0,
+          baseWorkshopRate: pricing.baseWorkshopRate || 0,
+          baseInternationalRate: pricing.baseInternationalRate || 0,
+        });
+      }
+    } catch (error) {
+      console.warn('Failed to load pricing data:', error);
+      // Keep default pricing form values
     }
   };
 
@@ -407,6 +672,58 @@ export function ArtistManagement() {
     }));
   };
 
+  // Edit form array handlers
+  const addEditSkill = () => {
+    if (editNewSkill.trim() && !editArtistForm.skills.includes(editNewSkill.trim())) {
+      setEditArtistForm(prev => ({ 
+        ...prev, 
+        skills: [...prev.skills, editNewSkill.trim()] 
+      }));
+      setEditNewSkill('');
+    }
+  };
+
+  const removeEditSkill = (skill: string) => {
+    setEditArtistForm(prev => ({ 
+      ...prev, 
+      skills: prev.skills.filter(s => s !== skill) 
+    }));
+  };
+
+  const addEditLanguage = () => {
+    if (editNewLanguage.trim() && !editArtistForm.musicLanguages.includes(editNewLanguage.trim())) {
+      setEditArtistForm(prev => ({ 
+        ...prev, 
+        musicLanguages: [...prev.musicLanguages, editNewLanguage.trim()] 
+      }));
+      setEditNewLanguage('');
+    }
+  };
+
+  const removeEditLanguage = (language: string) => {
+    setEditArtistForm(prev => ({ 
+      ...prev, 
+      musicLanguages: prev.musicLanguages.filter(l => l !== language) 
+    }));
+  };
+
+  const addEditAward = () => {
+    if (editNewAward.trim() && !editArtistForm.awards.includes(editNewAward.trim())) {
+      setEditArtistForm(prev => ({ 
+        ...prev, 
+        awards: [...prev.awards, editNewAward.trim()] 
+      }));
+      setEditNewAward('');
+    }
+  };
+
+  const removeEditAward = (award: string) => {
+    setEditArtistForm(prev => ({ 
+      ...prev, 
+      awards: prev.awards.filter(a => a !== award) 
+    }));
+  };
+
   // Image handling functions
   const handleImageSelect = (event: Event, type: 'profile' | 'cover') => {
     const target = event.target as HTMLInputElement;
@@ -655,6 +972,27 @@ export function ArtistManagement() {
                   <Eye className="w-4 h-4" />
                   View
                 </button>
+                <button 
+                  onClick={() => {
+                    setSelectedArtist(artist);
+                    populateEditForm(artist);
+                    setShowEditModal(true);
+                  }}
+                  className="flex-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center justify-center gap-1"
+                >
+                  <Edit className="w-4 h-4" />
+                  Edit
+                </button>
+                <button 
+                  onClick={() => handleDeleteArtist(artist._id, artist.stageName)}
+                  className="flex-1 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors flex items-center justify-center gap-1"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete
+                </button>
+              </div>
+
+              <div className="mt-2 flex gap-2">
                 <button 
                   onClick={() => artist.user && handleToggleArtistStatus(artist.user._id)}
                   disabled={!artist.user}
@@ -1410,6 +1748,528 @@ export function ArtistManagement() {
                     </div>
                   </>
                 )}
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Artist Modal */}
+      {showEditModal && selectedArtist && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900">Edit Artist: {selectedArtist.stageName}</h2>
+                <button
+                  onClick={() => {
+                    setShowEditModal(false);
+                    resetEditForm();
+                  }}
+                  disabled={isEditingArtist}
+                  className="text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <form onSubmit={handleEditArtist} className="space-y-6">
+                {/* Basic Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label htmlFor="edit-firstName" className="block text-sm font-medium text-gray-700 mb-1">
+                      First Name *
+                    </label>
+                    <input
+                      type="text"
+                      id="edit-firstName"
+                      value={editArtistForm.firstName}
+                      onChange={(e) => setEditArtistForm(prev => ({ ...prev, firstName: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="edit-lastName" className="block text-sm font-medium text-gray-700 mb-1">
+                      Last Name *
+                    </label>
+                    <input
+                      type="text"
+                      id="edit-lastName"
+                      value={editArtistForm.lastName}
+                      onChange={(e) => setEditArtistForm(prev => ({ ...prev, lastName: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="edit-email" className="block text-sm font-medium text-gray-700 mb-1">
+                      Email *
+                    </label>
+                    <input
+                      type="email"
+                      id="edit-email"
+                      value={editArtistForm.email}
+                      onChange={(e) => setEditArtistForm(prev => ({ ...prev, email: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="edit-phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
+                      Phone Number *
+                    </label>
+                    <input
+                      type="tel"
+                      id="edit-phoneNumber"
+                      value={editArtistForm.phoneNumber}
+                      onChange={(e) => setEditArtistForm(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="edit-stageName" className="block text-sm font-medium text-gray-700 mb-1">
+                      Stage Name *
+                    </label>
+                    <input
+                      type="text"
+                      id="edit-stageName"
+                      value={editArtistForm.stageName}
+                      onChange={(e) => setEditArtistForm(prev => ({ ...prev, stageName: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="edit-category" className="block text-sm font-medium text-gray-700 mb-1">
+                      Category *
+                    </label>
+                    <select
+                      id="edit-category"
+                      value={editArtistForm.category}
+                      onChange={(e) => setEditArtistForm(prev => ({ ...prev, category: e.target.value, customCategory: e.target.value !== 'OTHER' ? '' : prev.customCategory }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      required
+                    >
+                      <option value="">Select Category</option>
+                      <option value="VOCALIST">Vocalist</option>
+                      <option value="INSTRUMENTALIST">Instrumentalist</option>
+                      <option value="BAND">Band</option>
+                      <option value="DJ">DJ</option>
+                      <option value="DANCER">Dancer</option>
+                      <option value="OTHER">Other</option>
+                    </select>
+                    {editArtistForm.category === 'OTHER' && (
+                      <div className="mt-2">
+                        <input
+                          type="text"
+                          value={editArtistForm.customCategory}
+                          onChange={(e) => setEditArtistForm(prev => ({ ...prev, customCategory: e.target.value }))}
+                          placeholder="Enter custom category"
+                          required
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label htmlFor="edit-country" className="block text-sm font-medium text-gray-700 mb-1">
+                      Country *
+                    </label>
+                    <input
+                      type="text"
+                      id="edit-country"
+                      value={editArtistForm.country}
+                      onChange={(e) => setEditArtistForm(prev => ({ ...prev, country: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="edit-yearsOfExperience" className="block text-sm font-medium text-gray-700 mb-1">
+                      Years of Experience
+                    </label>
+                    <input
+                      type="number"
+                      id="edit-yearsOfExperience"
+                      min="0"
+                      value={editArtistForm.yearsOfExperience}
+                      onChange={(e) => setEditArtistForm(prev => ({ ...prev, yearsOfExperience: parseInt(e.target.value) || 0 }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="edit-pricePerHour" className="block text-sm font-medium text-gray-700 mb-1">
+                      Price per Hour (KWD) *
+                    </label>
+                    <input
+                      type="number"
+                      id="edit-pricePerHour"
+                      min="0"
+                      step="0.01"
+                      value={editArtistForm.pricePerHour}
+                      onChange={(e) => setEditArtistForm(prev => ({ ...prev, pricePerHour: parseFloat(e.target.value) || 0 }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="edit-youtubeLink" className="block text-sm font-medium text-gray-700 mb-1">
+                      YouTube Link
+                    </label>
+                    <input
+                      type="url"
+                      id="edit-youtubeLink"
+                      value={editArtistForm.youtubeLink}
+                      onChange={(e) => setEditArtistForm(prev => ({ ...prev, youtubeLink: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="https://youtube.com/..."
+                    />
+                  </div>
+                </div>
+
+                {/* Image Upload Section */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Profile Image */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Profile Photo
+                    </label>
+                    <div className="flex flex-col items-center space-y-3">
+                      <div className="relative">
+                        <div className="w-32 h-32 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50">
+                          {profileImagePreview ? (
+                            <img 
+                              src={profileImagePreview} 
+                              alt="Profile preview" 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : selectedArtist?.profileImage ? (
+                            <img 
+                              src={selectedArtist.profileImage} 
+                              alt="Current profile" 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="text-center">
+                              <Camera className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                              <p className="text-xs text-gray-500">Profile Photo</p>
+                            </div>
+                          )}
+                        </div>
+                        {(profileImagePreview || selectedArtist?.profileImage) && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setProfileImage(null);
+                              setProfileImagePreview('');
+                            }}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const input = document.createElement('input');
+                          input.type = 'file';
+                          input.accept = 'image/*';
+                          input.onchange = (e) => handleImageSelect(e, 'profile');
+                          input.click();
+                        }}
+                        className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        <Upload className="w-4 h-4" />
+                        <span>Upload Photo</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Cover Image */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Cover Image
+                    </label>
+                    <div className="flex flex-col items-center space-y-3">
+                      <div className="relative">
+                        <div className="w-48 h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50">
+                          {coverImagePreview ? (
+                            <img 
+                              src={coverImagePreview} 
+                              alt="Cover preview" 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : selectedArtist?.profileCoverImage ? (
+                            <img 
+                              src={selectedArtist.profileCoverImage} 
+                              alt="Current cover" 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="text-center">
+                              <Camera className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                              <p className="text-xs text-gray-500">Cover Image</p>
+                            </div>
+                          )}
+                        </div>
+                        {(coverImagePreview || selectedArtist?.profileCoverImage) && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCoverImage(null);
+                              setCoverImagePreview('');
+                            }}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const input = document.createElement('input');
+                          input.type = 'file';
+                          input.accept = 'image/*';
+                          input.onchange = (e) => handleImageSelect(e, 'cover');
+                          input.click();
+                        }}
+                        className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        <Upload className="w-4 h-4" />
+                        <span>Upload Cover</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* About */}
+                <div>
+                  <label htmlFor="edit-about" className="block text-sm font-medium text-gray-700 mb-1">
+                    About
+                  </label>
+                  <textarea
+                    id="edit-about"
+                    rows={4}
+                    value={editArtistForm.about}
+                    onChange={(e) => setEditArtistForm(prev => ({ ...prev, about: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="Tell us about this artist..."
+                  />
+                </div>
+
+                {/* Skills */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Skills</label>
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      value={editNewSkill}
+                      onChange={(e) => setEditNewSkill(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addEditSkill())}
+                      placeholder="Add a skill..."
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                    <button
+                      type="button"
+                      onClick={addEditSkill}
+                      className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {editArtistForm.skills.map((skill, index) => (
+                      <span key={index} className="inline-flex items-center px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-full">
+                        {skill}
+                        <button
+                          type="button"
+                          onClick={() => removeEditSkill(skill)}
+                          className="ml-2 text-purple-600 hover:text-purple-800"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Music Languages */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Music Languages</label>
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      value={editNewLanguage}
+                      onChange={(e) => setEditNewLanguage(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addEditLanguage())}
+                      placeholder="Add a language..."
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                    <button
+                      type="button"
+                      onClick={addEditLanguage}
+                      className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {editArtistForm.musicLanguages.map((language, index) => (
+                      <span key={index} className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+                        {language}
+                        <button
+                          type="button"
+                          onClick={() => removeEditLanguage(language)}
+                          className="ml-2 text-blue-600 hover:text-blue-800"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Awards */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Awards</label>
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      value={editNewAward}
+                      onChange={(e) => setEditNewAward(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addEditAward())}
+                      placeholder="Add an award..."
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                    <button
+                      type="button"
+                      onClick={addEditAward}
+                      className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {editArtistForm.awards.map((award, index) => (
+                      <span key={index} className="inline-flex items-center px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
+                        {award}
+                        <button
+                          type="button"
+                          onClick={() => removeEditAward(award)}
+                          className="ml-2 text-green-600 hover:text-green-800"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Pricing Settings */}
+                <div className="border-t border-gray-200 pt-6">
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Pricing Settings</h3>
+                  <PricingSettings
+                    pricingForm={editPricingForm}
+                    setPricingForm={setEditPricingForm}
+                    artistSettings={{
+                      cooldownPeriodHours: editArtistForm.cooldownPeriodHours,
+                      maximumPerformanceHours: editArtistForm.maximumPerformanceHours,
+                    }}
+                    setArtistSettings={(settingsOrFunction) => {
+                      if (typeof settingsOrFunction === 'function') {
+                        const currentSettings = {
+                          cooldownPeriodHours: editArtistForm.cooldownPeriodHours,
+                          maximumPerformanceHours: editArtistForm.maximumPerformanceHours,
+                        };
+                        const newSettings = settingsOrFunction(currentSettings);
+                        setEditArtistForm(prev => ({
+                          ...prev,
+                          cooldownPeriodHours: newSettings.cooldownPeriodHours,
+                          maximumPerformanceHours: newSettings.maximumPerformanceHours,
+                        }));
+                      } else {
+                        setEditArtistForm(prev => ({
+                          ...prev,
+                          cooldownPeriodHours: settingsOrFunction.cooldownPeriodHours,
+                          maximumPerformanceHours: settingsOrFunction.maximumPerformanceHours,
+                        }));
+                      }
+                    }}
+                  />
+                </div>
+
+                {/* Settings */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="edit-isActive"
+                      checked={editArtistForm.isActive}
+                      onChange={(e) => setEditArtistForm(prev => ({ ...prev, isActive: e.target.checked }))}
+                      className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="edit-isActive" className="ml-2 block text-sm text-gray-700">
+                      Account Active
+                    </label>
+                  </div>
+
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="edit-isVisible"
+                      checked={editArtistForm.isVisible}
+                      onChange={(e) => setEditArtistForm(prev => ({ ...prev, isVisible: e.target.checked }))}
+                      className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="edit-isVisible" className="ml-2 block text-sm text-gray-700">
+                      Visible on Homepage
+                    </label>
+                  </div>
+                </div>
+
+                {/* Form Actions */}
+                <div className="flex gap-4 pt-6 border-t border-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowEditModal(false);
+                      resetEditForm();
+                    }}
+                    disabled={isEditingArtist}
+                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:cursor-not-allowed disabled:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isEditingArtist}
+                    className={`flex-1 px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2 ${
+                      isEditingArtist 
+                        ? 'bg-purple-400 text-white cursor-not-allowed' 
+                        : 'bg-purple-600 text-white hover:bg-purple-700'
+                    }`}
+                  >
+                    {isEditingArtist && (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    )}
+                    <span>
+                      {isEditingArtist ? 'Updating...' : 'Update Artist'}
+                    </span>
+                  </button>
+                </div>
               </form>
             </div>
           </div>
