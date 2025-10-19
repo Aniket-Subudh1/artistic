@@ -2178,6 +2178,52 @@ export function ArtistManagement() {
                   </div>
                 </div>
 
+                {/* Performance Preferences */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Performance Preferences</label>
+                  <p className="text-sm text-gray-600 mb-3">Select up to 4 performance preferences:</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      'Private Events',
+                      'Public Events', 
+                      'Workshops',
+                      'International Events',
+                      'Corporate Events',
+                      'Weddings',
+                      'Concerts',
+                      'Festivals'
+                    ].map((preference) => (
+                      <label key={preference} className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={editArtistForm.performPreference.includes(preference)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              if (editArtistForm.performPreference.length < 4) {
+                                setEditArtistForm(prev => ({
+                                  ...prev,
+                                  performPreference: [...prev.performPreference, preference]
+                                }));
+                              }
+                            } else {
+                              setEditArtistForm(prev => ({
+                                ...prev,
+                                performPreference: prev.performPreference.filter(p => p !== preference)
+                              }));
+                            }
+                          }}
+                          disabled={!editArtistForm.performPreference.includes(preference) && editArtistForm.performPreference.length >= 4}
+                          className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                        />
+                        <span className="text-sm text-gray-700">{preference}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {editArtistForm.performPreference.length >= 4 && (
+                    <p className="text-sm text-orange-600 mt-2">Maximum 4 preferences can be selected.</p>
+                  )}
+                </div>
+
                 {/* Pricing Settings */}
                 <div className="border-t border-gray-200 pt-6">
                   <h3 className="text-lg font-medium text-gray-900 mb-4">Pricing Settings</h3>
