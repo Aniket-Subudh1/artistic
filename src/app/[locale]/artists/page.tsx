@@ -304,11 +304,11 @@ export default function ArtistsPage() {
                   className="block group"
                 >
                   <div
-                    className="bg-white/70 backdrop-blur-xl rounded-3xl border border-white/30 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-[#391C71]/10 cursor-pointer transform hover:-translate-y-2 hover:scale-105"
+                    className="bg-white/70 backdrop-blur-xl rounded-3xl border border-white/30 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-[#391C71]/10 cursor-pointer transform hover:-translate-y-2 hover:scale-105 h-[550px] flex flex-col"
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
                     {/* Artist Image */}
-                    <div className="relative h-64 overflow-hidden">
+                    <div className="relative h-56 overflow-hidden flex-shrink-0">
                       {artist.profileImage ? (
                         <Image
                           src={artist.profileImage}
@@ -325,11 +325,6 @@ export default function ArtistsPage() {
                       {/* Overlay effects */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                       
-                      {/* Category badge */}
-                      <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full border border-white/20">
-                        <span className="text-xs font-semibold text-[#391C71]">{artist.category}</span>
-                      </div>
-                      
                       {/* Hover shimmer effect */}
                       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
@@ -337,22 +332,31 @@ export default function ArtistsPage() {
                     </div>
 
                     {/* Artist Content */}
-                    <div className="p-6">
+                    <div className="p-6 flex flex-col flex-1">
+                      {/* Category badge - moved outside image */}
+                      <div className="mb-3">
+                        <span className="inline-block bg-gradient-to-r from-[#391C71]/10 to-purple-100 text-[#391C71] px-3 py-1 rounded-full text-xs font-semibold border border-[#391C71]/20">
+                          {artist.category}
+                        </span>
+                      </div>
+
                       {/* Stage Name */}
-                      <h3 className="font-bold text-gray-900 mb-2 text-xl group-hover:text-[#391C71] transition-colors duration-300">
+                      <h3 className="font-bold text-gray-900 mb-2 text-xl group-hover:text-[#391C71] transition-colors duration-300 line-clamp-1">
                         {artist.stageName}
                       </h3>
                       
-                      {/* About */}
-                      {artist.about && (
-                        <p className="text-sm text-gray-600 mb-4 line-clamp-2 leading-relaxed">
-                          {artist.about}
-                        </p>
-                      )}
+                      {/* About - Fixed height container */}
+                      <div className="mb-4 h-10 flex-shrink-0">
+                        {artist.about && (
+                          <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+                            {artist.about}
+                          </p>
+                        )}
+                      </div>
                       
-                      {/* Skills */}
-                      {artist.skills && artist.skills.length > 0 && (
-                        <div className="mb-4">
+                      {/* Skills - Fixed height container */}
+                      <div className="mb-4 h-6 flex-shrink-0">
+                        {artist.skills && artist.skills.length > 0 && (
                           <div className="flex flex-wrap gap-1">
                             {artist.skills.slice(0, 2).map((skill, index) => (
                               <span 
@@ -368,8 +372,11 @@ export default function ArtistsPage() {
                               </span>
                             )}
                           </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
+                      
+                      {/* Spacer to push footer content to bottom */}
+                      <div className="flex-1"></div>
                       
                       {/* Location */}
                       <div className="flex items-center text-sm text-gray-500 mb-4">
@@ -388,7 +395,7 @@ export default function ArtistsPage() {
                           </div>
                         </div>
                         <span className="bg-[#391C71] text-white px-4 py-2 rounded-full text-sm font-medium group-hover:bg-[#5B2C87] transition-all duration-300 shadow-lg">
-                       Book Now
+                          Book Now
                         </span>
                       </div>
                     </div>
@@ -403,6 +410,12 @@ export default function ArtistsPage() {
       <Footer />
       
       <style jsx>{`
+        .line-clamp-1 {
+          display: -webkit-box;
+          -webkit-line-clamp: 1;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
         .line-clamp-2 {
           display: -webkit-box;
           -webkit-line-clamp: 2;
