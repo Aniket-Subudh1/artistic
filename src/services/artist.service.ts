@@ -453,7 +453,7 @@ export class ArtistService {
 
   static async getArtistPricing(artistProfileId: string): Promise<ArtistPricingData | null> {
     try {
-      return await publicApiRequest<ArtistPricingData>(`/artist-pricing/${artistProfileId}`, {
+      return await publicApiRequest<ArtistPricingData>(`/artist-pricing/public/${artistProfileId}`, {
         method: 'GET',
       });
     } catch (error) {
