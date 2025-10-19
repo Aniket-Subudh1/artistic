@@ -92,48 +92,7 @@ export default function HomePage() {
     },
   ];
 
-  const featuredEvents = [
-    {
-      id: 1,
-      image: '/25.jpg',
-      category: t('categories.music'),
-      title: t('home.featuredEventsData.jazzFusionNight.title'),
-      description: t('home.featuredEventsData.jazzFusionNight.description'),
-      place: t('home.featuredEventsData.jazzFusionNight.place'),
-      price: 25,
-      rating: 4.8,
-    },
-    {
-      id: 2,
-      image: '/29.jpg',
-      category: t('categories.artExhibition'),
-      title: t('home.featuredEventsData.contemporaryVisions.title'),
-      description: t('home.featuredEventsData.contemporaryVisions.description'),
-      place: t('home.featuredEventsData.contemporaryVisions.place'),
-      price: 15,
-      rating: 4.9,
-    },
-    {
-      id: 3,
-      image: '/13.jpg',
-      category: t('categories.theater'),
-      title: t('home.featuredEventsData.silentEcho.title'),
-      description: t('home.featuredEventsData.silentEcho.description'),
-      place: t('home.featuredEventsData.silentEcho.place'),
-      price: 30,
-      rating: 4.7,
-    },
-    {
-      id: 4,
-      image: '/56.jpg',
-      category: t('categories.workshop'),
-      title: t('home.featuredEventsData.potteryMasterclass.title'),
-      description: t('home.featuredEventsData.potteryMasterclass.description'),
-      place: t('home.featuredEventsData.potteryMasterclass.place'),
-      price: 40,
-      rating: 4.6,
-    },
-  ];
+
 
 
   return (
@@ -155,77 +114,7 @@ export default function HomePage() {
 
       <HeroCarousel slides={carouselSlides} />
       <TitleTag />
-      <section className="py-20 max-w-7xl mx-auto px-6 relative z-10">
-        <div className="text-center mb-16">
-          <h2 className="text-5xl font-bold text-gray-900 mb-6 relative">
-            {t('home.featuredEvents')}
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 h-1 bg-[#391C71] rounded-full" />
-          </h2>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
-            {t('home.featuredEventsDesc')}
-          </p>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-          {featuredEvents.map((event, index) => (
-            <Link key={event.id} href={`/coming-soon`} className="block group">
-              <div
-                className="bg-white rounded-3xl border border-gray-100 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-[#391C71]/10 cursor-pointer transform hover:-translate-y-2 hover:scale-105"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className="relative h-56 bg-gradient-to-br from-[#391C71] to-[#5B2C87] overflow-hidden">
-                  <Image
-                    src={event.image}
-                    alt={event.title}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full flex items-center shadow-lg border border-white/20">
-                    <Star className="w-4 h-4 text-yellow-500 fill-current mr-1" />
-                    <span className="text-sm font-semibold text-gray-700">
-                      {event.rating}
-                    </span>
-                  </div>
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                  </div>
-                </div>
-                <div className="p-6">
-                  <div className="text-xs text-[#391C71] font-bold mb-3 uppercase tracking-wider">
-                    {event.category}
-                  </div>
-                  <h3 className="font-bold text-gray-900 mb-3 text-xl leading-tight group-hover:text-[#391C71] transition-colors duration-300">
-                    {event.title}
-                  </h3>
-                  <p className="text-sm text-gray-600 mb-4 line-clamp-2 leading-relaxed">
-                    {event.description}
-                  </p>
-                  <div className="flex items-center text-sm text-gray-500 mb-5">
-                    <MapPin className="w-4 h-4 mr-2 text-[#391C71]" />
-                    {event.place}
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="font-bold text-gray-900 text-xl">{t('currency')} {event.price}</span>
-                    <span className="bg-[#391C71] text-white px-5 py-2 rounded-full text-sm font-medium group-hover:bg-[#5B2C87] transition-all duration-300 shadow-lg">
-                      {t('home.bookNow')}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-
-        <div className="text-center">
-          <Link
-            href="/coming-soon"
-            className="inline-block bg-white border-2 border-[#391C71] text-[#391C71] px-10 py-4 rounded-full hover:bg-[#391C71] hover:text-white transition-all duration-500 font-medium shadow-xl hover:shadow-2xl hover:shadow-[#391C71]/20 hover:scale-105"
-          >
-            {t('home.viewAllEvents')}
-          </Link>
-        </div>
-      </section>
 
       <section className="py-20 relative z-10">
         <div className="absolute inset-0 bg-gradient-to-r from-gray-50 to-purple-50" />
