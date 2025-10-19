@@ -406,136 +406,7 @@ export default function ArtistProfilePage() {
                     </div>
                   </div>
 
-                  {/* Enhanced Pricing Details Section */}
-                  {(() => {
-                    // Check if we have valid pricing data to display
-                    const hasValidDynamicPricing = hasDynamicPricing && pricingData && (
-                      (pricingData.privatePricing && pricingData.privatePricing.length > 0 && pricingData.privatePricing.some(p => p.amount > 0)) ||
-                      (pricingData.privateTimeSlotPricing && pricingData.privateTimeSlotPricing.length > 0 && pricingData.privateTimeSlotPricing.some(p => p.rate > 0)) ||
-                      (pricingData.basePrivateRate && pricingData.basePrivateRate > 0)
-                    );
-                    
-                    const hasBasicPricing = artist?.pricePerHour && artist.pricePerHour > 0;
-                    
-                    // Only render if we have either valid dynamic pricing or basic pricing
-                    return (hasValidDynamicPricing || hasBasicPricing);
-                  })() && (
-                    <div className="mb-8">
-                      <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                        <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3 rtl:mr-0 rtl:ml-3">
-                          <Star className="w-4 h-4 text-white" />
-                        </div>
-                        {t('artistProfile.pricingDetails')}
-                      </h3>
-                      <div className="bg-gradient-to-r from-[#391C71]/10 to-purple-100 rounded-2xl p-6 border border-[#391C71]/20">
-                        {/* Private Performance Pricing */}
-                        <div className="bg-white/70 rounded-2xl p-4 mb-4">
-                          <h4 className="text-base font-bold text-[#391C71] mb-4 flex items-center">
-                            <Users className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                            Private Performance
-                          </h4>
-                          
-                          {(() => {
-                            // Check if we have valid dynamic pricing
-                            const hasValidDynamicPricing = hasDynamicPricing && pricingData && (
-                              (pricingData.privatePricing && pricingData.privatePricing.length > 0 && pricingData.privatePricing.some(p => p.amount > 0)) ||
-                              (pricingData.privateTimeSlotPricing && pricingData.privateTimeSlotPricing.length > 0 && pricingData.privateTimeSlotPricing.some(p => p.rate > 0)) ||
-                              (pricingData.basePrivateRate && pricingData.basePrivateRate > 0)
-                            );
 
-                            if (hasValidDynamicPricing) {
-                              // Show Dynamic Pricing
-                              return (
-                                <div className="space-y-3">
-                                  {pricingData.pricingMode === 'duration' ? (
-                                    // Duration-based pricing
-                                    <>
-                                      {pricingData.privatePricing && pricingData.privatePricing.length > 0 && pricingData.privatePricing.some(p => p.amount > 0) ? (
-                                        pricingData.privatePricing.filter(p => p.amount > 0).map((price, index) => (
-                                          <div key={index} className="flex justify-between items-center py-2 px-3 bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-xl border border-[#391C71]/10">
-                                            <span className="font-medium text-gray-700">
-                                              {price.hours}h:
-                                            </span>
-                                            <span className="font-bold text-[#391C71] text-lg">
-                                              {price.amount} KWD
-                                            </span>
-                                          </div>
-                                        ))
-                                      ) : pricingData.basePrivateRate && pricingData.basePrivateRate > 0 ? (
-                                        <div className="flex justify-between items-center py-2 px-3 bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-xl border border-[#391C71]/10">
-                                          <span className="font-medium text-gray-700">Per Hour:</span>
-                                          <span className="font-bold text-[#391C71] text-lg">
-                                            {pricingData.basePrivateRate} KWD
-                                          </span>
-                                        </div>
-                                      ) : null}
-                                    </>
-                                  ) : (
-                                    // Time-slot based pricing
-                                    <>
-                                      {pricingData.privateTimeSlotPricing && pricingData.privateTimeSlotPricing.length > 0 && pricingData.privateTimeSlotPricing.some(p => p.rate > 0) ? (
-                                        pricingData.privateTimeSlotPricing.filter(p => p.rate > 0).map((slot, index) => (
-                                          <div key={index} className="flex justify-between items-center py-2 px-3 bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-xl border border-[#391C71]/10">
-                                            <span className="font-medium text-gray-700">
-                                              {slot.hour}:00 - {(slot.hour + 1)}:00:
-                                            </span>
-                                            <span className="font-bold text-[#391C71] text-lg">
-                                              {slot.rate} KWD
-                                            </span>
-                                          </div>
-                                        ))
-                                      ) : pricingData.basePrivateRate && pricingData.basePrivateRate > 0 ? (
-                                        <div className="flex justify-between items-center py-2 px-3 bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-xl border border-[#391C71]/10">
-                                          <span className="font-medium text-gray-700">Per Hour:</span>
-                                          <span className="font-bold text-[#391C71] text-lg">
-                                            {pricingData.basePrivateRate} KWD
-                                          </span>
-                                        </div>
-                                      ) : null}
-                                    </>
-                                  )}
-                                  
-                                </div>
-                              );
-                            } else {
-                              // Fallback to Basic Pricing from artist profile
-                              return (
-                                <div className="space-y-3">
-                                  <div className="flex justify-between items-center py-2 px-3 bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-xl border border-[#391C71]/10">
-                                    <span className="font-medium text-gray-700">1h:</span>
-                                    <span className="font-bold text-[#391C71] text-lg">
-                                      {artist?.pricePerHour || 0} KWD
-                                    </span>
-                                  </div>
-                                  <div className="flex justify-between items-center py-2 px-3 bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-xl border border-[#391C71]/10">
-                                    <span className="font-medium text-gray-700">2h:</span>
-                                    <span className="font-bold text-[#391C71] text-lg">
-                                      {((artist?.pricePerHour || 0) * 2)} KWD
-                                    </span>
-                                  </div>
-                                  <div className="flex justify-between items-center py-2 px-3 bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-xl border border-[#391C71]/10">
-                                    <span className="font-medium text-gray-700">4h:</span>
-                                    <span className="font-bold text-[#391C71] text-lg">
-                                      {((artist?.pricePerHour || 0) * 4)} KWD
-                                    </span>
-                                  </div>
-                                  <div className="flex justify-between items-center py-2 px-3 bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-xl border border-[#391C71]/10">
-                                    <span className="font-medium text-gray-700">8h:</span>
-                                    <span className="font-bold text-[#391C71] text-lg">
-                                      {((artist?.pricePerHour || 0) * 8)} KWD
-                                    </span>
-                                  </div>
-                                  
-                                </div>
-                              );
-                            }
-                          })()}
-                        </div>
-                        
-                       
-                      </div>
-                    </div>
-                  )}
 
                   {/* Enhanced Book Button */}
                   <div className="flex flex-col sm:flex-row gap-4">
@@ -572,6 +443,140 @@ export default function ArtistProfilePage() {
                   </h2>
                   <div className="bg-gradient-to-r from-[#391C71]/10 to-purple-100 rounded-2xl p-4 border border-[#391C71]/20">
                     <p className="text-gray-700 leading-relaxed text-sm">{(translatedArtist as Artist).about}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Enhanced Pricing Details Section */}
+            {(() => {
+              // Check if we have valid pricing data to display
+              const hasValidDynamicPricing = hasDynamicPricing && pricingData && (
+                (pricingData.privatePricing && pricingData.privatePricing.length > 0 && pricingData.privatePricing.some(p => p.amount > 0)) ||
+                (pricingData.privateTimeSlotPricing && pricingData.privateTimeSlotPricing.length > 0 && pricingData.privateTimeSlotPricing.some(p => p.rate > 0)) ||
+                (pricingData.basePrivateRate && pricingData.basePrivateRate > 0)
+              );
+              
+              const hasBasicPricing = artist?.pricePerHour && artist.pricePerHour > 0;
+              
+              // Only render if we have either valid dynamic pricing or basic pricing
+              return (hasValidDynamicPricing || hasBasicPricing);
+            })() && (
+              <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 relative overflow-hidden">
+                <div className="absolute top-0 left-0 rtl:left-auto rtl:right-0 w-20 h-20 bg-gradient-to-br rtl:bg-gradient-to-bl from-[#391C71]/20 to-transparent rounded-br-full rtl:rounded-br-none rtl:rounded-bl-full"></div>
+                <div className="relative z-10">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                    <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3 rtl:mr-0 rtl:ml-3">
+                      <Star className="w-4 h-4 text-white" />
+                    </div>
+                    {t('artistProfile.pricingDetails')}
+                  </h3>
+                  <div className="bg-gradient-to-r from-[#391C71]/10 to-purple-100 rounded-2xl p-6 border border-[#391C71]/20">
+                    {/* Private Performance Pricing */}
+                    <div className="bg-white/70 rounded-2xl p-4 mb-4">
+                      <h4 className="text-base font-bold text-[#391C71] mb-4 flex items-center">
+                        <Users className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
+                        Private Performance
+                      </h4>
+                      
+                      {(() => {
+                        // Check if we have valid dynamic pricing
+                        const hasValidDynamicPricing = hasDynamicPricing && pricingData && (
+                          (pricingData.privatePricing && pricingData.privatePricing.length > 0 && pricingData.privatePricing.some(p => p.amount > 0)) ||
+                          (pricingData.privateTimeSlotPricing && pricingData.privateTimeSlotPricing.length > 0 && pricingData.privateTimeSlotPricing.some(p => p.rate > 0)) ||
+                          (pricingData.basePrivateRate && pricingData.basePrivateRate > 0)
+                        );
+
+                        if (hasValidDynamicPricing) {
+                          // Show Dynamic Pricing
+                          return (
+                            <div className="space-y-3">
+                              {pricingData.pricingMode === 'duration' ? (
+                                // Duration-based pricing
+                                <>
+                                  {pricingData.privatePricing && pricingData.privatePricing.length > 0 && pricingData.privatePricing.some(p => p.amount > 0) ? (
+                                    pricingData.privatePricing.filter(p => p.amount > 0).map((price, index) => (
+                                      <div key={index} className="flex justify-between items-center py-2 px-3 bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-xl border border-[#391C71]/10">
+                                        <span className="font-medium text-gray-700">
+                                          {price.hours}h:
+                                        </span>
+                                        <span className="font-bold text-[#391C71] text-lg">
+                                          {price.amount} KWD
+                                        </span>
+                                      </div>
+                                    ))
+                                  ) : pricingData.basePrivateRate && pricingData.basePrivateRate > 0 ? (
+                                    <div className="flex justify-between items-center py-2 px-3 bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-xl border border-[#391C71]/10">
+                                      <span className="font-medium text-gray-700">Per Hour:</span>
+                                      <span className="font-bold text-[#391C71] text-lg">
+                                        {pricingData.basePrivateRate} KWD
+                                      </span>
+                                    </div>
+                                  ) : null}
+                                </>
+                              ) : (
+                                // Time-slot based pricing
+                                <>
+                                  {pricingData.privateTimeSlotPricing && pricingData.privateTimeSlotPricing.length > 0 && pricingData.privateTimeSlotPricing.some(p => p.rate > 0) ? (
+                                    pricingData.privateTimeSlotPricing.filter(p => p.rate > 0).map((slot, index) => (
+                                      <div key={index} className="flex justify-between items-center py-2 px-3 bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-xl border border-[#391C71]/10">
+                                        <span className="font-medium text-gray-700">
+                                          {slot.hour}:00 - {(slot.hour + 1)}:00:
+                                        </span>
+                                        <span className="font-bold text-[#391C71] text-lg">
+                                          {slot.rate} KWD
+                                        </span>
+                                      </div>
+                                    ))
+                                  ) : pricingData.basePrivateRate && pricingData.basePrivateRate > 0 ? (
+                                    <div className="flex justify-between items-center py-2 px-3 bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-xl border border-[#391C71]/10">
+                                      <span className="font-medium text-gray-700">Per Hour:</span>
+                                      <span className="font-bold text-[#391C71] text-lg">
+                                        {pricingData.basePrivateRate} KWD
+                                      </span>
+                                    </div>
+                                  ) : null}
+                                </>
+                              )}
+                              
+                            </div>
+                          );
+                        } else {
+                          // Fallback to Basic Pricing from artist profile
+                          return (
+                            <div className="space-y-3">
+                              <div className="flex justify-between items-center py-2 px-3 bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-xl border border-[#391C71]/10">
+                                <span className="font-medium text-gray-700">1h:</span>
+                                <span className="font-bold text-[#391C71] text-lg">
+                                  {artist?.pricePerHour || 0} KWD
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center py-2 px-3 bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-xl border border-[#391C71]/10">
+                                <span className="font-medium text-gray-700">2h:</span>
+                                <span className="font-bold text-[#391C71] text-lg">
+                                  {((artist?.pricePerHour || 0) * 2)} KWD
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center py-2 px-3 bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-xl border border-[#391C71]/10">
+                                <span className="font-medium text-gray-700">4h:</span>
+                                <span className="font-bold text-[#391C71] text-lg">
+                                  {((artist?.pricePerHour || 0) * 4)} KWD
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center py-2 px-3 bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-xl border border-[#391C71]/10">
+                                <span className="font-medium text-gray-700">8h:</span>
+                                <span className="font-bold text-[#391C71] text-lg">
+                                  {((artist?.pricePerHour || 0) * 8)} KWD
+                                </span>
+                              </div>
+                              
+                            </div>
+                          );
+                        }
+                      })()}
+                    </div>
+                    
+                   
                   </div>
                 </div>
               </div>
