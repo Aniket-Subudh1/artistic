@@ -450,7 +450,7 @@ export default function ArtistProfilePage() {
 
             {/* Enhanced Pricing Details Section */}
             {(() => {
-              // Check if we have valid pricing data to display
+              
               const hasValidDynamicPricing = hasDynamicPricing && pricingData && (
                 (pricingData.privatePricing && pricingData.privatePricing.length > 0 && pricingData.privatePricing.some(p => p.amount > 0)) ||
                 (pricingData.privateTimeSlotPricing && pricingData.privateTimeSlotPricing.length > 0 && pricingData.privateTimeSlotPricing.some(p => p.rate > 0)) ||
@@ -735,8 +735,14 @@ export default function ArtistProfilePage() {
                       <span className="ml-2 rtl:ml-0 rtl:mr-2 text-gray-600">{t('artistProfile.loading')}</span>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {portfolioItems.map((item) => (
+                    <TranslatedDataWrapper
+                      data={portfolioItems}
+                      translateFields={['title', 'description']}
+                      preserveFields={['_id', 'fileUrl', 'thumbnailUrl', 'type', 'views', 'likes', 'status']}
+                    >
+                      {(translatedPortfolioItems) => (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {translatedPortfolioItems.map((item) => (
                         <div
                           key={item._id}
                           className="group relative bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-[#391C71]/10"
@@ -812,7 +818,9 @@ export default function ArtistProfilePage() {
                           </div>
                         </div>
                       ))}
-                    </div>
+                        </div>
+                      )}
+                    </TranslatedDataWrapper>
                   )}
                 </div>
               </div>
