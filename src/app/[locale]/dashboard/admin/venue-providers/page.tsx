@@ -4,18 +4,18 @@ import React from 'react';
 import { RoleBasedRoute } from '@/components/dashboard/RoleBasedRoute';
 import { useAuthLogic } from '@/hooks/useAuth';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { UserManagement } from '@/components/admin/UserManagement';
+import { VenueProviderManagement } from '@/components/admin/VenueProviderManagement';
 
-export default function AdminUsersPage() {
+export default function AdminVenueProvidersPage() {
   const { user, isLoading } = useAuthLogic();
 
   if (isLoading || !user) {
-    return <LoadingSpinner text="Loading users management..." />;
+    return <LoadingSpinner text="Loading venue providers management..." />;
   }
 
   return (
     <RoleBasedRoute allowedRoles={['super_admin', 'admin']} userRole={user.role}>
-      <UserManagement currentUser={user} />
+      <VenueProviderManagement />
     </RoleBasedRoute>
   );
 }

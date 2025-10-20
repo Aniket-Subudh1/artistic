@@ -33,7 +33,14 @@ interface User {
   updatedAt: string;
 }
 
-export function UserManagement() {
+interface UserManagementProps {
+  currentUser?: {
+    role: string;
+    id: string;
+  };
+}
+
+export function UserManagement({ currentUser }: UserManagementProps) {
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -143,6 +150,30 @@ export function UserManagement() {
       loadUsers();
     } catch (error: any) {
       setError('Failed to update user status: ' + (error.message || 'Unknown error'));
+    }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    setError('');
+    setSuccess('');
+
+    // Find the user to check if it's an admin
+    const userToDelete = users.find(u => u._id === userId);
+    if (userToDelete?.role === 'ADMIN' && currentUser?.role !== 'super_admin') {
+      setError('Only Super Admins can delete Admin users');
+      return;
+    }
+
+    if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      await UserService.deleteUser(userId);
+      setSuccess('User deleted successfully!');
+      loadUsers();
+    } catch (error: any) {
+      setError('Failed to delete user: ' + (error.message || 'Unknown error'));
     }
   };
 
@@ -431,31 +462,49 @@ export function UserManagement() {
                           <Eye className="w-4 h-4 mr-1" />
                           View
                         </button>
-                        <button 
-                          onClick={() => handleToggleUserStatus(user._id)}
-                          className={`flex items-center ${
-                            user.isActive 
-                              ? 'text-orange-600 hover:text-orange-900' 
-                              : 'text-green-600 hover:text-green-900'
-                          }`}
-                          title={user.isActive ? 'Deactivate User' : 'Activate User'}
-                        >
-                          {user.isActive ? (
-                            <>
-                              <UserX className="w-4 h-4 mr-1" />
-                              Deactivate
-                            </>
-                          ) : (
-                            <>
-                              <UserCheck className="w-4 h-4 mr-1" />
-                              Activate
-                            </>
-                          )}
-                        </button>
-                        <button className="text-red-600 hover:text-red-900 flex items-center">
-                          <Trash2 className="w-4 h-4 mr-1" />
-                          Delete
-                        </button>
+                        
+                   
+                        {(currentUser?.role === 'super_admin' || user.role !== 'ADMIN') && (
+                          <button 
+                            onClick={() => handleToggleUserStatus(user._id)}
+                            className={`flex items-center ${
+                              user.isActive 
+                                ? 'text-orange-600 hover:text-orange-900' 
+                                : 'text-green-600 hover:text-green-900'
+                            }`}
+                            title={user.isActive ? 'Deactivate User' : 'Activate User'}
+                          >
+                            {user.isActive ? (
+                              <>
+                                <UserX className="w-4 h-4 mr-1" />
+                                Deactivate
+                              </>
+                            ) : (
+                              <>
+                                <UserCheck className="w-4 h-4 mr-1" />
+                                Activate
+                              </>
+                            )}
+                          </button>
+                        )}
+                        
+                        {/* Only super admin can delete admin users */}
+                        {(currentUser?.role === 'super_admin' || user.role !== 'ADMIN') && (
+                          <button 
+                            onClick={() => handleDeleteUser(user._id)}
+                            className="text-red-600 hover:text-red-900 flex items-center"
+                          >
+                            <Trash2 className="w-4 h-4 mr-1" />
+                            Delete
+                          </button>
+                        )}
+                        
+                        {/* Show restricted message for admin users when current user is not super admin */}
+                        {currentUser?.role !== 'super_admin' && user.role === 'ADMIN' && (
+                          <span className="text-gray-400 text-xs italic">
+                            Admin operations restricted
+                          </span>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -563,8 +612,16 @@ export function UserManagement() {
                     <option value="ARTIST">Artist</option>
                     <option value="EQUIPMENT_PROVIDER">Equipment Provider</option>
                     <option value="VENUE_OWNER">Venue Owner</option>
-                    <option value="ADMIN">Admin</option>
+                    {/* Only super admin can create admin users */}
+                    {currentUser?.role === 'super_admin' && (
+                      <option value="ADMIN">Admin</option>
+                    )}
                   </select>
+                  {currentUser?.role !== 'super_admin' && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Only Super Admins can create Admin users
+                    </p>
+                  )}
                 </div>
 
                 <div>

@@ -129,6 +129,15 @@ export const API_CONFIG = {
       MY_VENUES: '/venues/my',
       BOOKINGS: '/venues/bookings',
     },
+    VENUE_OWNER: {
+      ONBOARD: '/venue-owner/onboard',
+      LIST_ALL: '/venue-owner',
+      GET_BY_ID: (id: string) => `/venue-owner/profile/${id}`,
+      UPDATE: (id: string) => `/venue-owner/${id}`,
+      DELETE: (id: string) => `/venue-owner/${id}`,
+      MY_PROFILE: '/venue-owner/profile/me',
+      FULL_LIST: '/venue-owner/full',
+    },
     BOOKINGS: {
       LIST_ALL: '/bookings',
       CREATE: '/bookings',

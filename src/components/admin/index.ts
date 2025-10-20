@@ -9,5 +9,7 @@ export { ApplicationManagement } from './ApplicationManagement';
 export { ArtistManagement } from './ArtistManagement';
 export { EquipmentManagement } from './EquipmentManagement';
 export { EquipmentProviderManagement } from './EquipmentProviderManagement';
+export { VenueProviderManagement } from './VenueProviderManagement';
 export { TermsAndConditionsManagement } from './TermsAndConditionsManagement';
 export { UserManagement } from './UserManagement';
+export { AdminManagement } from './AdminManagement';
