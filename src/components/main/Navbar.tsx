@@ -6,6 +6,7 @@ import { Link, useRouter, usePathname } from '@/i18n/routing'
 import Image from "next/image"
 import { Users, Music, Calendar, Languages, Mic, Package, User } from "lucide-react"
 import { useAuthLogic } from '@/hooks/useAuth'
+import { LocationIndicator } from './LocationIndicator'
 
 export function Navbar() {
   const t = useTranslations('nav')
@@ -260,6 +261,9 @@ export function Navbar() {
 
             {/* Action Buttons */}
             <div className="hidden lg:flex items-center space-x-3 z-10">
+              {/* Location Indicator */}
+              <LocationIndicator isScrolled={isScrolled} />
+              
               {/* Language Toggle Button */}
               <button
                 onClick={toggleLanguage}
@@ -443,6 +447,11 @@ export function Navbar() {
                 <div className={`px-4 pb-4 space-y-3 border-t pt-4 ${
                   isScrolled ? 'border-white/20' : 'border-purple-100'
                 }`}>
+                  {/* Mobile Location Indicator */}
+                  <div className="flex justify-center">
+                    <LocationIndicator isScrolled={isScrolled} />
+                  </div>
+                  
                   <button
                     onClick={toggleLanguage}
                     className={`flex items-center justify-center space-x-2 w-full px-4 py-2.5 text-sm font-semibold rounded-2xl border-2 transition-all duration-300 ${
