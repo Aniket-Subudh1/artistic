@@ -107,4 +107,26 @@ export class AuthService {
       body: JSON.stringify({ email, otp, newPassword }),
     });
   }
+
+  // Phone-based forgot password methods
+  static async sendForgotPasswordOtp(phoneNumber: string): Promise<{ message: string; phoneNumber: string }> {
+    return apiRequest<{ message: string; phoneNumber: string }>(API_CONFIG.ENDPOINTS.AUTH.FORGOT_PASSWORD, {
+      method: 'POST',
+      body: JSON.stringify({ phoneNumber }),
+    });
+  }
+
+  static async verifyForgotPasswordOtp(phoneNumber: string, otp: string): Promise<{ message: string; resetToken: string }> {
+    return apiRequest<{ message: string; resetToken: string }>(API_CONFIG.ENDPOINTS.AUTH.VERIFY_FORGOT_PASSWORD_OTP, {
+      method: 'POST',
+      body: JSON.stringify({ phoneNumber, otp }),
+    });
+  }
+
+  static async resetPassword(phoneNumber: string, otp: string, newPassword: string): Promise<{ message: string }> {
+    return apiRequest<{ message: string }>(API_CONFIG.ENDPOINTS.AUTH.RESET_PASSWORD, {
+      method: 'POST',
+      body: JSON.stringify({ phoneNumber, otp, newPassword }),
+    });
+  }
 }

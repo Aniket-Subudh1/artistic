@@ -99,6 +99,57 @@
         "otpSent": "تم إرسال الرمز بنجاح!"
       }
     },
+    "forgotPassword": {
+      "title": "نسيت كلمة المرور",
+      "subtitle": "أدخل رقم هاتفك لتلقي رمز التحقق",
+      "phoneNumberLabel": "رقم الهاتف",
+      "phoneNumberPlaceholder": "أدخل رقم هاتفك",
+      "sendOtpButton": "إرسال رمز التحقق",
+      "sending": "جاري الإرسال",
+      "rememberPassword": "تذكرت كلمة المرور؟",
+      "backToSignIn": "العودة لتسجيل الدخول",
+      "errors": {
+        "enterPhoneNumber": "يرجى إدخال رقم هاتفك",
+        "sendFailed": "فشل في إرسال رمز التحقق. يرجى المحاولة مرة أخرى."
+      },
+      "success": {
+        "otpSent": "تم إرسال رمز التحقق بنجاح! جاري التوجيه..."
+      }
+    },
+    "resetPassword": {
+      "verifyTitle": "تحقق من رقم هاتفك",
+      "verifySubtitle": "لقد أرسلنا رمز تحقق مكون من 6 أرقام إلى",
+      "newPasswordTitle": "إعادة تعيين كلمة المرور",
+      "newPasswordSubtitle": "أدخل كلمة المرور الجديدة",
+      "enterCodeLabel": "أدخل الرمز المكون من 6 أرقام",
+      "newPasswordLabel": "كلمة المرور الجديدة",
+      "newPasswordPlaceholder": "أدخل كلمة المرور الجديدة",
+      "confirmPasswordLabel": "تأكيد كلمة المرور",
+      "confirmPasswordPlaceholder": "تأكيد كلمة المرور الجديدة",
+      "resendOtp": "إعادة إرسال الرمز",
+      "resendOtpIn": "إعادة إرسال الرمز خلال",
+      "seconds": "ث",
+      "verifyButton": "تحقق من الرمز",
+      "verifying": "جاري التحقق",
+      "resetPasswordButton": "إعادة تعيين كلمة المرور",
+      "resetting": "جاري إعادة التعيين",
+      "rememberPassword": "تذكرت كلمة المرور؟",
+      "backToSignIn": "العودة لتسجيل الدخول",
+      "errors": {
+        "enterCompleteOtp": "يرجى إدخال الرمز كاملاً المكون من 6 أرقام",
+        "invalidOtp": "رمز التحقق غير صحيح. يرجى المحاولة مرة أخرى.",
+        "resendFailed": "فشل في إعادة إرسال الرمز. يرجى المحاولة مرة أخرى.",
+        "fillAllFields": "يرجى ملء جميع الحقول المطلوبة",
+        "passwordsNotMatch": "كلمات المرور غير متطابقة",
+        "passwordTooShort": "يجب أن تكون كلمة المرور 8 أحرف على الأقل",
+        "resetFailed": "فشل في إعادة تعيين كلمة المرور. يرجى المحاولة مرة أخرى."
+      },
+      "success": {
+        "otpVerified": "تم التحقق من الرمز بنجاح!",
+        "otpSent": "تم إرسال رمز التحقق بنجاح!",
+        "passwordReset": "تم إعادة تعيين كلمة المرور بنجاح! جاري التوجيه لتسجيل الدخول..."
+      }
+    },
     "countries": {
       "kuwait": "الكويت",
       "unitedStates": "الولايات المتحدة",

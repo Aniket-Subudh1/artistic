@@ -89,7 +89,7 @@ export function EquipmentProviderManagement() {
       // Combine country code with phone number
       const formDataWithPhoneNumber = {
         ...createFormData,
-        phoneNumber: formatPhoneNumber(createFormData.phoneNumber, selectedCountry.code)
+        phoneNumber: formatPhoneNumber(selectedCountry.code, createFormData.phoneNumber)
       };
       
       const response = await AdminService.createEquipmentProvider(formDataWithPhoneNumber);

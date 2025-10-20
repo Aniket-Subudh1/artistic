@@ -61,7 +61,7 @@ export function CountryCodeDropdown({
       </button>
       
       {showDropdown && (
-        <div className={`absolute top-full left-0 mt-1 w-60 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto ${dropdownClassName}`}>
+        <div className={`absolute top-full left-0 mt-1 w-60 bg-white border border-gray-300 rounded-lg shadow-lg z-[9999] max-h-48 overflow-y-auto ${dropdownClassName}`}>
           {countries.map((country) => (
             <button
               key={country.code}
@@ -94,8 +94,15 @@ export function extractPhoneNumber(fullPhoneNumber: string, countryCode: string)
 }
 
 // Helper function to format full phone number
-export function formatPhoneNumber(phoneNumber: string, countryCode: string): string {
-  // Remove any existing country code first
-  const cleanNumber = phoneNumber.replace(/^\+?\d{1,4}/, '');
+export function formatPhoneNumber(countryCode: string, phoneNumber: string): string {
+  // Remove any leading + or spaces from phone number
+  const cleanNumber = phoneNumber.replace(/^\+|\s/g, '');
+  
+  // If the number already starts with the country code, don't add it again
+  if (cleanNumber.startsWith(countryCode.replace('+', ''))) {
+    return '+' + cleanNumber;
+  }
+  
+  // Otherwise, prepend the country code
   return countryCode + cleanNumber;
 }

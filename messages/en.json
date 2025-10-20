@@ -99,6 +99,57 @@
         "otpSent": "OTP sent successfully!"
       }
     },
+    "forgotPassword": {
+      "title": "Forgot Password",
+      "subtitle": "Enter your phone number to receive a verification code",
+      "phoneNumberLabel": "Phone Number",
+      "phoneNumberPlaceholder": "Enter your phone number",
+      "sendOtpButton": "Send Verification Code",
+      "sending": "Sending",
+      "rememberPassword": "Remember your password?",
+      "backToSignIn": "Back to Sign In",
+      "errors": {
+        "enterPhoneNumber": "Please enter your phone number",
+        "sendFailed": "Failed to send verification code. Please try again."
+      },
+      "success": {
+        "otpSent": "Verification code sent successfully! Redirecting..."
+      }
+    },
+    "resetPassword": {
+      "verifyTitle": "Verify Your Phone",
+      "verifySubtitle": "We've sent a 6-digit verification code to",
+      "newPasswordTitle": "Reset Password",
+      "newPasswordSubtitle": "Enter your new password",
+      "enterCodeLabel": "Enter 6-digit code",
+      "newPasswordLabel": "New Password",
+      "newPasswordPlaceholder": "Enter new password",
+      "confirmPasswordLabel": "Confirm Password",
+      "confirmPasswordPlaceholder": "Confirm new password",
+      "resendOtp": "Resend OTP",
+      "resendOtpIn": "Resend OTP in",
+      "seconds": "s",
+      "verifyButton": "Verify Code",
+      "verifying": "Verifying",
+      "resetPasswordButton": "Reset Password",
+      "resetting": "Resetting",
+      "rememberPassword": "Remember your password?",
+      "backToSignIn": "Back to Sign In",
+      "errors": {
+        "enterCompleteOtp": "Please enter the complete 6-digit OTP",
+        "invalidOtp": "Invalid OTP. Please try again.",
+        "resendFailed": "Failed to resend OTP. Please try again.",
+        "fillAllFields": "Please fill in all required fields",
+        "passwordsNotMatch": "Passwords do not match",
+        "passwordTooShort": "Password must be at least 8 characters long",
+        "resetFailed": "Failed to reset password. Please try again."
+      },
+      "success": {
+        "otpVerified": "Code verified successfully!",
+        "otpSent": "Verification code sent successfully!",
+        "passwordReset": "Password reset successfully! Redirecting to sign in..."
+      }
+    },
     "countries": {
       "kuwait": "Kuwait",
       "unitedStates": "United States",

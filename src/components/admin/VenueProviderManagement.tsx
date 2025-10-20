@@ -102,7 +102,7 @@ export function VenueProviderManagement() {
       // Combine country code with phone number
       const formDataWithPhoneNumber = {
         ...createFormData,
-        phoneNumber: formatPhoneNumber(createFormData.phoneNumber, selectedCountry.code)
+        phoneNumber: formatPhoneNumber(selectedCountry.code, createFormData.phoneNumber)
       };
       
       await VenueProviderService.createVenueProvider(formDataWithPhoneNumber, createFiles);

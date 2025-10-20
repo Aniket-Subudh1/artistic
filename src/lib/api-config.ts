@@ -9,6 +9,9 @@ export const API_CONFIG = {
       SEND_PASSWORD_CHANGE_OTP: '/auth/send-password-change-otp',
       VERIFY_PASSWORD_CHANGE_OTP: '/auth/verify-password-change-otp',
       CHANGE_PASSWORD: '/auth/change-password',
+      FORGOT_PASSWORD: '/auth/forgot-password',
+      VERIFY_FORGOT_PASSWORD_OTP: '/auth/verify-forgot-password-otp',
+      RESET_PASSWORD: '/auth/reset-password',
     },
     USER: {
       SIGNUP: '/user/signup',

@@ -256,7 +256,7 @@ export function ArtistManagement() {
         
         // Handle phoneNumber field - combine with country code
         if (key === 'phoneNumber') {
-          value = formatPhoneNumber(editArtistForm.phoneNumber, editSelectedCountry.code);
+          value = formatPhoneNumber(editSelectedCountry.code, editArtistForm.phoneNumber);
         }
         
         // Handle category field - use custom category if "Other" is selected
@@ -510,7 +510,7 @@ export function ArtistManagement() {
       const artistData = {
         ...createArtistForm,
         // Combine country code with phone number
-        phoneNumber: formatPhoneNumber(createArtistForm.phoneNumber, createSelectedCountry.code),
+        phoneNumber: formatPhoneNumber(createSelectedCountry.code, createArtistForm.phoneNumber),
         // Use custom category if "Other" is selected, otherwise use the selected category
         category: createArtistForm.category === 'OTHER' ? createArtistForm.customCategory : createArtistForm.category,
         // Map frontend field names to backend field names

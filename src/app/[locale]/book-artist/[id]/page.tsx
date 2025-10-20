@@ -455,7 +455,7 @@ export default function BookArtistPage() {
           artistPrice: pricingResponse.artistFee.amount,
           userDetails: {
             ...formData.userDetails,
-            phone: formatPhoneNumber(formData.userDetails.phone, selectedCountry.code)
+            phone: formatPhoneNumber(selectedCountry.code, formData.userDetails.phone)
           },
           venueDetails: formData.venueDetails,
           eventDescription: formData.eventDescription,
@@ -495,7 +495,7 @@ export default function BookArtistPage() {
           artistPrice: pricingResponse.artistFee.amount,
           userDetails: {
             ...formData.userDetails,
-            phone: formatPhoneNumber(formData.userDetails.phone, selectedCountry.code)
+            phone: formatPhoneNumber(selectedCountry.code, formData.userDetails.phone)
           },
           venueDetails: formData.venueDetails,
           eventDescription: formData.eventDescription,
