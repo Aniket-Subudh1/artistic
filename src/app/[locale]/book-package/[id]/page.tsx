@@ -17,6 +17,7 @@ import { useAuthLogic } from '@/hooks/useAuth';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { TermsAndConditionsModal } from '@/components/booking/TermsAndConditionsModal';
 import { TermsAndConditionsService, TermsAndConditions, TermsType } from '@/services/terms-and-conditions.service';
+import { CountryCodeDropdown, Country, getDefaultCountry, formatPhoneNumber } from '@/components/ui/CountryCodeDropdown';
 import { Navbar } from '@/components/main/Navbar';
 import { Footer } from '@/components/main/Footer';
 
@@ -88,6 +89,9 @@ const BookEquipmentPackagePage: React.FC = () => {
   const [terms, setTerms] = useState<TermsAndConditions | null>(null);
   const [termsLoading, setTermsLoading] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+
+  // Country code state
+  const [selectedCountry, setSelectedCountry] = useState<Country>(getDefaultCountry());
 
   useEffect(() => {
     if (user) {
@@ -236,11 +240,17 @@ const BookEquipmentPackagePage: React.FC = () => {
     setError('');
 
     try {
+      // Format phone number with country code
+      const formattedPhone = formatPhoneNumber(selectedCountry.code, formData.userDetails.phone);
+      
       const bookingData: CreateEquipmentPackageBookingRequest = {
         packageId: packageData._id,
         startDate: formData.startDate,
         endDate: formData.endDate,
-        userDetails: formData.userDetails,
+        userDetails: {
+          ...formData.userDetails,
+          phone: formattedPhone
+        },
         venueDetails: formData.venueDetails,
         eventDescription: formData.eventDescription,
         specialRequests: formData.specialRequests,
@@ -632,13 +642,21 @@ const BookEquipmentPackagePage: React.FC = () => {
                       <label className="block text-sm font-bold text-gray-700 mb-3">
                         Phone Number
                       </label>
-                      <input
-                        type="tel"
-                        value={formData.userDetails.phone}
-                        onChange={(e) => updateFormData('userDetails', 'phone', e.target.value)}
-                        className="w-full px-4 py-3 bg-white/50 backdrop-blur-sm border border-white/20 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71] shadow-lg transition-all duration-200"
-                        required
-                      />
+                      <div className="flex">
+                        <CountryCodeDropdown
+                          selectedCountry={selectedCountry}
+                          onCountrySelect={setSelectedCountry}
+                          buttonClassName="border-r-0 rounded-r-none"
+                        />
+                        <input
+                          type="tel"
+                          value={formData.userDetails.phone}
+                          onChange={(e) => updateFormData('userDetails', 'phone', e.target.value)}
+                          className="flex-1 px-4 py-3 bg-white/50 backdrop-blur-sm border border-white/20 border-l-0 rounded-r-2xl focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71] shadow-lg transition-all duration-200"
+                          placeholder="Enter phone number"
+                          required
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>

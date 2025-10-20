@@ -29,6 +29,7 @@ import { AdminService } from '@/services/admin.service';
 import { UserService } from '@/services/user.service';
 import { ImageCropper } from '@/components/ui/ImageCropper';
 import { PricingSettings } from './PricingSettings';
+import { CountryCodeDropdown, Country, getDefaultCountry, extractPhoneNumber, formatPhoneNumber } from '@/components/ui/CountryCodeDropdown';
 
 export function ArtistManagement() {
   const [artists, setArtists] = useState<Artist[]>([]);
@@ -45,6 +46,10 @@ export function ArtistManagement() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [isEditingArtist, setIsEditingArtist] = useState(false);
   const [isDeletingArtist, setIsDeletingArtist] = useState(false);
+
+  // Country code states
+  const [createSelectedCountry, setCreateSelectedCountry] = useState<Country>(getDefaultCountry());
+  const [editSelectedCountry, setEditSelectedCountry] = useState<Country>(getDefaultCountry());
 
   const [createArtistForm, setCreateArtistForm] = useState({
     firstName: '',
@@ -249,6 +254,11 @@ export function ArtistManagement() {
           return;
         }
         
+        // Handle phoneNumber field - combine with country code
+        if (key === 'phoneNumber') {
+          value = formatPhoneNumber(editArtistForm.phoneNumber, editSelectedCountry.code);
+        }
+        
         // Handle category field - use custom category if "Other" is selected
         if (key === 'category' && editArtistForm.category === 'OTHER') {
           value = editArtistForm.customCategory;
@@ -329,6 +339,7 @@ export function ArtistManagement() {
       isVisible: true,
       isActive: true,
     });
+    setEditSelectedCountry(getDefaultCountry());
     setEditPricingForm({
       pricingMode: 'duration',
       privatePricing: [{ hours: 1, amount: 0 }],
@@ -357,10 +368,37 @@ export function ArtistManagement() {
     const predefinedCategories = ['VOCALIST', 'INSTRUMENTALIST', 'BAND', 'DJ', 'DANCER'];
     const isCustomCategory = artist.category && !predefinedCategories.includes(artist.category);
     
+    // Parse phone number to extract country code
+    const fullPhoneNumber = artist.user?.phoneNumber || '';
+    let countryCode = '+965'; // Default to Kuwait
+    let phoneNumber = fullPhoneNumber;
+    
+    // Find matching country code
+    const countries = [
+      { code: '+965', flag: '🇰🇼', name: 'Kuwait' },
+      { code: '+1', flag: '🇺🇸', name: 'United States' },
+      { code: '+44', flag: '🇬🇧', name: 'United Kingdom' },
+      { code: '+971', flag: '🇦🇪', name: 'UAE' },
+      { code: '+966', flag: '🇸🇦', name: 'Saudi Arabia' },
+      { code: '+974', flag: '🇶🇦', name: 'Qatar' },
+      { code: '+973', flag: '🇧🇭', name: 'Bahrain' },
+      { code: '+968', flag: '🇴🇲', name: 'Oman' },
+      { code: '+91', flag: '🇮🇳', name: 'India' }
+    ];
+    
+    for (const country of countries) {
+      if (fullPhoneNumber.startsWith(country.code)) {
+        countryCode = country.code;
+        phoneNumber = extractPhoneNumber(fullPhoneNumber, country.code);
+        setEditSelectedCountry(country);
+        break;
+      }
+    }
+    
     setEditArtistForm({
       firstName: artist.user?.firstName || '',
       lastName: artist.user?.lastName || '',
-      phoneNumber: artist.user?.phoneNumber || '',
+      phoneNumber: phoneNumber,
       email: artist.user?.email || '',
       stageName: artist.stageName || '',
       about: artist.about || '',
@@ -471,6 +509,8 @@ export function ArtistManagement() {
       // Prepare artist data with performance settings
       const artistData = {
         ...createArtistForm,
+        // Combine country code with phone number
+        phoneNumber: formatPhoneNumber(createArtistForm.phoneNumber, createSelectedCountry.code),
         // Use custom category if "Other" is selected, otherwise use the selected category
         category: createArtistForm.category === 'OTHER' ? createArtistForm.customCategory : createArtistForm.category,
         // Map frontend field names to backend field names
@@ -590,6 +630,7 @@ export function ArtistManagement() {
       cooldownPeriodHours: 2,
       maximumPerformanceHours: 4,
     });
+    setCreateSelectedCountry(getDefaultCountry());
     setPricingForm({
       pricingMode: 'duration',
       privatePricing: [{ hours: 1, amount: 0 }],
@@ -1247,13 +1288,21 @@ export function ArtistManagement() {
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Phone Number *
                       </label>
-                      <input
-                        type="tel"
-                        value={createArtistForm.phoneNumber}
-                        onChange={(e) => setCreateArtistForm(prev => ({ ...prev, phoneNumber: e.target.value }))}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                      />
+                      <div className="flex">
+                        <CountryCodeDropdown
+                          selectedCountry={createSelectedCountry}
+                          onCountrySelect={setCreateSelectedCountry}
+                          buttonClassName="border-r-0 rounded-r-none"
+                        />
+                        <input
+                          type="tel"
+                          value={createArtistForm.phoneNumber}
+                          onChange={(e) => setCreateArtistForm(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                          required
+                          className="flex-1 px-3 py-2 border border-gray-300 border-l-0 rounded-r-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                          placeholder="Enter phone number"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1822,14 +1871,22 @@ export function ArtistManagement() {
                     <label htmlFor="edit-phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
                       Phone Number *
                     </label>
-                    <input
-                      type="tel"
-                      id="edit-phoneNumber"
-                      value={editArtistForm.phoneNumber}
-                      onChange={(e) => setEditArtistForm(prev => ({ ...prev, phoneNumber: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      required
-                    />
+                    <div className="flex">
+                      <CountryCodeDropdown
+                        selectedCountry={editSelectedCountry}
+                        onCountrySelect={setEditSelectedCountry}
+                        buttonClassName="border-r-0 rounded-r-none"
+                      />
+                      <input
+                        type="tel"
+                        id="edit-phoneNumber"
+                        value={editArtistForm.phoneNumber}
+                        onChange={(e) => setEditArtistForm(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                        className="flex-1 px-3 py-2 border border-gray-300 border-l-0 rounded-r-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        required
+                        placeholder="Enter phone number"
+                      />
+                    </div>
                   </div>
 
                   <div>

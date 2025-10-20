@@ -36,6 +36,7 @@ import { Footer } from '@/components/main/Footer';
 import { TranslatedDataWrapper } from '@/components/ui/TranslatedDataWrapper';
 import { TermsAndConditionsModal } from '@/components/booking/TermsAndConditionsModal';
 import { TermsAndConditionsService, TermsAndConditions, TermsType } from '@/services/terms-and-conditions.service';
+import { CountryCodeDropdown, Country, getDefaultCountry, formatPhoneNumber } from '@/components/ui/CountryCodeDropdown';
 
 interface BookingFormData {
   // Multi-day booking support
@@ -131,6 +132,9 @@ export default function BookArtistPage() {
 
   // Create Custom Package Modal State
   const [showCreatePackageModal, setShowCreatePackageModal] = useState(false);
+
+  // Country code state
+  const [selectedCountry, setSelectedCountry] = useState<Country>(getDefaultCountry());
 
   // Handler for when a custom package is created
   const handlePackageCreated = async () => {
@@ -449,7 +453,10 @@ export default function BookArtistPage() {
           eventDates: formData.eventDates,
           totalHours: pricingResponse.artistFee.totalHours,
           artistPrice: pricingResponse.artistFee.amount,
-          userDetails: formData.userDetails,
+          userDetails: {
+            ...formData.userDetails,
+            phone: formatPhoneNumber(formData.userDetails.phone, selectedCountry.code)
+          },
           venueDetails: formData.venueDetails,
           eventDescription: formData.eventDescription,
           specialRequests: formData.specialRequests,
@@ -486,7 +493,10 @@ export default function BookArtistPage() {
           startTime: formData.startTime,
           endTime: formData.endTime,
           artistPrice: pricingResponse.artistFee.amount,
-          userDetails: formData.userDetails,
+          userDetails: {
+            ...formData.userDetails,
+            phone: formatPhoneNumber(formData.userDetails.phone, selectedCountry.code)
+          },
           venueDetails: formData.venueDetails,
           eventDescription: formData.eventDescription,
           specialRequests: formData.specialRequests,
@@ -758,6 +768,8 @@ export default function BookArtistPage() {
                 formData={formData}
                 setFormData={setFormData}
                 errors={errors}
+                selectedCountry={selectedCountry}
+                setSelectedCountry={setSelectedCountry}
                 t={t}
               />
             )}
@@ -902,6 +914,11 @@ interface StepProps {
   setFormData: (data: BookingFormData) => void;
   errors: { [key: string]: string };
   t: any; // Translation function
+}
+
+interface EventDetailsStepProps extends StepProps {
+  selectedCountry: Country;
+  setSelectedCountry: (country: Country) => void;
 }
 
 function DateTimeStep({ formData, setFormData, availability, errors, setErrors, isMultiDayBooking, setIsMultiDayBooking, onMonthChange, artistId, artist, fetchDateAvailability, t }: StepProps & { 
@@ -1231,7 +1248,7 @@ function DateTimeStep({ formData, setFormData, availability, errors, setErrors, 
   );
 }
 
-function EventDetailsStep({ formData, setFormData, errors, t }: StepProps) {
+function EventDetailsStep({ formData, setFormData, errors, selectedCountry, setSelectedCountry, t }: EventDetailsStepProps) {
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-bold text-gray-900">{t('bookArtistForm.eventDetails')}</h2>
@@ -1276,15 +1293,23 @@ function EventDetailsStep({ formData, setFormData, errors, t }: StepProps) {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               {t('bookArtistForm.phone')}
             </label>
-            <input
-              type="tel"
-              value={formData.userDetails.phone}
-              onChange={(e) => setFormData({
-                ...formData,
-                userDetails: { ...formData.userDetails, phone: e.target.value }
-              })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500"
-            />
+            <div className="flex">
+              <CountryCodeDropdown
+                selectedCountry={selectedCountry}
+                onCountrySelect={setSelectedCountry}
+                buttonClassName="border-r-0 rounded-r-none"
+              />
+              <input
+                type="tel"
+                value={formData.userDetails.phone}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  userDetails: { ...formData.userDetails, phone: e.target.value }
+                })}
+                className="flex-1 px-3 py-2 border border-gray-300 border-l-0 rounded-r-lg focus:ring-purple-500 focus:border-purple-500"
+                placeholder="Enter phone number"
+              />
+            </div>
             {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
           </div>
         </div>

@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { EquipmentProviderService, EquipmentProvider } from '@/services/equipment-provider.service';
 import { AdminService, CreateEquipmentProviderRequest } from '@/services/admin.service';
+import { CountryCodeDropdown, Country, getDefaultCountry, formatPhoneNumber } from '@/components/ui/CountryCodeDropdown';
 
 export function EquipmentProviderManagement() {
   const [providers, setProviders] = useState<EquipmentProvider[]>([]);
@@ -31,6 +32,9 @@ export function EquipmentProviderManagement() {
   const [selectedProvider, setSelectedProvider] = useState<EquipmentProvider | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Country code state
+  const [selectedCountry, setSelectedCountry] = useState<Country>(getDefaultCountry());
 
   const [createFormData, setCreateFormData] = useState<CreateEquipmentProviderRequest>({
     firstName: '',
@@ -82,7 +86,13 @@ export function EquipmentProviderManagement() {
     setSuccess('');
 
     try {
-      const response = await AdminService.createEquipmentProvider(createFormData);
+      // Combine country code with phone number
+      const formDataWithPhoneNumber = {
+        ...createFormData,
+        phoneNumber: formatPhoneNumber(createFormData.phoneNumber, selectedCountry.code)
+      };
+      
+      const response = await AdminService.createEquipmentProvider(formDataWithPhoneNumber);
       setSuccess(response.message || 'Equipment provider created successfully!');
       setShowCreateModal(false);
       setCreateFormData({ 
@@ -93,6 +103,7 @@ export function EquipmentProviderManagement() {
         companyName: '', 
         businessDescription: '' 
       });
+      setSelectedCountry(getDefaultCountry());
       loadProviders();
     } catch (error: any) {
       setError('Failed to create equipment provider: ' + (error.message || 'Unknown error'));
@@ -411,15 +422,22 @@ export function EquipmentProviderManagement() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Phone Number *
                   </label>
-                  <input
-                    type="tel"
-                    name="phoneNumber"
-                    value={createFormData.phoneNumber}
-                    onChange={handleInputChange}
-                    required
-                    placeholder="Enter phone number"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  />
+                  <div className="flex">
+                    <CountryCodeDropdown
+                      selectedCountry={selectedCountry}
+                      onCountrySelect={setSelectedCountry}
+                      buttonClassName="border-r-0 rounded-r-none"
+                    />
+                    <input
+                      type="tel"
+                      name="phoneNumber"
+                      value={createFormData.phoneNumber}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="Enter phone number"
+                      className="flex-1 px-3 py-2 border border-gray-300 border-l-0 rounded-r-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    />
+                  </div>
                 </div>
 
                 <div>

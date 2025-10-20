@@ -19,6 +19,7 @@ import {
   Building
 } from 'lucide-react';
 import { VenueProviderService, VenueProvider, CreateVenueProviderRequest } from '@/services/venue-provider.service';
+import { CountryCodeDropdown, Country, getDefaultCountry, formatPhoneNumber } from '@/components/ui/CountryCodeDropdown';
 
 export function VenueProviderManagement() {
   const [providers, setProviders] = useState<VenueProvider[]>([]);
@@ -31,6 +32,9 @@ export function VenueProviderManagement() {
   const [selectedProvider, setSelectedProvider] = useState<VenueProvider | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Country code state
+  const [selectedCountry, setSelectedCountry] = useState<Country>(getDefaultCountry());
 
   const [createFormData, setCreateFormData] = useState<CreateVenueProviderRequest>({
     firstName: '',
@@ -95,7 +99,13 @@ export function VenueProviderManagement() {
       setIsSubmitting(true);
       setError('');
       
-      await VenueProviderService.createVenueProvider(createFormData, createFiles);
+      // Combine country code with phone number
+      const formDataWithPhoneNumber = {
+        ...createFormData,
+        phoneNumber: formatPhoneNumber(createFormData.phoneNumber, selectedCountry.code)
+      };
+      
+      await VenueProviderService.createVenueProvider(formDataWithPhoneNumber, createFiles);
       
       setSuccess('Venue provider created successfully');
       setShowCreateModal(false);
@@ -134,6 +144,7 @@ export function VenueProviderManagement() {
       category: ''
     });
     setCreateFiles({});
+    setSelectedCountry(getDefaultCountry());
   };
 
   const handleFileChange = (field: 'profileImage' | 'coverPhoto', file: File | null) => {
@@ -401,13 +412,21 @@ export function VenueProviderManagement() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Phone Number *
                 </label>
-                <input
-                  type="tel"
-                  required
-                  value={createFormData.phoneNumber}
-                  onChange={(e) => setCreateFormData(prev => ({ ...prev, phoneNumber: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
+                <div className="flex">
+                  <CountryCodeDropdown
+                    selectedCountry={selectedCountry}
+                    onCountrySelect={setSelectedCountry}
+                    buttonClassName="border-r-0 rounded-r-none"
+                  />
+                  <input
+                    type="tel"
+                    required
+                    value={createFormData.phoneNumber}
+                    onChange={(e) => setCreateFormData(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                    className="flex-1 px-3 py-2 border border-gray-300 border-l-0 rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter phone number"
+                  />
+                </div>
               </div>
 
               <div>

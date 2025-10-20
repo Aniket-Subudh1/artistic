@@ -13,6 +13,7 @@ import {
   CustomEquipmentPackage 
 } from '@/services/custom-equipment-packages.service';
 import { BookingService } from '@/services/booking.service';
+import { CountryCodeDropdown, Country, getDefaultCountry, formatPhoneNumber } from '@/components/ui/CountryCodeDropdown';
 
 // Equipment-only booking interface (for custom packages)
 interface EquipmentBookingRequest {
@@ -104,6 +105,9 @@ const BookCustomPackagePage: React.FC = () => {
   const [termsData, setTermsData] = useState<TermsAndConditions | null>(null);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+
+  // Country code state
+  const [selectedCountry, setSelectedCountry] = useState<Country>(getDefaultCountry());
 
   useEffect(() => {
     const fetchPackageData = async () => {
@@ -202,6 +206,9 @@ const BookCustomPackagePage: React.FC = () => {
     setError('');
 
     try {
+      // Format phone number with country code
+      const formattedPhone = formatPhoneNumber(selectedCountry.code, formData.userDetails.phone);
+      
       const bookingData: EquipmentBookingRequest = {
         customPackages: [packageData._id],
         equipments: [], // No individual equipment items
@@ -211,6 +218,15 @@ const BookCustomPackagePage: React.FC = () => {
         endTime: '18:00', // Default time since we only need date
         totalPrice: calculateTotalPrice(),
         address: `${formData.venueDetails.address}, ${formData.venueDetails.city}, ${formData.venueDetails.state}, ${formData.venueDetails.country}`,
+      };
+
+      // Set the formatted phone number in form data for the booking
+      const bookingFormData = {
+        ...formData,
+        userDetails: {
+          ...formData.userDetails,
+          phone: formattedPhone
+        }
       };
 
       const response = await EquipmentBookingService.createEquipmentBooking(bookingData);
@@ -507,17 +523,24 @@ const BookCustomPackagePage: React.FC = () => {
                     <label className="block text-sm font-bold text-gray-700 mb-3">
                       Phone Number *
                     </label>
-                    <input
-                      type="tel"
-                      value={formData.userDetails.phone}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        userDetails: {...formData.userDetails, phone: e.target.value}
-                      })}
-                      placeholder="Your phone number"
-                      className="w-full px-6 py-4 bg-white/80 backdrop-blur-sm border border-white/50 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-transparent shadow-lg text-gray-900 font-medium placeholder-gray-500 transition-all duration-200"
-                      required
-                    />
+                    <div className="flex">
+                      <CountryCodeDropdown
+                        selectedCountry={selectedCountry}
+                        onCountrySelect={setSelectedCountry}
+                        buttonClassName="border-r-0 rounded-r-none"
+                      />
+                      <input
+                        type="tel"
+                        value={formData.userDetails.phone}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          userDetails: {...formData.userDetails, phone: e.target.value}
+                        })}
+                        placeholder="Your phone number"
+                        className="flex-1 px-6 py-4 bg-white/80 backdrop-blur-sm border border-white/50 border-l-0 rounded-r-2xl focus:ring-2 focus:ring-[#391C71] focus:border-transparent shadow-lg text-gray-900 font-medium placeholder-gray-500 transition-all duration-200"
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
                 
