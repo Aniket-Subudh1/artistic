@@ -357,7 +357,7 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancel }: Book
                                 <div className="space-y-1 max-h-20 overflow-y-auto">
                                   {pkg.items.map((item, idx) => (
                                     <div key={idx} className="text-xs text-gray-600 flex justify-between">
-                                      <span>{item.equipmentId?.name || 'Equipment Item'}</span>
+                                      <span>{item.equipment?.name || 'Equipment Item'}</span>
                                       <span>×{item.quantity}</span>
                                     </div>
                                   ))}
@@ -388,17 +388,35 @@ export function BookingDetailsModal({ booking, isOpen, onClose, onCancel }: Book
                     <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-sm">🛠️ Custom Packages</span>
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {booking.selectedCustomPackages.map((packageId, index) => (
-                      <div key={packageId} className="border border-purple-200 rounded-lg p-4 bg-purple-50 hover:shadow-md transition-shadow">
+                    {booking.selectedCustomPackages.map((customPackage, index) => (
+                      <div key={customPackage._id} className="border border-purple-200 rounded-lg p-4 bg-purple-50 hover:shadow-md transition-shadow">
                         <div className="flex items-start gap-3">
                           <Package className="h-5 w-5 text-purple-500 mt-1 flex-shrink-0" />
                           <div className="flex-1 min-w-0">
-                            <h5 className="font-medium text-gray-900">Custom Package #{index + 1}</h5>
+                            <h5 className="font-medium text-gray-900">{customPackage.name}</h5>
                             <p className="text-sm text-gray-600 mt-1">
-                              Tailored equipment selection based on your specific requirements
+                              {customPackage.description || 'Tailored equipment selection based on your specific requirements'}
                             </p>
+                            
+                            {/* Custom Package Equipment Items */}
+                            {customPackage.items && customPackage.items.length > 0 && (
+                              <div className="mt-2">
+                                <p className="text-xs font-medium text-gray-700 mb-1">Equipment Included:</p>
+                                <div className="space-y-1 max-h-20 overflow-y-auto">
+                                  {customPackage.items.map((item, idx) => (
+                                    <div key={idx} className="text-xs text-gray-600 flex justify-between">
+                                      <span>{item.equipment?.name || 'Equipment Item'}</span>
+                                      <span>×{item.quantity}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
                             <div className="flex items-center justify-between mt-3">
-                              <span className="text-sm text-purple-600 font-medium">Custom Pricing</span>
+                              <span className="text-lg font-semibold text-purple-600">
+                                {formatCurrency((customPackage.totalPrice || 0) * bookingHours)}
+                              </span>
                               <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded-full border">
                                 {bookingHours} hour{bookingHours !== 1 ? 's' : ''}
                               </span>
