@@ -1,7 +1,7 @@
 import { API_CONFIG, apiRequest } from '@/lib/api-config';
 
 export interface PricingCalculationRequest {
-  artistId: string;
+  artistId?: string;
   eventType: 'private' | 'public';
   isMultiDay?: boolean;
   eventDates?: Array<{
@@ -39,6 +39,35 @@ export interface PricingCalculationResponse {
   totalAmount: number;
   currency: string;
   calculatedAt: string;
+}
+
+// Enhanced booking summary for UI display
+export interface BookingSummary {
+  artistDetails?: {
+    id: string;
+    name: string;
+    stageName: string;
+    profileImage?: string;
+  };
+  eventDetails: {
+    type: 'private' | 'public';
+    isMultiDay: boolean;
+    dates: Array<{
+      date: string;
+      startTime: string;
+      endTime: string;
+    }>;
+    totalHours: number;
+  };
+  equipmentDetails: {
+    packages: Array<{
+      id: string;
+      name: string;
+      type: 'provider' | 'custom';
+    }>;
+    totalPackages: number;
+  };
+  pricingDetails: PricingCalculationResponse;
 }
 
 export interface BookingRequest {
@@ -201,5 +230,47 @@ export class BookingService {
         endTime: newEndTime
       }),
     });
+  }
+
+  // Helper method to generate booking summary
+  static generateBookingSummary(
+    formData: any,
+    artist: any,
+    equipmentPackages: any[],
+    customPackages: any[],
+    pricing: PricingCalculationResponse
+  ): BookingSummary {
+    const eventDates = formData.isMultiDay 
+      ? formData.eventDates
+      : [{ date: formData.eventDate, startTime: formData.startTime, endTime: formData.endTime }];
+
+    const selectedPackages = [
+      ...equipmentPackages.filter(pkg => formData.selectedEquipmentPackages.includes(pkg._id)),
+      ...customPackages.filter(pkg => formData.selectedCustomPackages.includes(pkg._id))
+    ];
+
+    return {
+      artistDetails: artist ? {
+        id: artist._id,
+        name: artist.user?.firstName + ' ' + artist.user?.lastName,
+        stageName: artist.stageName,
+        profileImage: artist.profileImage
+      } : undefined,
+      eventDetails: {
+        type: formData.eventType,
+        isMultiDay: formData.isMultiDay,
+        dates: eventDates,
+        totalHours: pricing.artistFee.totalHours
+      },
+      equipmentDetails: {
+        packages: selectedPackages.map(pkg => ({
+          id: pkg._id,
+          name: pkg.name,
+          type: formData.selectedEquipmentPackages.includes(pkg._id) ? 'provider' : 'custom'
+        })),
+        totalPackages: selectedPackages.length
+      },
+      pricingDetails: pricing
+    };
   }
 }

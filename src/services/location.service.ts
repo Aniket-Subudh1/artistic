@@ -1,4 +1,3 @@
-// Location detection service
 export interface LocationInfo {
   country: string;
   countryCode: string;
@@ -7,9 +6,7 @@ export interface LocationInfo {
   region?: string;
 }
 
-// Function to generate flag emoji from country code
 function getFlagEmoji(countryCode: string): string {
-  // Try direct mapping first
   const directFlags: Record<string, string> = {
     'US': '🇺🇸', 'GB': '🇬🇧', 'KW': '🇰🇼', 'AE': '🇦🇪', 'SA': '🇸🇦',
     'QA': '🇶🇦', 'BH': '🇧🇭', 'OM': '🇴🇲', 'IN': '🇮🇳', 'EG': '🇪🇬',
@@ -27,7 +24,6 @@ function getFlagEmoji(countryCode: string): string {
     return directFlags[countryCode];
   }
   
-  // Generate flag using Regional Indicator Symbols
   if (countryCode && countryCode.length === 2) {
     const codePoints = countryCode
       .toUpperCase()
@@ -36,10 +32,9 @@ function getFlagEmoji(countryCode: string): string {
     return String.fromCodePoint(...codePoints);
   }
   
-  return '🌍'; // Default globe emoji
+  return '🌍';
 }
 
-// Fallback location data
 const FALLBACK_LOCATION: LocationInfo = {
   country: 'Kuwait',
   countryCode: 'KW',
@@ -62,16 +57,12 @@ class LocationService {
     return LocationService.instance;
   }
 
-  // Get location using multiple fallback methods
   async getLocation(): Promise<LocationInfo> {
-    // Return cached location if available
     if (this.cachedLocation) {
       return this.cachedLocation;
     }
 
-    // Prevent multiple simultaneous requests
     if (this.isLoading) {
-      // Wait for ongoing request to complete
       while (this.isLoading) {
         await new Promise(resolve => setTimeout(resolve, 100));
       }
@@ -81,7 +72,6 @@ class LocationService {
     this.isLoading = true;
 
     try {
-      // Try multiple IP geolocation services
       const location = await this.tryMultipleServices();
       this.cachedLocation = location;
       return location;
@@ -116,7 +106,6 @@ class LocationService {
     throw new Error('All location services failed');
   }
 
-  // Primary service: ip-api.com (free, no key required)
   private async tryIPAPI(): Promise<LocationInfo | null> {
     try {
       const controller = new AbortController();
@@ -146,7 +135,6 @@ class LocationService {
     }
   }
 
-  // Secondary service: ipinfo.io (free tier available)
   private async tryIPInfo(): Promise<LocationInfo | null> {
     try {
       const controller = new AbortController();
@@ -174,7 +162,6 @@ class LocationService {
     }
   }
 
-  // Tertiary service: Cloudflare (if available)
   private async tryCloudflare(): Promise<LocationInfo | null> {
     try {
       const controller = new AbortController();
@@ -213,7 +200,6 @@ class LocationService {
     }
   }
 
-  // Helper to get country name from country code
   private getCountryName(countryCode: string): string {
     const countryNames: Record<string, string> = {
       'US': 'United States',
@@ -272,12 +258,10 @@ class LocationService {
     return countryNames[countryCode] || countryCode;
   }
 
-  // Clear cached location (useful for testing)
   clearCache(): void {
     this.cachedLocation = null;
   }
 
-  // Get cached location without making new request
   getCachedLocation(): LocationInfo | null {
     return this.cachedLocation;
   }

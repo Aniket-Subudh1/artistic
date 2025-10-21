@@ -220,5 +220,35 @@
       box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
     }
   }
+
+  /* Mobile-first responsive utilities */
+  @screen sm {
+    .mobile-stack {
+      flex-direction: column;
+    }
+  }
+  
+  /* Ensure proper touch targets on mobile */
+  @media (max-width: 640px) {
+    button, a, [role="button"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    input, select, textarea {
+      font-size: 16px; /* Prevents zoom on iOS */
+    }
+    
+    /* Better spacing for mobile */
+    .mobile-padding {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+    
+    /* Mobile-friendly cards */
+    .mobile-card-spacing {
+      margin-bottom: 1rem;
+    }
+  }
 }
 

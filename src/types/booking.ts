@@ -4,6 +4,7 @@ export interface Artist {
   fullName: string;
   artistType: string;
   profilePicture?: string;
+  profileImage?: string; // For compatibility with different components
   bio?: string;
   location?: {
     city: string;
@@ -60,10 +61,77 @@ export interface BookingStatus {
   bgColor: string;
 }
 
+export interface EnhancedEquipmentItem {
+  equipmentId: string;
+  quantity: number;
+  equipment: {
+    name: string;
+    images: string[];
+    category: string;
+    description?: string;
+    pricePerDay: number;
+    specifications?: any;
+  };
+}
+
+export interface EnhancedEquipmentPackage {
+  _id: string;
+  name: string;
+  description: string;
+  totalPrice: number;
+  coverImage?: string;
+  images?: string[];
+  provider?: {
+    name: string;
+    companyName: string;
+    businessDescription: string;
+    email: string;
+  };
+  items: Array<{
+    equipmentId: string;
+    quantity: number;
+    equipment: {
+      name: string;
+      images: string[];
+      category: string;
+      pricePerDay: number;
+    };
+  }>;
+  status: 'draft' | 'pending_review' | 'under_review' | 'approved' | 'rejected';
+  visibility: 'online' | 'offline';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EnhancedCustomPackage {
+  _id: string;
+  name: string;
+  description: string;
+  totalPrice: number;
+  isCustom: true;
+  items: Array<{
+    equipmentId: string;
+    quantity: number;
+    equipment: {
+      name: string;
+      images: string[];
+      category: string;
+      pricePerDay: number;
+    };
+  }>;
+}
+
+export interface EnhancedArtist extends Artist {
+  stageName: string;
+  skills: string[];
+  yearsOfExperience: number;
+  availability?: any;
+}
+
 export interface Booking {
   _id: string;
   artistId: string;
-  artist?: Artist;
+  artist?: EnhancedArtist;
   bookedBy: string;
   eventType: 'private' | 'public';
   // Multi-day booking support
@@ -73,6 +141,7 @@ export interface Booking {
     endTime: string;
   }>;
   isMultiDay?: boolean;
+  totalHours?: number;
   // Legacy single-day fields (for backward compatibility)
   eventDate: string;
   startTime: string;
@@ -98,8 +167,10 @@ export interface Booking {
   };
   eventDescription?: string;
   specialRequests?: string;
-  selectedEquipmentPackages?: EquipmentPackage[];
-  selectedCustomPackages?: string[]; // IDs of custom packages
+  selectedEquipmentPackages?: EnhancedEquipmentPackage[];
+  selectedCustomPackages?: EnhancedCustomPackage[];
+  equipments?: EnhancedEquipmentItem[];
+  bookingType?: 'artist' | 'equipment' | 'combined' | 'artist_only' | 'equipment_only';
   paymentStatus?: 'pending' | 'paid' | 'refunded' | 'failed';
   cancellationReason?: string;
   cancelledAt?: string;
