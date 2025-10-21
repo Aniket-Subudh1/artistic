@@ -1,11 +1,6 @@
 export { AvailabilityCalendar } from './AvailabilityCalendar';
-export { BookingCard } from './BookingCard';
-export { BookingDetailsModal } from './BookingDetailsModal';
-export { UserBookingsDashboard } from './UserBookingsDashboard';
-export { EquipmentPackageBookingCard } from './EquipmentPackageBookingCard';
 export { EquipmentPackageBookingDetailsModal } from './EquipmentPackageBookingDetailsModal';
 export { UserEquipmentPackageBookingsDashboard } from './UserEquipmentPackageBookingsDashboard';
 export { TermsAndConditionsModal } from './TermsAndConditionsModal';
-export { UnifiedBookingFlow } from './UnifiedBookingFlow';
-export { EnhancedBookingCard } from './EnhancedBookingCard';
-export { EnhancedBookingDetailsModal } from './EnhancedBookingDetailsModal';
+export { EnhancedEquipmentPackageBookingCard } from './EnhancedEquipmentPackageBookingCard';
+export { EnhancedUnifiedUserBookingsDashboard } from './EnhancedUnifiedUserBookingsDashboard';

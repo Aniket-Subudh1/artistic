@@ -39,12 +39,27 @@ import { TermsAndConditionsService, TermsAndConditions, TermsType } from '@/serv
 import { CountryCodeDropdown, Country, getDefaultCountry, formatPhoneNumber } from '@/components/ui/CountryCodeDropdown';
 
 interface BookingFormData {
-  // Multi-day booking support
+  // Artist booking dates
+  artistEventDates: Array<{
+    date: string;
+    startTime: string;
+    endTime: string;
+  }>;
+  
+  // Equipment booking dates (can be different from artist dates)
+  equipmentEventDates: Array<{
+    date: string;
+    startTime: string;
+    endTime: string;
+  }>;
+  
+  // Multi-day booking support (legacy - uses same dates for both)
   eventDates: Array<{
     date: string;
     startTime: string;
     endTime: string;
   }>;
+  
   // Legacy single date support (for backward compatibility)
   eventDate: string;
   startTime: string;
@@ -89,6 +104,8 @@ export default function BookArtistPage() {
   const [submitting, setSubmitting] = useState(false);
   const [step, setStep] = useState(1);
   const [isMultiDayBooking, setIsMultiDayBooking] = useState(false);
+  const [isArtistMultiDay, setIsArtistMultiDay] = useState(false);
+  const [isEquipmentMultiDay, setIsEquipmentMultiDay] = useState(false);
   const [errorModal, setErrorModal] = useState<{
     show: boolean;
     title: string;
@@ -96,7 +113,10 @@ export default function BookArtistPage() {
   }>({ show: false, title: '', message: '' });
   
   const [formData, setFormData] = useState<BookingFormData>({
-    // Multi-day booking support
+    // New flexible multi-day support
+    artistEventDates: [],
+    equipmentEventDates: [],
+    // Legacy multi-day booking support (for backward compatibility)
     eventDates: [],
     // Legacy single date support (for backward compatibility)
     eventDate: '',
@@ -445,10 +465,18 @@ export default function BookArtistPage() {
       let bookingData: any;
       
       if (isMultiDayBooking && formData.eventDates.length > 0) {
-        // Multi-day booking data structure
+        // Multi-day booking data structure with independent equipment scheduling
         bookingData = {
           artistId,
           eventType: 'private' as const,
+          // New flexible multi-day format
+          isArtistMultiDay: true,
+          artistEventDates: formData.eventDates,
+          isEquipmentMultiDay: isEquipmentMultiDay,
+          equipmentEventDates: isEquipmentMultiDay && formData.equipmentEventDates.length > 0 
+            ? formData.equipmentEventDates 
+            : formData.eventDates, // Fallback to artist dates if no separate equipment dates
+          // Legacy fields for backward compatibility
           isMultiDay: true,
           eventDates: formData.eventDates,
           totalHours: pricingResponse.artistFee.totalHours,
@@ -493,6 +521,12 @@ export default function BookArtistPage() {
           startTime: formData.startTime,
           endTime: formData.endTime,
           artistPrice: pricingResponse.artistFee.amount,
+          // New flexible multi-day format (for single-day, these are false)
+          isArtistMultiDay: false,
+          isEquipmentMultiDay: isEquipmentMultiDay,
+          equipmentEventDates: isEquipmentMultiDay && formData.equipmentEventDates.length > 0 
+            ? formData.equipmentEventDates 
+            : undefined,
           userDetails: {
             ...formData.userDetails,
             phone: formatPhoneNumber(selectedCountry.code, formData.userDetails.phone)
@@ -782,6 +816,9 @@ export default function BookArtistPage() {
                 customPackages={customPackages}
                 errors={errors}
                 onCreateCustomPackage={() => setShowCreatePackageModal(true)}
+                isMultiDayBooking={isMultiDayBooking}
+                isEquipmentMultiDay={isEquipmentMultiDay}
+                setIsEquipmentMultiDay={setIsEquipmentMultiDay}
                 t={t}
               />
             )}
@@ -792,6 +829,8 @@ export default function BookArtistPage() {
                 artist={artist}
                 equipmentPackages={equipmentPackages}
                 customPackages={customPackages}
+                isMultiDayBooking={isMultiDayBooking}
+                isEquipmentMultiDay={isEquipmentMultiDay}
                 t={t}
               />
             )}
@@ -1442,28 +1481,50 @@ function EquipmentStep({
   customPackages, 
   errors,
   onCreateCustomPackage,
+  isMultiDayBooking,
+  isEquipmentMultiDay,
+  setIsEquipmentMultiDay,
   t
 }: StepProps & { 
   equipmentPackages: EquipmentPackage[];
   customPackages: CustomEquipmentPackage[];
   onCreateCustomPackage?: () => void;
+  isMultiDayBooking: boolean;
+  isEquipmentMultiDay: boolean;
+  setIsEquipmentMultiDay: (value: boolean) => void;
 }) {
   const [activePackageTab, setActivePackageTab] = useState<'regular' | 'custom'>('regular');
 
   const calculateEquipmentPrice = () => {
     let total = 0;
+    
+   
+    
+    let equipmentDays = 1; 
+    
+    if (isEquipmentMultiDay && formData.equipmentEventDates.length > 0) {
+      equipmentDays = formData.equipmentEventDates.length;
+    }
+    else if (!isEquipmentMultiDay && isMultiDayBooking && formData.eventDates.length > 0) {
+    
+      equipmentDays = 1;
+    }
+    
     formData.selectedEquipmentPackages.forEach(packageId => {
       const pkg = equipmentPackages.find(p => p._id === packageId);
       if (pkg) {
-        total += pkg.totalPrice;
+      
+        total += pkg.totalPrice * (isEquipmentMultiDay ? equipmentDays : 1);
       }
     });
+    
     formData.selectedCustomPackages.forEach(packageId => {
       const customPkg = (Array.isArray(customPackages) ? customPackages : []).find(p => p._id === packageId);
       if (customPkg) {
-        total += customPkg.totalPricePerDay;
+        total += customPkg.totalPricePerDay * equipmentDays;
       }
     });
+    
     return total;
   };
 
@@ -1506,12 +1567,252 @@ function EquipmentStep({
         <div className="text-right">
           <p className="text-sm text-gray-600">{t('bookArtistForm.selectedEquipmentCost')}</p>
           <p className="text-lg font-semibold text-purple-600">{calculateEquipmentPrice()} KWD</p>
+          {(formData.selectedEquipmentPackages.length > 0 || formData.selectedCustomPackages.length > 0) && (
+            <p className="text-xs text-gray-500">
+              {isEquipmentMultiDay 
+                ? `Equipment rental: ${formData.equipmentEventDates.length > 0 ? formData.equipmentEventDates.length : 1} day(s)`
+                : 'Equipment: Standard rental (1 event)'
+              }
+            </p>
+          )}
         </div>
       </div>
       
       <p className="text-gray-600">
         {t('bookArtistForm.enhanceEvent')}
       </p>
+
+      {/* Equipment Multi-Day Selection */}
+      {(formData.selectedEquipmentPackages.length > 0 || formData.selectedCustomPackages.length > 0) && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-blue-600" />
+              <h3 className="font-semibold text-blue-900">Equipment Rental Duration</h3>
+            </div>
+          </div>
+          
+          <div className="space-y-3">
+            <label className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={isEquipmentMultiDay}
+                onChange={(e) => setIsEquipmentMultiDay(e.target.checked)}
+                className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-2"
+              />
+              <span className="text-gray-700 font-medium">
+                Rent equipment for different duration than artist performance
+              </span>
+            </label>
+            
+            {isEquipmentMultiDay && (
+              <div className="ml-7 p-4 bg-white rounded border border-blue-200 space-y-4">
+                <div>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Equipment can be rented for different dates/duration than the artist performance
+                  </p>
+                  
+                  {/* Equipment Dates List */}
+                  {formData.equipmentEventDates.length > 0 && (
+                    <div className="space-y-2 mb-4">
+                      <h4 className="font-medium text-gray-800">Equipment Rental Dates:</h4>
+                      {formData.equipmentEventDates.map((dateSlot, index) => (
+                        <div key={index} className="bg-gray-50 rounded border p-3 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="w-4 h-4 text-blue-600" />
+                              <span className="font-medium text-gray-800">Equipment Day {index + 1}</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newDates = formData.equipmentEventDates.filter((_, i) => i !== index);
+                                setFormData({
+                                  ...formData,
+                                  equipmentEventDates: newDates
+                                });
+                              }}
+                              className="text-red-600 hover:text-red-800 p-1 hover:bg-red-50 rounded"
+                              title="Remove this date"
+                            >
+                              × Remove
+                            </button>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">Date</label>
+                              <input
+                                type="date"
+                                value={dateSlot.date}
+                                onChange={(e) => {
+                                  const updatedDates = [...formData.equipmentEventDates];
+                                  updatedDates[index] = { ...updatedDates[index], date: e.target.value };
+                                  setFormData({
+                                    ...formData,
+                                    equipmentEventDates: updatedDates
+                                  });
+                                }}
+                                className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 focus:border-transparent"
+                                min={new Date().toISOString().split('T')[0]}
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">Start Time</label>
+                              <input
+                                type="time"
+                                value={dateSlot.startTime}
+                                onChange={(e) => {
+                                  const updatedDates = [...formData.equipmentEventDates];
+                                  updatedDates[index] = { ...updatedDates[index], startTime: e.target.value };
+                                  setFormData({
+                                    ...formData,
+                                    equipmentEventDates: updatedDates
+                                  });
+                                }}
+                                className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 focus:border-transparent"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">End Time</label>
+                              <input
+                                type="time"
+                                value={dateSlot.endTime}
+                                onChange={(e) => {
+                                  const updatedDates = [...formData.equipmentEventDates];
+                                  updatedDates[index] = { ...updatedDates[index], endTime: e.target.value };
+                                  setFormData({
+                                    ...formData,
+                                    equipmentEventDates: updatedDates
+                                  });
+                                }}
+                                className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 focus:border-transparent"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Add New Equipment Date */}
+                  <div className="border border-dashed border-gray-300 rounded-lg p-4">
+                    <h4 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
+                      <Plus className="w-4 h-4" />
+                      {formData.equipmentEventDates.length === 0 ? 'Set Equipment Rental Dates' : 'Add Another Date'}
+                    </h4>
+                    
+                    <AddEquipmentDateForm 
+                      onAddDate={(newDate) => {
+                        setFormData({
+                          ...formData,
+                          equipmentEventDates: [...formData.equipmentEventDates, newDate]
+                        });
+                      }}
+                      existingDatesCount={formData.equipmentEventDates.length}
+                    />
+
+                    {formData.equipmentEventDates.length === 0 && (
+                      <div className="mt-3 p-3 bg-blue-50 rounded border border-blue-200">
+                        <p className="text-sm text-blue-800 mb-2">
+                          💡 <strong>Equipment Rental Options:</strong>
+                        </p>
+                        <ul className="text-xs text-blue-700 space-y-1">
+                          <li>• Set different dates from your artist performance</li>
+                          <li>• Rent for longer or shorter duration</li>
+                          <li>• Add setup/breakdown time if needed</li>
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Comparison Summary */}
+                  {formData.equipmentEventDates.length > 0 && (
+                    <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <h5 className="text-sm font-medium text-green-800 mb-2">📋 Booking Summary Comparison</h5>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div>
+                          <p className="font-medium text-green-700 mb-1">Artist Performance:</p>
+                          {isMultiDayBooking && formData.eventDates.length > 0 ? (
+                            <ul className="text-green-600 space-y-1">
+                              {formData.eventDates.map((date, index) => (
+                                <li key={index}>Day {index + 1}: {date.date} • {date.startTime}-{date.endTime}</li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p className="text-green-600">{formData.eventDate} • {formData.startTime}-{formData.endTime}</p>
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-medium text-green-700 mb-1">Equipment Rental:</p>
+                          <ul className="text-green-600 space-y-1">
+                            {formData.equipmentEventDates.map((date, index) => (
+                              <li key={index}>Day {index + 1}: {date.date} • {date.startTime}-{date.endTime}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Quick Actions */}
+                  <div className="flex gap-2 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // Copy artist dates as starting point
+                        if (isMultiDayBooking && formData.eventDates.length > 0) {
+                          setFormData({
+                            ...formData,
+                            equipmentEventDates: [...formData.eventDates]
+                          });
+                        } else if (formData.eventDate) {
+                          setFormData({
+                            ...formData,
+                            equipmentEventDates: [{
+                              date: formData.eventDate,
+                              startTime: formData.startTime,
+                              endTime: formData.endTime
+                            }]
+                          });
+                        }
+                      }}
+                      className="px-3 py-1 bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors"
+                    >
+                      Copy from Artist Dates
+                    </button>
+                    
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData({
+                          ...formData,
+                          equipmentEventDates: []
+                        });
+                      }}
+                      className="px-3 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+                      disabled={formData.equipmentEventDates.length === 0}
+                    >
+                      Clear All
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {!isEquipmentMultiDay && (formData.selectedEquipmentPackages.length > 0 || formData.selectedCustomPackages.length > 0) && (
+              <div className="ml-7 text-sm text-gray-600">
+                Equipment will be rented for the same duration as artist performance
+                {isMultiDayBooking && formData.eventDates.length > 0 && (
+                  <span className="font-medium text-blue-700">
+                    {' '}({formData.eventDates.length} days)
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Package Type Tabs */}
       <div className="flex bg-gray-100 rounded-xl p-1 max-w-md">
@@ -1736,19 +2037,26 @@ function EquipmentStep({
   );
 }
 
-function ReviewStep({ formData, artist, equipmentPackages, customPackages, t }: { 
+function ReviewStep({ 
+  formData, 
+  artist, 
+  equipmentPackages, 
+  customPackages, 
+  isMultiDayBooking,
+  isEquipmentMultiDay,
+  t 
+}: { 
   formData: BookingFormData; 
   artist: Artist; 
   equipmentPackages: EquipmentPackage[];
   customPackages: CustomEquipmentPackage[];
+  isMultiDayBooking: boolean;
+  isEquipmentMultiDay: boolean;
   t: any;
 }) {
   const [artistPrice, setArtistPrice] = useState<number>(0);
   const [isDynamicPricing, setIsDynamicPricing] = useState<boolean>(false);
   const [loadingPrice, setLoadingPrice] = useState<boolean>(false);
-  
-  // Determine if this is a multi-day booking
-  const isMultiDayBooking = formData.eventDates && formData.eventDates.length > 0;
   
   // Calculate booking details based on single or multi-day
   const bookingDetails = isMultiDayBooking 
@@ -1854,8 +2162,7 @@ function ReviewStep({ formData, artist, equipmentPackages, customPackages, t }: 
     calculateArtistPrice();
   }, [bookingDetails, artist._id, artist.pricePerHour, totalHours, isMultiDayBooking]);
   
-  // Calculate equipment price
-  let equipmentPrice = 0;
+  // Get selected packages
   const selectedPackages = equipmentPackages.filter(pkg => 
     formData.selectedEquipmentPackages.includes(pkg._id)
   );
@@ -1863,12 +2170,37 @@ function ReviewStep({ formData, artist, equipmentPackages, customPackages, t }: 
     formData.selectedCustomPackages.includes(pkg._id)
   );
   
-  selectedPackages.forEach(pkg => {
-    equipmentPrice += pkg.totalPrice;
-  });
-  selectedCustomPackages.forEach(pkg => {
-    equipmentPrice += pkg.totalPricePerDay;
-  });
+  // Calculate equipment price using the exact same logic as EquipmentStep
+  const calculateEquipmentPrice = () => {
+    let total = 0;
+    
+    let equipmentDays = 1; 
+    
+    if (isEquipmentMultiDay && formData.equipmentEventDates.length > 0) {
+      equipmentDays = formData.equipmentEventDates.length;
+    }
+    else if (!isEquipmentMultiDay && isMultiDayBooking && formData.eventDates.length > 0) {
+      equipmentDays = 1;
+    }
+    
+    formData.selectedEquipmentPackages.forEach(packageId => {
+      const pkg = equipmentPackages.find(p => p._id === packageId);
+      if (pkg) {
+        total += pkg.totalPrice * (isEquipmentMultiDay ? equipmentDays : 1);
+      }
+    });
+    
+    formData.selectedCustomPackages.forEach(packageId => {
+      const customPkg = (Array.isArray(customPackages) ? customPackages : []).find(p => p._id === packageId);
+      if (customPkg) {
+        total += customPkg.totalPricePerDay * equipmentDays;
+      }
+    });
+    
+    return total;
+  };
+  
+  const equipmentPrice = calculateEquipmentPrice();
   
   const totalPrice = artistPrice + equipmentPrice;
 
@@ -1971,7 +2303,21 @@ function ReviewStep({ formData, artist, equipmentPackages, customPackages, t }: 
           </div>
           {(selectedPackages.length > 0 || selectedCustomPackages.length > 0) && (
             <div className="space-y-2">
-              <div className="font-medium text-gray-700">{t('bookArtistForm.equipmentPackagesLabel')}</div>
+              <div className="flex justify-between items-center">
+                <span className="font-medium text-gray-700">{t('bookArtistForm.equipmentPackagesLabel')}</span>
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700 border border-orange-200">
+                  📦 {selectedPackages.length + selectedCustomPackages.length} items
+                  {(isEquipmentMultiDay && formData.equipmentEventDates.length > 0) && (
+                    <> • {formData.equipmentEventDates.length} day{formData.equipmentEventDates.length !== 1 ? 's' : ''}</>
+                  )}
+                  {(!isEquipmentMultiDay && isMultiDayBooking && formData.eventDates.length > 0) && (
+                    <> • {formData.eventDates.length} day{formData.eventDates.length !== 1 ? 's' : ''}</>
+                  )}
+                  {(!isEquipmentMultiDay && !isMultiDayBooking) && (
+                    <> • 1 day</>
+                  )}
+                </span>
+              </div>
               {selectedPackages.map(pkg => (
                 <div key={pkg._id} className="flex justify-between text-sm pl-4">
                   <span>• {pkg.name} ({t('bookArtistForm.providerLabel')}):</span>
@@ -2024,5 +2370,84 @@ function ReviewStep({ formData, artist, equipmentPackages, customPackages, t }: 
         </div>
       </div>
     </div>
+  );
+}
+
+// Add Equipment Date Form Component
+interface AddEquipmentDateFormProps {
+  onAddDate: (date: { date: string; startTime: string; endTime: string }) => void;
+  existingDatesCount: number;
+}
+
+function AddEquipmentDateForm({ onAddDate, existingDatesCount }: AddEquipmentDateFormProps) {
+  const [newDate, setNewDate] = useState({
+    date: '',
+    startTime: '09:00',
+    endTime: '18:00'
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newDate.date) {
+      onAddDate(newDate);
+      setNewDate({
+        date: '',
+        startTime: '09:00', 
+        endTime: '18:00'
+      });
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+          <input
+            type="date"
+            value={newDate.date}
+            onChange={(e) => setNewDate(prev => ({ ...prev, date: e.target.value }))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            min={new Date().toISOString().split('T')[0]}
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+          <input
+            type="time"
+            value={newDate.startTime}
+            onChange={(e) => setNewDate(prev => ({ ...prev, startTime: e.target.value }))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
+          <input
+            type="time"
+            value={newDate.endTime}
+            onChange={(e) => setNewDate(prev => ({ ...prev, endTime: e.target.value }))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            min={newDate.startTime}
+            required
+          />
+        </div>
+      </div>
+      
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-gray-500">
+          Adding equipment rental day {existingDatesCount + 1}
+        </p>
+        <button
+          type="submit"
+          disabled={!newDate.date}
+          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
+        >
+          <Plus className="w-4 h-4" />
+          Add Equipment Date
+        </button>
+      </div>
+    </form>
   );
 }

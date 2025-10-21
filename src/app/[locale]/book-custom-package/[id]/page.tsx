@@ -25,6 +25,12 @@ interface EquipmentBookingRequest {
   endTime: string;
   totalPrice: number;
   address?: string;
+  isMultiDay?: boolean;
+  equipmentDates?: Array<{
+    date: string;
+    startTime: string;
+    endTime: string;
+  }>;
 }
 
 // Equipment booking service
@@ -48,6 +54,12 @@ import { Footer } from '@/components/main/Footer';
 
 interface FormData {
   eventDate: string;
+  isMultiDay: boolean;
+  eventDates: Array<{
+    date: string;
+    startTime: string;
+    endTime: string;
+  }>;
   userDetails: {
     name: string;
     email: string;
@@ -79,6 +91,8 @@ const BookCustomPackagePage: React.FC = () => {
   
   const [formData, setFormData] = useState<FormData>({
     eventDate: '',
+    isMultiDay: false,
+    eventDates: [],
     userDetails: {
       name: user?.firstName + ' ' + user?.lastName || '',
       email: user?.email || '',
@@ -160,12 +174,45 @@ const BookCustomPackagePage: React.FC = () => {
   }, [user]);
 
   const calculateDays = () => {
-    return 1;
+    if (formData.isMultiDay) {
+      return formData.eventDates.length || 0;
+    }
+    return formData.eventDate ? 1 : 0;
   };
 
   const calculateTotalPrice = () => {
     if (!packageData) return 0;
-    return packageData.totalPricePerDay;
+    const days = calculateDays();
+    return packageData.totalPricePerDay * days;
+  };
+
+  // Add a new date to multi-day booking
+  const addEventDate = () => {
+    setFormData(prev => ({
+      ...prev,
+      eventDates: [
+        ...prev.eventDates,
+        { date: '', startTime: '09:00', endTime: '17:00' }
+      ]
+    }));
+  };
+
+  // Remove a date from multi-day booking
+  const removeEventDate = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      eventDates: prev.eventDates.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Update a specific event date
+  const updateEventDate = (index: number, field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      eventDates: prev.eventDates.map((date, i) => 
+        i === index ? { ...date, [field]: value } : date
+      )
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -179,9 +226,21 @@ const BookCustomPackagePage: React.FC = () => {
     if (!packageData) return;
 
     // Validate required fields
-    if (!formData.eventDate) {
-      setError('Please select an event date');
-      return;
+    if (formData.isMultiDay) {
+      if (formData.eventDates.length === 0) {
+        setError('Please add at least one event date for multi-day booking');
+        return;
+      }
+      const invalidDate = formData.eventDates.find(date => !date.date || !date.startTime || !date.endTime);
+      if (invalidDate) {
+        setError('Please fill in all dates and times for multi-day booking');
+        return;
+      }
+    } else {
+      if (!formData.eventDate) {
+        setError('Please select an event date');
+        return;
+      }
     }
 
     if (!formData.userDetails.phone || !formData.venueDetails.address) {
@@ -213,11 +272,13 @@ const BookCustomPackagePage: React.FC = () => {
         customPackages: [packageData._id],
         equipments: [], // No individual equipment items
         packages: [], // No regular packages
-        date: formData.eventDate,
-        startTime: '09:00', // Default time since we only need date
-        endTime: '18:00', // Default time since we only need date
+        date: formData.isMultiDay ? formData.eventDates[0]?.date || '' : formData.eventDate,
+        startTime: formData.isMultiDay ? formData.eventDates[0]?.startTime || '09:00' : '09:00',
+        endTime: formData.isMultiDay ? formData.eventDates[0]?.endTime || '18:00' : '18:00',
         totalPrice: calculateTotalPrice(),
         address: `${formData.venueDetails.address}, ${formData.venueDetails.city}, ${formData.venueDetails.state}, ${formData.venueDetails.country}`,
+        isMultiDay: formData.isMultiDay,
+        equipmentDates: formData.isMultiDay ? formData.eventDates : undefined,
       };
 
       // Set the formatted phone number in form data for the booking
@@ -459,21 +520,100 @@ const BookCustomPackagePage: React.FC = () => {
                     Event Details
                   </h3>
                 
-                <div className="grid grid-cols-1 gap-6">
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-3">
-                      Event Date *
-                    </label>
+                {/* Multi-day toggle */}
+                <div className="mb-6">
+                  <label className="flex items-center space-x-3 cursor-pointer">
                     <input
-                      type="date"
-                      value={formData.eventDate}
-                      onChange={(e) => setFormData({...formData, eventDate: e.target.value})}
-                      min={new Date().toISOString().split('T')[0]}
-                      className="w-full px-6 py-4 bg-white/80 backdrop-blur-sm border border-white/50 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-transparent shadow-lg text-gray-900 font-medium placeholder-gray-500 transition-all duration-200"
-                      required
+                      type="checkbox"
+                      checked={formData.isMultiDay}
+                      onChange={(e) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          isMultiDay: e.target.checked,
+                          eventDates: e.target.checked ? [{ date: '', startTime: '09:00', endTime: '17:00' }] : []
+                        }));
+                      }}
+                      className="w-5 h-5 text-[#391C71] rounded focus:ring-[#391C71] focus:ring-2"
                     />
-                  </div>
+                    <span className="text-gray-700 font-medium">This is a multi-day event</span>
+                  </label>
                 </div>
+
+                {!formData.isMultiDay ? (
+                  /* Single Day Event */
+                  <div className="grid grid-cols-1 gap-6">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-3">
+                        Event Date *
+                      </label>
+                      <input
+                        type="date"
+                        value={formData.eventDate}
+                        onChange={(e) => setFormData({...formData, eventDate: e.target.value})}
+                        min={new Date().toISOString().split('T')[0]}
+                        className="w-full px-6 py-4 bg-white/80 backdrop-blur-sm border border-white/50 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-transparent shadow-lg text-gray-900 font-medium placeholder-gray-500 transition-all duration-200"
+                        required
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  /* Multi-day Event */
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-bold text-gray-700">
+                        Event Dates & Times *
+                      </label>
+                      <button
+                        type="button"
+                        onClick={addEventDate}
+                        className="bg-[#391C71] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#5B2C87] transition-colors"
+                      >
+                        + Add Date
+                      </button>
+                    </div>
+                    
+                    {formData.eventDates.map((eventDate, index) => (
+                      <div key={index} className="flex items-center gap-3 p-4 bg-gray-50/80 rounded-xl">
+                        <div className="flex-1">
+                          <input
+                            type="date"
+                            value={eventDate.date}
+                            onChange={(e) => updateEventDate(index, 'date', e.target.value)}
+                            min={new Date().toISOString().split('T')[0]}
+                            className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391C71] focus:border-transparent"
+                            required
+                          />
+                        </div>
+                        <div className="w-24">
+                          <input
+                            type="time"
+                            value={eventDate.startTime}
+                            onChange={(e) => updateEventDate(index, 'startTime', e.target.value)}
+                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391C71] focus:border-transparent text-sm"
+                          />
+                        </div>
+                        <span className="text-gray-500 text-sm">to</span>
+                        <div className="w-24">
+                          <input
+                            type="time"
+                            value={eventDate.endTime}
+                            onChange={(e) => updateEventDate(index, 'endTime', e.target.value)}
+                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391C71] focus:border-transparent text-sm"
+                          />
+                        </div>
+                        {formData.eventDates.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeEventDate(index)}
+                            className="text-red-500 hover:text-red-700 font-medium text-sm"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                   <div className="mt-6">
                     <label className="block text-sm font-bold text-gray-700 mb-3">

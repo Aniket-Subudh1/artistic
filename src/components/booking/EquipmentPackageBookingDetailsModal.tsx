@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -199,7 +200,12 @@ export const EquipmentPackageBookingDetailsModal: React.FC<EquipmentPackageBooki
                   <div className="flex-1">
                     <p className="font-medium text-gray-900 text-sm">Booking Period</p>
                     <p className="text-gray-600 text-sm">{formatDateRange()}</p>
-                    <p className="text-xs text-gray-500">{booking.numberOfDays} day{booking.numberOfDays !== 1 ? 's' : ''}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
+                        <Clock className="h-3 w-3 mr-1" />
+                        {booking.numberOfDays} day{booking.numberOfDays !== 1 ? 's' : ''} rental duration
+                      </span>
+                    </div>
                   </div>
                 </div>
 
