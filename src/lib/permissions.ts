@@ -22,6 +22,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     'manage_artists',
     'manage_equipment',
     'manage_venues',
+    'manage_venue_layouts',
     'manage_venue_providers',
     'manage_equipment_providers',
     'manage_terms_and_conditions',
@@ -40,6 +41,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     'moderate_content',
     'manage_applications',
     'manage_venues',
+    'manage_venue_layouts',
     'manage_venue_providers',
     'manage_equipment_providers',
     'manage_terms_and_conditions',
@@ -50,6 +52,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
   ],
   venue_owner: [
     'manage_own_venues',
+    'manage_venue_layouts',
     'view_venue_bookings',
     'manage_venue_events',
     'view_venue_analytics',
@@ -369,6 +372,14 @@ export const getSidebarItems = (): SidebarItem[] => [
         icon: 'Map',
         href: '/dashboard/admin/venues',
         roles: ['super_admin', 'admin'],
+      },
+      {
+        id: 'venue-layouts',
+        label: 'Venue Layouts',
+        labelAr: 'تخطيطات الأماكن',
+        icon: 'LayoutGrid',
+        href: '/dashboard/admin/venue-layouts',
+        roles: ['super_admin', 'admin', 'venue_owner'],
       },
       {
         id: 'venue-providers',
