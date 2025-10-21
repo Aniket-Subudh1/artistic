@@ -249,12 +249,12 @@ export function BookingCard({ booking, onViewDetails, onCancel, className = '' }
                   </span>
                 ))}
                 {/* Custom Equipment Packages */}
-                {booking.selectedCustomPackages?.map((packageId) => (
+                {booking.selectedCustomPackages?.map((customPackage) => (
                   <span 
-                    key={packageId}
+                    key={customPackage._id}
                     className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-purple-100 text-purple-700 border border-purple-200"
                   >
-                    🛠️ Custom Package
+                    🛠️ {customPackage.name}
                   </span>
                 ))}
               </div>
