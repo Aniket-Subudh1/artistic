@@ -42,7 +42,7 @@ interface PricingSettingsProps {
   setPricingForm: React.Dispatch<React.SetStateAction<PricingFormData>>;
   artistSettings: ArtistSettingsData;
   setArtistSettings: React.Dispatch<React.SetStateAction<ArtistSettingsData>>;
-  userRole?: 'user' | 'artist' | 'admin'; // Add user role for access control
+  userRole?: 'user' | 'artist' | 'admin' | 'super_admin' | 'equipment_provider' | 'venue_owner'; // Add user role for access control
 }
 
 export function PricingSettings({
@@ -207,7 +207,8 @@ export function PricingSettings({
         </div>
       </div>
 
-      {/* Pricing Mode Toggle */}
+      {/* Pricing Mode Toggle - Admin Only */}
+      {(userRole === 'admin' || userRole === 'super_admin') && (
       <div className="bg-white border border-gray-200 p-6 rounded-lg">
         <h3 className="text-lg font-medium text-gray-900 mb-2">Pricing Structure</h3>
         <p className="text-sm text-gray-600 mb-4">
@@ -258,12 +259,7 @@ export function PricingSettings({
               </button>
             ))}
           </div>
-          {userRole === 'user' && (
-            <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700">
-              <Info className="w-4 h-4 inline mr-1" />
-              As a user, you can only book private performances
-            </div>
-          )}
+
           
           {/* Performance Type Descriptions */}
           <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded text-sm">
@@ -391,6 +387,24 @@ export function PricingSettings({
           </div>
         )}
       </div>
+      )}
+
+      {/* Info message for artists */}
+      {userRole === 'artist' && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-start">
+            <Info className="h-5 w-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
+            <div>
+              <h4 className="font-medium text-blue-900 mb-1">Performance Settings</h4>
+              <p className="text-sm text-blue-700">
+                You can manage your cooldown period and maximum performance hours above. 
+                For pricing changes, please contact an administrator.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

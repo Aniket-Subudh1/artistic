@@ -115,6 +115,14 @@ export interface UpdateArtistProfileRequest {
   category?: string;
   performPreference?: string[];
   youtubeLink?: string;
+  // New fields
+  gender?: string;
+  artistType?: string;
+  country?: string;
+  // Pricing fields
+  privatePricing?: Array<{ hours: number; amount: number }>;
+  publicPricing?: Array<{ hours: number; amount: number }>;
+  workshopPricing?: Array<{ hours: number; amount: number }>;
 }
 
 export interface Artist {
@@ -127,6 +135,7 @@ export interface Artist {
     phoneNumber?: string;
     role: string;
     isActive: boolean;
+    gender?: string;
   };
   stageName: string;
   about: string;
@@ -146,6 +155,9 @@ export interface Artist {
   isVisible: boolean;
   createdAt: string;
   updatedAt: string;
+  // Additional fields
+  gender?: string;
+  artistType?: string;
   // Performance constraints
   cooldownPeriodHours?: number;
   maximumPerformanceHours?: number;
@@ -584,6 +596,23 @@ export class ArtistService {
   static async deleteArtist(artistId: string): Promise<{ message: string }> {
     return apiRequest(`/artist/delete/${artistId}`, {
       method: 'DELETE',
+    });
+  }
+
+  // Update Artist Settings by Artist themselves
+  static async updateArtistSettings(settingsData: {
+    cooldownPeriodHours?: number;
+    maximumPerformanceHours?: number;
+  }): Promise<{ 
+    message: string; 
+    settings: {
+      cooldownPeriodHours: number;
+      maximumPerformanceHours: number;
+    }
+  }> {
+    return apiRequest(`/artist/settings`, {
+      method: 'PATCH',
+      body: JSON.stringify(settingsData),
     });
   }
 }

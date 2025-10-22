@@ -8,6 +8,7 @@ import { ArtistProfileUpdateModal } from '@/components/artist/ArtistProfileUpdat
 import { getYouTubeEmbedUrl } from '@/lib/youtube';
 import { ArtistService, Artist } from '@/services/artist.service';
 import { UserService, User as UserProfile } from '@/services/user.service';
+import { ArtistPerformanceSettings } from '@/components/artist';
 import { 
   User, 
   Mail, 
@@ -26,7 +27,8 @@ import {
   Camera,
   Play,
   ExternalLink,
-  Badge
+  Badge,
+  Settings
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -283,6 +285,7 @@ export default function ArtistProfilePage() {
                 { id: 'overview', label: 'Overview', icon: Eye },
                 { id: 'skills', label: 'Skills & Talents', icon: Star },
                 { id: 'media', label: 'Media Gallery', icon: Camera },
+                { id: 'settings', label: 'Performance Settings', icon: Settings },
               ].map(tab => (
                 <button
                   key={tab.id}
@@ -386,6 +389,13 @@ export default function ArtistProfilePage() {
                           View Update Requests
                           <ExternalLink className="h-3 w-3 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
                         </Link>
+                        <button
+                          onClick={() => setActiveTab('settings')}
+                          className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:text-[#391C71] hover:bg-purple-50 rounded-lg transition-all duration-200 group"
+                        >
+                          <Settings className="h-4 w-4 mr-3 group-hover:rotate-6 transition-transform" />
+                          Performance Settings
+                        </button>
                         <button
                           onClick={() => setIsUpdateModalOpen(true)}
                           className="flex items-center w-full px-4 py-3 text-sm text-[#391C71] hover:bg-purple-50 rounded-lg transition-all duration-200 group"
@@ -580,6 +590,26 @@ export default function ArtistProfilePage() {
                       </button>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Settings Tab */}
+              {activeTab === 'settings' && (
+                <div className="animate-fade-in">
+                  <ArtistPerformanceSettings
+                    initialSettings={{
+                      cooldownPeriodHours: artist.cooldownPeriodHours || 2,
+                      maximumPerformanceHours: artist.maximumPerformanceHours || 4,
+                    }}
+                    onUpdate={(updatedSettings) => {
+                      // Update the artist state with new settings
+                      setArtist(prev => prev ? {
+                        ...prev,
+                        cooldownPeriodHours: updatedSettings.cooldownPeriodHours,
+                        maximumPerformanceHours: updatedSettings.maximumPerformanceHours,
+                      } : null);
+                    }}
+                  />
                 </div>
               )}
             </div>

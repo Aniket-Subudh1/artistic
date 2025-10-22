@@ -5,6 +5,7 @@ import { useAuthLogic } from '@/hooks/useAuth';
 import { ButtonSpinner } from '@/components/ui/ButtonSpinner';
 import { ImageCropper } from '@/components/ui/ImageCropper';
 import { ArtistService, Artist, UpdateArtistProfileRequest } from '@/services/artist.service';
+import { PricingSettings } from '@/components/admin/PricingSettings';
 import { 
   User, 
   Upload, 
@@ -69,6 +70,14 @@ export function ArtistProfileUpdateModal({
     category: artist?.category || '',
     performPreference: artist?.performPreference || [],
     youtubeLink: artist?.youtubeLink ?? '',
+    // New fields
+    gender: artist?.gender || '',
+    artistType: artist?.artistType || '',
+    country: artist?.country || '',
+    // Pricing fields
+    privatePricing: [{ hours: 1, amount: 0 }],
+    publicPricing: [{ hours: 1, amount: 0 }],
+    workshopPricing: [{ hours: 1, amount: 0 }],
   });
 
   const [files, setFiles] = useState<{
@@ -90,6 +99,29 @@ export function ArtistProfileUpdateModal({
   const [newAward, setNewAward] = useState('');
   const [newPerformPreference, setNewPerformPreference] = useState('');
 
+  // Pricing form state for the PricingSettings component
+  const [pricingForm, setPricingForm] = useState({
+    pricingMode: 'duration' as 'duration' | 'timeslot',
+    privatePricing: [{ hours: 1, amount: 0 }],
+    publicPricing: [{ hours: 1, amount: 0 }],
+    workshopPricing: [{ hours: 1, amount: 0 }],
+    internationalPricing: [{ hours: 1, amount: 0 }],
+    privateTimeSlotPricing: [] as { hour: number; rate: number }[],
+    publicTimeSlotPricing: [] as { hour: number; rate: number }[],
+    workshopTimeSlotPricing: [] as { hour: number; rate: number }[],
+    internationalTimeSlotPricing: [] as { hour: number; rate: number }[],
+    basePrivateRate: 0,
+    basePublicRate: 0,
+    baseWorkshopRate: 0,
+    baseInternationalRate: 0,
+  });
+
+  // Dummy settings for PricingSettings component (not used for updates)
+  const [artistSettings, setArtistSettings] = useState({
+    cooldownPeriodHours: 2,
+    maximumPerformanceHours: 4,
+  });
+
   useEffect(() => {
     if (artist) {
       setFormData({
@@ -102,6 +134,15 @@ export function ArtistProfileUpdateModal({
         awards: artist.awards || [],
         category: artist.category || '',
         performPreference: artist.performPreference || [],
+        youtubeLink: artist.youtubeLink || '',
+        // New fields
+        gender: artist.gender || '',
+        artistType: artist.artistType || '',
+        country: artist.country || '',
+        // Initialize pricing with default values
+        privatePricing: [{ hours: 1, amount: 0 }],
+        publicPricing: [{ hours: 1, amount: 0 }],
+        workshopPricing: [{ hours: 1, amount: 0 }],
       });
       setPreviewImages({
         profileImage: artist.profileImage,
@@ -247,18 +288,29 @@ export function ArtistProfileUpdateModal({
       setError('');
       setSuccess('');
 
+      // Sync pricing form data with formData
+      const updatedFormData = {
+        ...formData,
+        privatePricing: pricingForm.privatePricing,
+        publicPricing: pricingForm.publicPricing,
+        workshopPricing: pricingForm.workshopPricing,
+      };
+
       // Validate that at least some data is provided
       const hasChanges = 
-        (formData.genres && formData.genres.length > 0) ||
-        (formData.skills && formData.skills.length > 0) ||
-        (formData.category && formData.category.trim()) ||
-        (formData.about && formData.about.trim()) ||
-        (formData.yearsOfExperience !== undefined && formData.yearsOfExperience !== null) ||
-        (formData.pricePerHour !== undefined && formData.pricePerHour !== null) ||
-        (formData.musicLanguages && formData.musicLanguages.length > 0) ||
-        (formData.awards && formData.awards.length > 0) ||
-        (formData.performPreference && formData.performPreference.length > 0) ||
-        (formData.youtubeLink && formData.youtubeLink.trim()) ||
+        (updatedFormData.genres && updatedFormData.genres.length > 0) ||
+        (updatedFormData.skills && updatedFormData.skills.length > 0) ||
+        (updatedFormData.category && updatedFormData.category.trim()) ||
+        (updatedFormData.about && updatedFormData.about.trim()) ||
+        (updatedFormData.yearsOfExperience !== undefined && updatedFormData.yearsOfExperience !== null) ||
+        (updatedFormData.pricePerHour !== undefined && updatedFormData.pricePerHour !== null) ||
+        (updatedFormData.musicLanguages && updatedFormData.musicLanguages.length > 0) ||
+        (updatedFormData.awards && updatedFormData.awards.length > 0) ||
+        (updatedFormData.performPreference && updatedFormData.performPreference.length > 0) ||
+        (updatedFormData.youtubeLink && updatedFormData.youtubeLink.trim()) ||
+        (updatedFormData.gender && updatedFormData.gender.trim()) ||
+        (updatedFormData.artistType && updatedFormData.artistType.trim()) ||
+        (updatedFormData.country && updatedFormData.country.trim()) ||
         files.profileImage || files.profileCoverImage;
 
       if (!hasChanges) {
@@ -267,10 +319,10 @@ export function ArtistProfileUpdateModal({
       }
 
       // Debug: Log the data being sent
-      console.log('Form Data being sent:', formData);
+      console.log('Form Data being sent:', updatedFormData);
       console.log('Files being sent:', files);
 
-      await ArtistService.requestProfileUpdate(formData, files);
+      await ArtistService.requestProfileUpdate(updatedFormData, files);
       
       setSuccess('Profile update request submitted successfully! An administrator will review your changes.');
       
@@ -593,6 +645,51 @@ export function ArtistProfileUpdateModal({
                   />
                 </div>
 
+                {/* New Fields: Gender, Artist Type, Country */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Gender
+                    </label>
+                    <select
+                      value={formData.gender || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, gender: e.target.value }))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Artist Type
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.artistType || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, artistType: e.target.value }))}
+                      placeholder="e.g., Musician, Dancer, Singer"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Country
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.country || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
+                      placeholder="e.g., Kuwait"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
                 {/* Years of Experience & Price Per Hour */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
@@ -622,6 +719,20 @@ export function ArtistProfileUpdateModal({
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
+                </div>
+
+                {/* Pricing Settings */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-4">
+                    Pricing Settings (Optional)
+                  </label>
+                  <PricingSettings
+                    pricingForm={pricingForm}
+                    setPricingForm={setPricingForm}
+                    artistSettings={artistSettings}
+                    setArtistSettings={setArtistSettings}
+                    userRole="artist"
+                  />
                 </div>
 
                 {/* Music Languages */}

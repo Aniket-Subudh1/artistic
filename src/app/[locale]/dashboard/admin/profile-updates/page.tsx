@@ -362,14 +362,33 @@ export default function AdminProfileUpdatesPage() {
                         <div className="text-sm text-gray-900">
                           {request.type === 'PORTFOLIO_ITEM' 
                             ? request.requestedChanges?.title || 'New portfolio item'
-                            : `${request.requestedChanges ? Object.keys(request.requestedChanges).length : 0} field(s)`
+                            : `${request.requestedChanges ? Object.keys(request.requestedChanges).length : 0} field(s) to update`
                           }
                         </div>
                         <div className="text-sm text-gray-500">
                           {request.requestedChanges ? (
                             <>
-                              {Object.keys(request.requestedChanges).slice(0, 2).join(', ')}
-                              {Object.keys(request.requestedChanges).length > 2 && '...'}
+                              {(() => {
+                                const getFieldLabel = (fieldKey: string): string => {
+                                  const labelMap: { [key: string]: string } = {
+                                    'yearsOfExperience': 'Experience',
+                                    'pricePerHour': 'Hourly Rate',
+                                    'musicLanguages': 'Languages',
+                                    'youtubeLink': 'YouTube',
+                                    'artistType': 'Type',
+                                    'performPreference': 'Preferences',
+                                    'profileImage': 'Photo',
+                                    'profileCoverImage': 'Cover',
+                                    'privatePricing': 'Private Pricing',
+                                    'publicPricing': 'Public Pricing',
+                                    'workshopPricing': 'Workshop Pricing'
+                                  };
+                                  return labelMap[fieldKey] || fieldKey.replace(/([A-Z])/g, ' $1').trim();
+                                };
+                                const fieldLabels = Object.keys(request.requestedChanges).map(getFieldLabel);
+                                return fieldLabels.slice(0, 3).join(', ');
+                              })()}
+                              {Object.keys(request.requestedChanges).length > 3 && ` +${Object.keys(request.requestedChanges).length - 3} more`}
                             </>
                           ) : (
                             'No changes specified'
@@ -452,10 +471,62 @@ export default function AdminProfileUpdatesPage() {
                     </div>
                   </div>
 
+                  {/* Changes Summary */}
+                  {selectedRequest.type !== 'PORTFOLIO_ITEM' && selectedRequest.requestedChanges && (
+                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <h3 className="text-sm font-medium text-blue-900 mb-3">Changes Summary</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {Object.keys(selectedRequest.requestedChanges).map((key) => {
+                          const getFieldLabel = (fieldKey: string): string => {
+                            const labelMap: { [key: string]: string } = {
+                              'yearsOfExperience': 'Experience',
+                              'pricePerHour': 'Hourly Rate',
+                              'musicLanguages': 'Languages',
+                              'youtubeLink': 'YouTube',
+                              'artistType': 'Artist Type',
+                              'performPreference': 'Preferences',
+                              'profileImage': 'Profile Photo',
+                              'profileCoverImage': 'Cover Photo',
+                              'privatePricing': 'Private Pricing',
+                              'publicPricing': 'Public Pricing',
+                              'workshopPricing': 'Workshop Pricing'
+                            };
+                            return labelMap[fieldKey] || fieldKey.replace(/([A-Z])/g, ' $1').trim();
+                          };
+                          
+                          // Highlight important fields with different colors
+                          const getFieldColor = (fieldKey: string): string => {
+                            if (fieldKey.includes('Pricing')) return 'bg-orange-100 text-orange-800';
+                            if (fieldKey === 'pricePerHour') return 'bg-red-100 text-red-800';
+                            if (fieldKey === 'gender' || fieldKey === 'artistType' || fieldKey === 'country') return 'bg-purple-100 text-purple-800';
+                            return 'bg-blue-100 text-blue-800';
+                          };
+                          
+                          return (
+                            <span key={key} className={`px-2 py-1 rounded text-xs font-medium ${getFieldColor(key)}`}>
+                              {getFieldLabel(key)}
+                            </span>
+                          );
+                        })}
+                      </div>
+                      <div className="flex items-center justify-between mt-3">
+                        <p className="text-xs text-blue-700">
+                          {Object.keys(selectedRequest.requestedChanges).length} field{Object.keys(selectedRequest.requestedChanges).length !== 1 ? 's' : ''} being updated
+                        </p>
+                        {Object.keys(selectedRequest.requestedChanges).some(key => key.includes('Pricing') || key === 'pricePerHour') && (
+                          <div className="flex items-center space-x-1">
+                            <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
+                            <span className="text-xs text-orange-700 font-medium">Contains pricing changes</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Requested Changes */}
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 mb-4">
-                      {selectedRequest.type === 'PORTFOLIO_ITEM' ? 'Portfolio Item Details' : 'Requested Changes'}
+                      {selectedRequest.type === 'PORTFOLIO_ITEM' ? 'Portfolio Item Details' : 'Detailed Changes'}
                     </h3>
                     
                     {selectedRequest.type === 'PORTFOLIO_ITEM' ? (
@@ -510,14 +581,73 @@ export default function AdminProfileUpdatesPage() {
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {selectedRequest.requestedChanges ? Object.entries(selectedRequest.requestedChanges).map(([key, value]) => (
+                        {selectedRequest.requestedChanges ? Object.entries(selectedRequest.requestedChanges).map(([key, value]) => {
+                          // Create better field labels for display
+                          const getFieldLabel = (fieldKey: string): string => {
+                            const labelMap: { [key: string]: string } = {
+                              'yearsOfExperience': 'Years of Experience',
+                              'pricePerHour': 'Price Per Hour (KWD)',
+                              'musicLanguages': 'Music Languages',
+                              'youtubeLink': 'YouTube Link',
+                              'artistType': 'Artist Type',
+                              'performPreference': 'Performance Preferences',
+                              'profileImage': 'Profile Image',
+                              'profileCoverImage': 'Cover Image',
+                              'privatePricing': 'Private Event Pricing',
+                              'publicPricing': 'Public Event Pricing',
+                              'workshopPricing': 'Workshop Pricing'
+                            };
+                            return labelMap[fieldKey] || fieldKey.replace(/([A-Z])/g, ' $1').trim();
+                          };
+
+                          return (
                           <div key={key} className="p-4 border border-gray-200 rounded-lg">
                             <p className="text-sm font-medium text-gray-700 capitalize mb-2">
-                              {key.replace(/([A-Z])/g, ' $1').trim()}
+                              {getFieldLabel(key)}
                             </p>
                             <div className="text-sm text-gray-900">
-                              {/* Handle media fields specifically */}
-                              {(key === 'profileImage' || key === 'profileCoverImage') && typeof value === 'string' && value && (value.includes('http') || value.includes('amazonaws.com') || value.includes('s3')) ? (
+                              {/* Handle special fields */}
+                              {key === 'gender' && typeof value === 'string' ? (
+                                <div className="flex items-center space-x-2">
+                                  <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                                    {value}
+                                  </span>
+                                </div>
+                              ) : key === 'artistType' && typeof value === 'string' ? (
+                                <div className="flex items-center space-x-2">
+                                  <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+                                    {value}
+                                  </span>
+                                </div>
+                              ) : key === 'country' && typeof value === 'string' ? (
+                                <div className="flex items-center space-x-2">
+                                  <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                                    {value}
+                                  </span>
+                                </div>
+                              ) : /* Handle pricing fields specifically */
+                              (key === 'privatePricing' || key === 'publicPricing' || key === 'workshopPricing') && Array.isArray(value) ? (
+                                <div className="space-y-2">
+                                  {value.length > 0 ? (
+                                    <div className="bg-gray-50 rounded-lg p-3">
+                                      <p className="text-xs font-medium text-gray-600 mb-2 uppercase tracking-wide">
+                                        {key.replace('Pricing', '').replace(/([A-Z])/g, ' $1').trim()} Event Pricing
+                                      </p>
+                                      <div className="space-y-1">
+                                        {value.map((pricing: any, index: number) => (
+                                          <div key={index} className="flex justify-between items-center text-xs">
+                                            <span className="text-gray-600">{pricing.hours} hour{pricing.hours !== 1 ? 's' : ''}</span>
+                                            <span className="font-medium text-gray-900">{pricing.amount} KWD</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <span className="text-gray-500 italic">No pricing set</span>
+                                  )}
+                                </div>
+                              ) : /* Handle media fields specifically */
+                              (key === 'profileImage' || key === 'profileCoverImage') && typeof value === 'string' && value && (value.includes('http') || value.includes('amazonaws.com') || value.includes('s3')) ? (
                                 <div className="space-y-2">
                                   <div className="relative">
                                     <img 
@@ -591,12 +721,15 @@ export default function AdminProfileUpdatesPage() {
                                     Show More
                                   </button>
                                 </div>
+                              ) : value === null || value === undefined || value === '' ? (
+                                <span className="text-gray-400 italic text-sm">No value provided</span>
                               ) : (
                                 <p className="break-words">{String(value)}</p>
                               )}
                             </div>
                           </div>
-                        )) : (
+                          );
+                        }) : (
                           <div className="col-span-2 text-center py-8 text-gray-500">
                             No changes specified
                           </div>

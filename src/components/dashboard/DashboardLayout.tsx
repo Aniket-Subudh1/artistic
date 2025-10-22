@@ -6,6 +6,8 @@ import { useRouter } from '@/i18n/routing';
 import { User } from '@/types/dashboard';
 import { UserProfile } from './UserProfile';
 import { Sidebar } from './Sidebar';
+import { DashboardTopNavigation } from './DashboardTopNavigation';
+import { DashboardFloatingNav } from './DashboardFloatingNav';
 
 interface DashboardLayoutProps {
   user: User;
@@ -121,12 +123,15 @@ export function DashboardLayout({ user, children, onLogout, onEditProfilePicture
           <div className="p-6 md:p-8">
             <div className="min-h-[calc(100vh-3rem)] bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="p-6 md:p-8 h-full">
+                <DashboardTopNavigation />
                 {children}
               </div>
             </div>
           </div>
         </main>
-
+        
+        {/* Floating Navigation */}
+        <DashboardFloatingNav />
       </div>
     </div>
   );

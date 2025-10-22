@@ -18,6 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://artistic.global'),
   title: {
     default: "Artistic - Your Creative Events & Talent Hub",
     template: "%s | Artistic"
@@ -62,7 +63,7 @@ export const metadata: Metadata = {
     creator: "@artistic",
     title: "Artistic - Your Creative Events & Talent Hub",
     description: "Discover and book talented artists, rent professional equipment, and create unforgettable events.",
-    images: ["https://yourwebsite.com/twitter-image.jpg"], 
+    images: ["/banner.png"], 
   },
 
   icons: {
@@ -103,7 +104,7 @@ export const metadata: Metadata = {
   category: "Events & Entertainment",
 
   alternates: {
-    canonical: "https://artistic.global/", 
+    canonical: "/", 
   },
 };
 
@@ -150,8 +151,8 @@ export default async function RootLayout({
               "@context": "https://schema.org",
               "@type": "Organization",
               "name": "Artistic",
-              "url": "https://yourwebsite.com",
-              "logo": "https://yourwebsite.com/logo.png",
+              "url": "https://artistic.global",
+              "logo": "https://artistic.global/logo.png",
               "description": "Discover and book talented artists, rent professional equipment, and create unforgettable events.",
               "sameAs": [
                 "https://facebook.com/artistic",
