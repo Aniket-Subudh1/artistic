@@ -129,12 +129,12 @@ interface ViewportInfo {
 
 // Performance optimized rendering constants
 const VIEWPORT_PADDING = 100;
-const MAX_ITEMS_PER_FRAME = 1000; // Increased for better UX
+const MAX_ITEMS_PER_FRAME = 300; // Reduced to prevent performance issues with 250+ seats
 const SEAT_SIZE = 24;
 const MIN_ZOOM = 0.1; // Allow more zoom out for large venues
 const MAX_ZOOM = 5;   // Allow more zoom in for precision
 const VIEWPORT_UPDATE_DEBOUNCE = 50; // ms
-const RENDER_CHUNK_SIZE = 200; // Items to render per chunk
+const RENDER_CHUNK_SIZE = 100; // Items to render per chunk - reduced for smoother progressive rendering
 
 // Utility function for debouncing
 const debounce = (func: Function, wait: number) => {
@@ -595,9 +595,11 @@ const SeatMapRenderer: React.FC<{
     );
   };
 
-  // Chunked rendering for large venues
+  // Chunked rendering for large venues - Fixed progressive rendering
   const [renderChunkIndex, setRenderChunkIndex] = useState(0);
   const [isRendering, setIsRendering] = useState(false);
+  const renderingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const renderingRequestRef = useRef<number | null>(null);
 
   const renderChunks = useMemo(() => {
     const chunks = [];
@@ -607,35 +609,84 @@ const SeatMapRenderer: React.FC<{
     return chunks;
   }, [visibleItems]);
 
-  // Progressive rendering for large datasets
+  // Improved progressive rendering with proper cleanup
   useEffect(() => {
-    if (renderChunks.length > 1 && !isRendering) {
+    // Clean up any existing rendering process
+    if (renderingTimeoutRef.current) {
+      clearTimeout(renderingTimeoutRef.current);
+      renderingTimeoutRef.current = null;
+    }
+    if (renderingRequestRef.current) {
+      cancelAnimationFrame(renderingRequestRef.current);
+      renderingRequestRef.current = null;
+    }
+
+    if (renderChunks.length > 1) {
       setIsRendering(true);
       setRenderChunkIndex(0);
       
+      let currentChunk = 0;
+      const startTime = Date.now();
+      const maxRenderTime = 5000; // 5 seconds max for progressive rendering
+      
       const renderNextChunk = () => {
-        setRenderChunkIndex(prev => {
-          const next = prev + 1;
-          if (next < renderChunks.length) {
-            setTimeout(renderNextChunk, 16); // ~60fps
-            return next;
-          } else {
-            setIsRendering(false);
-            return prev;
-          }
-        });
+        currentChunk++;
+        setRenderChunkIndex(currentChunk);
+        
+        // Safety check: if too much time has passed, render everything at once
+        if (Date.now() - startTime > maxRenderTime) {
+          setRenderChunkIndex(renderChunks.length - 1);
+          setIsRendering(false);
+          renderingTimeoutRef.current = null;
+          renderingRequestRef.current = null;
+          return;
+        }
+        
+        if (currentChunk < renderChunks.length - 1) {
+          renderingRequestRef.current = requestAnimationFrame(() => {
+            renderingTimeoutRef.current = setTimeout(renderNextChunk, 8); 
+          });
+        } else {
+          setIsRendering(false);
+          renderingTimeoutRef.current = null;
+          renderingRequestRef.current = null;
+        }
       };
       
-      setTimeout(renderNextChunk, 16);
+      // Start the rendering process
+      renderingRequestRef.current = requestAnimationFrame(() => {
+        renderingTimeoutRef.current = setTimeout(renderNextChunk, 8);
+      });
+    } else {
+      setIsRendering(false);
+      setRenderChunkIndex(0);
     }
-  }, [renderChunks.length, isRendering]);
+
+    // Cleanup on unmount or when dependencies change
+    return () => {
+      if (renderingTimeoutRef.current) {
+        clearTimeout(renderingTimeoutRef.current);
+        renderingTimeoutRef.current = null;
+      }
+      if (renderingRequestRef.current) {
+        cancelAnimationFrame(renderingRequestRef.current);
+        renderingRequestRef.current = null;
+      }
+    };
+  }, [renderChunks.length]);
 
   const itemsToRender = useMemo(() => {
     if (renderChunks.length <= 1) {
       return visibleItems;
     }
+    
+    // Safety check: if rendering is taking too long, render all items
+    if (renderChunkIndex >= renderChunks.length - 1 || !isRendering) {
+      return visibleItems;
+    }
+    
     return renderChunks.slice(0, renderChunkIndex + 1).flat();
-  }, [renderChunks, renderChunkIndex, visibleItems]);
+  }, [renderChunks, renderChunkIndex, visibleItems, isRendering]);
 
   const renderItem = useCallback((item: VenueItem) => {
     const color = getItemColor(item);
@@ -942,15 +993,37 @@ const SeatMapRenderer: React.FC<{
         
         {/* Loading indicator for chunked rendering */}
         {isRendering && renderChunks.length > 1 && (
-          <text
-            x={layout.canvas.w - 100}
-            y={30}
-            fill="#666"
-            fontSize="12"
-            textAnchor="middle"
-          >
-            Rendering... {Math.round((renderChunkIndex + 1) / renderChunks.length * 100)}%
-          </text>
+          <g>
+            <rect
+              x={layout.canvas.w - 160}
+              y={10}
+              width={150}
+              height={30}
+              fill="rgba(255, 255, 255, 0.9)"
+              stroke="#e5e7eb"
+              strokeWidth="1"
+              rx="4"
+            />
+            <text
+              x={layout.canvas.w - 85}
+              y={25}
+              fill="#374151"
+              fontSize="12"
+              textAnchor="middle"
+              fontWeight="500"
+            >
+              Loading seats...
+            </text>
+            <text
+              x={layout.canvas.w - 85}
+              y={37}
+              fill="#6b7280"
+              fontSize="10"
+              textAnchor="middle"
+            >
+              {Math.round((renderChunkIndex + 1) / renderChunks.length * 100)}%
+            </text>
+          </g>
         )}
         
         {/* Preview Mode Rendering */}
