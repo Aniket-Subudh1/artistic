@@ -1,12 +1,4 @@
-/**
- * Utility functions for YouTube URL handling
- */
 
-/**
- * Converts a YouTube URL to an embeddable format
- * @param url - YouTube URL (e.g., https://www.youtube.com/watch?v=dQw4w9WgXcQ)
- * @returns Embeddable YouTube URL or null if invalid
- */
 export function getYouTubeEmbedUrl(url: string): string | null {
   if (!url || typeof url !== 'string') return null;
 

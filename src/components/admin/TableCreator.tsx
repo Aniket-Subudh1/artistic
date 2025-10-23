@@ -35,6 +35,7 @@ export interface TableCreationData {
   tableSize: { width: number; height: number };
   categoryId?: string;
   tableLabel?: string;
+  tablePrice?: number;
 }
 
 const TableCreator: React.FC<TableCreatorProps> = ({
@@ -53,6 +54,7 @@ const TableCreator: React.FC<TableCreatorProps> = ({
   const [categoryId, setCategoryId] = useState('');
   const [tableLabel, setTableLabel] = useState('');
   const [tableSize, setTableSize] = useState({ width: 50, height: 50 });
+  const [tablePrice, setTablePrice] = useState<number | ''>('');
   
   // Preview mode state
   const [previewMode, setPreviewMode] = useState(false);
@@ -70,13 +72,18 @@ const TableCreator: React.FC<TableCreatorProps> = ({
 
   const handleCreate = () => {
     if (seatCount < 1) return;
+    if (tablePrice === '' || isNaN(Number(tablePrice)) || Number(tablePrice) <= 0) {
+      alert('Please enter a valid table price.');
+      return;
+    }
 
     const tableData: TableCreationData = {
       shape,
       seatCount,
       tableSize,
       categoryId: categoryId || undefined,
-      tableLabel: tableLabel || undefined
+      tableLabel: tableLabel || undefined,
+      tablePrice: Number(tablePrice)
     };
 
     // Use placement mode if callback is provided
@@ -96,7 +103,8 @@ const TableCreator: React.FC<TableCreatorProps> = ({
     setSeatCount(4);
     setCategoryId('');
     setTableLabel('');
-    setTableSize({ width: 80, height: 80 });
+    setTableSize({ width: 40, height: 40 });
+    setTablePrice('');
   };
 
   const handleShapeChange = (newShape: TableCreationData['shape']) => {
@@ -106,16 +114,16 @@ const TableCreator: React.FC<TableCreatorProps> = ({
     switch (newShape) {
       case 'round':
       case 'square':
-        setTableSize({ width: 80, height: 80 });
+        setTableSize({ width: 40, height: 40 });
         break;
       case 'rectangle':
-        setTableSize({ width: 120, height: 60 });
+        setTableSize({ width: 60, height: 30 });
         break;
       case 'triangle':
-        setTableSize({ width: 90, height: 78 });
+        setTableSize({ width: 45, height: 39 });
         break;
       case 'semi-circle':
-        setTableSize({ width: 100, height: 50 });
+        setTableSize({ width: 50, height: 25 });
         break;
     }
   };
@@ -398,6 +406,24 @@ const TableCreator: React.FC<TableCreatorProps> = ({
             />
           </div>
 
+          {/* Table Price (required) */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Table Price</label>
+            <Input
+              type="number"
+              value={tablePrice}
+              onChange={(e) => {
+                const val = e.target.value;
+                setTablePrice(val === '' ? '' : parseFloat(val));
+              }}
+              placeholder="e.g., 100"
+              className="text-sm"
+              min={1}
+              required
+            />
+            <p className="text-[11px] text-gray-500 mt-1">Required. Enter a positive amount.</p>
+          </div>
+
           {/* Seat Category */}
           {categories.length > 0 && (
             <div>
@@ -410,7 +436,7 @@ const TableCreator: React.FC<TableCreatorProps> = ({
                 <option value="">Default Category</option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
-                    {category.name} - ${category.price}
+                    {category.name} - KD {category.price}
                   </option>
                 ))}
               </select>
@@ -519,11 +545,11 @@ const TableCreator: React.FC<TableCreatorProps> = ({
             </Button>
             {!previewMode && (
               <>
-                <Button variant="outline" onClick={handleStartPreview} disabled={seatCount < 1}>
+                <Button variant="outline" onClick={handleStartPreview} disabled={seatCount < 1 || tablePrice === '' || Number(tablePrice) <= 0}>
                   <Eye className="w-4 h-4 mr-2" />
                   Preview Mode
                 </Button>
-                <Button onClick={handleCreate} disabled={seatCount < 1}>
+                <Button onClick={handleCreate} disabled={seatCount < 1 || tablePrice === '' || Number(tablePrice) <= 0}>
                   {onStartPlacement ? 'Start Placement' : 'Create Table & Seats'}
                 </Button>
               </>

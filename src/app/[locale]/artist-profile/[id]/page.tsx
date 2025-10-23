@@ -350,7 +350,7 @@ export default function ArtistProfilePage() {
                     
                     {/* Category Badge */}
                     <div className="inline-flex items-center bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white px-6 py-3 rounded-full text-sm font-semibold shadow-lg">
-                      <Music className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
+                      <Star className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
                       {(translatedArtist as Artist).category || 'Artist'}
                     </div>
                   </div>
@@ -358,7 +358,7 @@ export default function ArtistProfilePage() {
                   {/* Performance Modes */}
                   <div className="mb-8">
                     <h3 className="text-base font-semibold text-gray-800 mb-4 flex items-center">
-                      <Music className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2 text-[#391C71]" />
+                      <Star className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2 text-[#391C71]" />
                       {t('artistProfile.performanceModes')}
                     </h3>
                     <div className="flex flex-wrap gap-3">
@@ -452,6 +452,112 @@ export default function ArtistProfilePage() {
                 </div>
               </div>
             )}
+
+            {/* Skills & Details Grid - moved above Pricing */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Skills */}
+              {(translatedArtist as Artist).skills && (translatedArtist as Artist).skills.length > 0 && (
+                <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 rtl:right-auto rtl:left-0 w-16 h-16 bg-gradient-to-bl rtl:bg-gradient-to-br from-[#391C71]/20 to-transparent rounded-bl-full rtl:rounded-bl-none rtl:rounded-br-full"></div>
+                  <div className="relative z-10">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                      <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3 rtl:mr-0 rtl:ml-3">
+                        <Star className="w-4 h-4 text-white" />
+                      </div>
+                      {t('artistProfile.skills')}
+                    </h3>
+                    <div className="flex flex-wrap gap-3">
+                      {(translatedArtist as Artist).skills.map((skill, index) => (
+                        <span
+                          key={index}
+                          className="bg-gradient-to-r from-[#391C71]/10 to-purple-100 text-[#391C71] px-3 py-2 rounded-2xl text-sm font-semibold border border-[#391C71]/20 hover:scale-105 transition-transform duration-200 shadow-sm"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Languages */}
+              {(translatedArtist as Artist).musicLanguages && (translatedArtist as Artist).musicLanguages.length > 0 && (
+                <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 rtl:right-auto rtl:left-0 w-16 h-16 bg-gradient-to-bl rtl:bg-gradient-to-br from-[#391C71]/20 to-transparent rounded-bl-full rtl:rounded-bl-none rtl:rounded-br-full"></div>
+                  <div className="relative z-10">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                      <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3 rtl:mr-0 rtl:ml-3">
+                        <Globe className="w-4 h-4 text-white" />
+                      </div>
+                      {t('artistProfile.languages')}
+                    </h3>
+                    <div className="flex flex-wrap gap-3">
+                      {(translatedArtist as Artist).musicLanguages.map((language, index) => (
+                        <span
+                          key={index}
+                          className="bg-gradient-to-r from-[#391C71]/10 to-purple-100 text-[#391C71] px-3 py-2 rounded-2xl text-sm font-semibold border border-[#391C71]/20 hover:scale-105 transition-transform duration-200 shadow-sm"
+                        >
+                          {language}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Genres */}
+              {(translatedArtist as Artist).genres && (translatedArtist as Artist).genres.length > 0 && (
+                <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 rtl:right-auto rtl:left-0 w-16 h-16 bg-gradient-to-bl rtl:bg-gradient-to-br from-[#391C71]/20 to-transparent rounded-bl-full rtl:rounded-bl-none rtl:rounded-br-full"></div>
+                  <div className="relative z-10">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                      <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3 rtl:mr-0 rtl:ml-3">
+                        <Users className="w-4 h-4 text-white" />
+                      </div>
+                      {t('artistProfile.genres')}
+                    </h3>
+                    <div className="flex flex-wrap gap-3">
+                      {(translatedArtist as Artist).genres.map((genre, index) => (
+                        <span
+                          key={index}
+                          className="bg-gradient-to-r from-[#391C71]/10 to-purple-100 text-[#391C71] px-3 py-2 rounded-2xl text-sm font-semibold border border-[#391C71]/20 hover:scale-105 transition-transform duration-200 shadow-sm"
+                        >
+                          {genre}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Awards */}
+              {(translatedArtist as Artist).awards && (translatedArtist as Artist).awards.length > 0 && (
+                <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#391C71]/20 to-transparent rounded-bl-full"></div>
+                  <div className="relative z-10">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                      <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3 rtl:mr-0 rtl:ml-3">
+                        <Award className="w-4 h-4 text-white" />
+                      </div>
+                      {t('artistProfile.awards')}
+                    </h3>
+                    <div className="space-y-3">
+                      {(translatedArtist as Artist).awards.map((award, index) => (
+                        <div
+                          key={index}
+                          className="bg-gradient-to-r from-[#391C71]/10 to-purple-100 border-l-4 rtl:border-l-0 rtl:border-r-4 border-[#391C71] p-3 rounded-r-2xl rtl:rounded-r-none rtl:rounded-l-2xl shadow-sm hover:shadow-md transition-shadow duration-200"
+                        >
+                          <p className="text-gray-800 font-semibold text-sm flex items-center">
+                            <Award className="w-3 h-3 text-[#391C71] mr-2 rtl:mr-0 rtl:ml-2" />
+                            {award}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {(() => {
               
@@ -586,112 +692,7 @@ export default function ArtistProfilePage() {
               </div>
             )}
 
-            {/* Skills & Details Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              
-              {/* Skills */}
-              {(translatedArtist as Artist).skills && (translatedArtist as Artist).skills.length > 0 && (
-                <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 rtl:right-auto rtl:left-0 w-16 h-16 bg-gradient-to-bl rtl:bg-gradient-to-br from-[#391C71]/20 to-transparent rounded-bl-full rtl:rounded-bl-none rtl:rounded-br-full"></div>
-                  <div className="relative z-10">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                      <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3 rtl:mr-0 rtl:ml-3">
-                        <Music className="w-4 h-4 text-white" />
-                      </div>
-                      {t('artistProfile.skills')}
-                    </h3>
-                    <div className="flex flex-wrap gap-3">
-                      {(translatedArtist as Artist).skills.map((skill, index) => (
-                        <span
-                          key={index}
-                          className="bg-gradient-to-r from-[#391C71]/10 to-purple-100 text-[#391C71] px-3 py-2 rounded-2xl text-sm font-semibold border border-[#391C71]/20 hover:scale-105 transition-transform duration-200 shadow-sm"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Languages */}
-              {(translatedArtist as Artist).musicLanguages && (translatedArtist as Artist).musicLanguages.length > 0 && (
-                <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 rtl:right-auto rtl:left-0 w-16 h-16 bg-gradient-to-bl rtl:bg-gradient-to-br from-[#391C71]/20 to-transparent rounded-bl-full rtl:rounded-bl-none rtl:rounded-br-full"></div>
-                  <div className="relative z-10">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                      <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3 rtl:mr-0 rtl:ml-3">
-                        <Globe className="w-4 h-4 text-white" />
-                      </div>
-                      {t('artistProfile.languages')}
-                    </h3>
-                    <div className="flex flex-wrap gap-3">
-                      {(translatedArtist as Artist).musicLanguages.map((language, index) => (
-                        <span
-                          key={index}
-                          className="bg-gradient-to-r from-[#391C71]/10 to-purple-100 text-[#391C71] px-3 py-2 rounded-2xl text-sm font-semibold border border-[#391C71]/20 hover:scale-105 transition-transform duration-200 shadow-sm"
-                        >
-                          {language}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Genres */}
-              {(translatedArtist as Artist).genres && (translatedArtist as Artist).genres.length > 0 && (
-                <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 rtl:right-auto rtl:left-0 w-16 h-16 bg-gradient-to-bl rtl:bg-gradient-to-br from-[#391C71]/20 to-transparent rounded-bl-full rtl:rounded-bl-none rtl:rounded-br-full"></div>
-                  <div className="relative z-10">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                      <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3 rtl:mr-0 rtl:ml-3">
-                        <Users className="w-4 h-4 text-white" />
-                      </div>
-                      {t('artistProfile.genres')}
-                    </h3>
-                    <div className="flex flex-wrap gap-3">
-                      {(translatedArtist as Artist).genres.map((genre, index) => (
-                        <span
-                          key={index}
-                          className="bg-gradient-to-r from-[#391C71]/10 to-purple-100 text-[#391C71] px-3 py-2 rounded-2xl text-sm font-semibold border border-[#391C71]/20 hover:scale-105 transition-transform duration-200 shadow-sm"
-                        >
-                          {genre}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Awards */}
-              {(translatedArtist as Artist).awards && (translatedArtist as Artist).awards.length > 0 && (
-                <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#391C71]/20 to-transparent rounded-bl-full"></div>
-                  <div className="relative z-10">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                      <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3 rtl:mr-0 rtl:ml-3">
-                        <Award className="w-4 h-4 text-white" />
-                      </div>
-                      {t('artistProfile.awards')}
-                    </h3>
-                    <div className="space-y-3">
-                      {(translatedArtist as Artist).awards.map((award, index) => (
-                        <div
-                          key={index}
-                          className="bg-gradient-to-r from-[#391C71]/10 to-purple-100 border-l-4 rtl:border-l-0 rtl:border-r-4 border-[#391C71] p-3 rounded-r-2xl rtl:rounded-r-none rtl:rounded-l-2xl shadow-sm hover:shadow-md transition-shadow duration-200"
-                        >
-                          <p className="text-gray-800 font-semibold text-sm flex items-center">
-                            <Award className="w-3 h-3 text-[#391C71] mr-2 rtl:mr-0 rtl:ml-2" />
-                            {award}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+            {/* Skills & Details Grid (moved above) - removed duplicate below */}
 
             {/* Video */}
             {artist.youtubeLink && getYouTubeEmbedUrl(artist.youtubeLink) && (
@@ -700,7 +701,7 @@ export default function ArtistProfilePage() {
                 <div className="relative z-10">
                   <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
                     <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3 rtl:mr-0 rtl:ml-3">
-                      <Music className="w-4 h-4 text-white" />
+                      <Star className="w-4 h-4 text-white" />
                     </div>
                     {t('artistProfile.demoVideo')}
                   </h3>

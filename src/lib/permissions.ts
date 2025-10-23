@@ -373,13 +373,23 @@ export const getSidebarItems = (): SidebarItem[] => [
         href: '/dashboard/admin/venues',
         roles: ['super_admin', 'admin'],
       },
+      // Admin Venue Layouts
       {
-        id: 'venue-layouts',
+        id: 'venue-layouts-admin',
         label: 'Venue Layouts',
         labelAr: 'تخطيطات الأماكن',
         icon: 'LayoutGrid',
         href: '/dashboard/admin/venue-layouts',
-        roles: ['super_admin', 'admin', 'venue_owner'],
+        roles: ['super_admin', 'admin'],
+      },
+      // Venue Owner Layouts
+      {
+        id: 'venue-layouts-owner',
+        label: 'Venue Layouts',
+        labelAr: 'تخطيطات الأماكن',
+        icon: 'LayoutGrid',
+        href: '/dashboard/venue-owner/layouts',
+        roles: ['venue_owner'],
       },
       {
         id: 'venue-providers',

@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useRouter as useI18nRouter } from '@/i18n/routing';
 import Image from 'next/image';
 import { 
   Calendar, Clock, MapPin, User, Phone, Mail, 
   Package, CreditCard, ArrowLeft, AlertCircle, CheckCircle,
-  DollarSign, Users, Lock
+  DollarSign, Users, Lock, Tag
 } from 'lucide-react';
 import { 
   customEquipmentPackagesService, 
@@ -81,7 +82,8 @@ interface FormData {
 const BookCustomPackagePage: React.FC = () => {
   const { id } = useParams();
   const router = useRouter();
-  const { user } = useAuthLogic();
+  const i18nRouter = useI18nRouter();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuthLogic();
   
   const [packageData, setPackageData] = useState<CustomEquipmentPackage | null>(null);
   const [loading, setLoading] = useState(true);
@@ -173,6 +175,15 @@ const BookCustomPackagePage: React.FC = () => {
     }
   }, [user]);
 
+  // Require authentication to access booking page
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/';
+      i18nRouter.push(`/auth/signin?returnUrl=${encodeURIComponent(currentPath)}`);
+      return;
+    }
+  }, [authLoading, isAuthenticated, i18nRouter]);
+
   const calculateDays = () => {
     if (formData.isMultiDay) {
       return formData.eventDates.length || 0;
@@ -219,7 +230,8 @@ const BookCustomPackagePage: React.FC = () => {
     e.preventDefault();
     
     if (!user) {
-      router.push('/auth/login');
+      const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/';
+      i18nRouter.push(`/auth/signin?returnUrl=${encodeURIComponent(currentPath)}`);
       return;
     }
 
@@ -387,9 +399,11 @@ const BookCustomPackagePage: React.FC = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-br from-purple-50/80 via-white/50 to-pink-50/80"></div>
       </div>
+      
       <Navbar />
       
-      <div className="relative z-10 max-w-4xl mx-auto px-6 pt-24 pb-8">
+      {/* Main Content */}
+      <div className="relative z-10 max-w-7xl mx-auto px-6 pt-24">
         {/* Header */}
         <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-8 mb-8 relative overflow-hidden">
           {/* Decorative Elements */}
@@ -428,70 +442,205 @@ const BookCustomPackagePage: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Package Details Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-8 sticky top-8 relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-[#391C71]/10 to-transparent rounded-br-full"></div>
-              <div className="absolute bottom-0 right-0 w-16 h-16 bg-gradient-to-tl from-purple-100/20 to-transparent rounded-tl-full"></div>
+          
+          {/* Left Column - Main Package Info */}
+          <div className="lg:col-span-2 space-y-6">
+            
+            {/* Package Profile Card */}
+            <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-8 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-[#391C71]/20 to-transparent rounded-bl-full"></div>
+              <div className="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-tr from-purple-100/50 to-transparent rounded-tr-full"></div>
               
               <div className="relative z-10">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">{packageData?.name}</h2>
-              
-              <p className="text-gray-600 mb-6">{packageData?.description}</p>
-
-              {/* Pricing */}
-              <div className="bg-gradient-to-r from-[#391C71] to-[#5B2C87] rounded-xl p-6 text-white mb-6">
-                <div className="text-center">
-                  <p className="text-sm opacity-90 mb-2">Total Package Price</p>
-                  <p className="text-3xl font-bold">{packageData?.totalPricePerDay} KWD/day</p>
-                  {calculateDays() > 0 && (
-                    <p className="text-sm opacity-90 mt-2">
-                      {calculateDays()} day{calculateDays() !== 1 ? 's' : ''} = {calculateTotalPrice()} KWD
+                <div className="flex flex-col lg:flex-row lg:items-start gap-6">
+                  
+                  {/* Package Image Placeholder */}
+                  <div className="lg:w-48 lg:h-48 w-32 h-32 mx-auto lg:mx-0 relative overflow-hidden rounded-3xl shadow-2xl border-4 border-white group">
+                    <div className="w-full h-full bg-gradient-to-br from-[#391C71] to-[#5B2C87] flex items-center justify-center">
+                      <Package className="w-16 h-16 text-white" />
+                    </div>
+                  </div>
+                  
+                  {/* Package Info */}
+                  <div className="flex-1 text-center lg:text-left">
+                    <h1 className="text-3xl font-bold text-gray-900 mb-3">
+                      {packageData?.name}
+                    </h1>
+                    
+                    <p className="text-gray-600 mb-4 text-base leading-relaxed">
+                      {packageData?.description}
                     </p>
-                  )}
+                    
+                    {/* Custom Package Badge */}
+                    <div className="inline-flex items-center bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white px-6 py-3 rounded-full text-sm font-semibold shadow-lg mb-6">
+                      <Lock className="w-4 h-4 mr-2" />
+                      Custom Equipment Package
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 gap-4 mb-8">
+                  <div className="text-center p-3 bg-gradient-to-r from-[#391C71]/10 to-purple-100 rounded-2xl border border-[#391C71]/20">
+                    <div className="text-2xl font-bold text-[#391C71] mb-1">{packageData?.items.length || 0}</div>
+                    <div className="text-xs text-gray-600 font-medium">Equipment Items</div>
+                    <Package className="w-4 h-4 text-[#391C71] mx-auto mt-2" />
+                  </div>
+                  <div className="text-center p-3 bg-gradient-to-r from-[#391C71]/10 to-purple-100 rounded-2xl border border-[#391C71]/20">
+                    <div className="text-2xl font-bold text-[#391C71] mb-1">{packageData?.totalPricePerDay || 0}</div>
+                    <div className="text-xs text-gray-600 font-medium">KWD Per Day</div>
+                    <div className="text-base text-[#391C71] mx-auto mt-1">💰</div>
+                  </div>
+                </div>
+
+                {/* Created by Info */}
+                <div className="mb-8">
+                  <div className="flex items-center bg-gradient-to-r from-[#391C71]/10 to-purple-100 border border-[#391C71]/20 rounded-2xl p-3">
+                    <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3">
+                      <User className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-medium text-gray-600 uppercase tracking-wide">Created by</div>
+                      <div className="text-base font-bold text-gray-900">
+                        {packageData?.createdBy.firstName} {packageData?.createdBy.lastName}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pricing Display */}
+                <div className="bg-gradient-to-r from-[#391C71] to-[#5B2C87] rounded-2xl p-6 text-white">
+                  <div className="text-center">
+                    <p className="text-sm opacity-90 mb-2">Total Package Price</p>
+                    <p className="text-3xl font-bold">{packageData?.totalPricePerDay} KWD/day</p>
+                    {calculateDays() > 0 && (
+                      <p className="text-sm opacity-90 mt-2">
+                        {calculateDays()} day{calculateDays() !== 1 ? 's' : ''} = {calculateTotalPrice()} KWD
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
+            </div>
 
-              {/* Equipment Items */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-gray-900">Equipment Included</h3>
-                <div className="space-y-3">
+            {/* Equipment Items Section */}
+            <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-[#391C71]/20 to-transparent rounded-br-full"></div>
+              <div className="relative z-10">
+                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                  <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3">
+                    <Package className="w-4 h-4 text-white" />
+                  </div>
+                  Equipment Items ({packageData?.items.length || 0})
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {packageData?.items.map((item, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-900">{item.equipmentId.name}</p>
-                        <p className="text-sm text-gray-600">{item.equipmentId.category}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium text-gray-900">
-                          {item.quantity}x {item.pricePerDay} KWD
-                        </p>
-                        <p className="text-sm text-gray-600">per day</p>
+                    <div
+                      key={index}
+                      className="bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-2xl p-4 border border-[#391C71]/10 hover:shadow-md transition-shadow duration-200"
+                    >
+                      <div className="flex items-center gap-4">
+                        {/* Equipment Image */}
+                        <div className="w-16 h-16 bg-gradient-to-br from-[#391C71]/20 to-purple-200 rounded-xl flex items-center justify-center">
+                          {item.equipmentId.images && item.equipmentId.images.length > 0 ? (
+                            <Image
+                              src={item.equipmentId.images[0]}
+                              alt={item.equipmentId.name}
+                              width={64}
+                              height={64}
+                              className="object-cover rounded-xl"
+                            />
+                          ) : (
+                            <Package className="w-6 h-6 text-[#391C71]" />
+                          )}
+                        </div>
+                        
+                        {/* Equipment Info */}
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-900 text-sm">{item.equipmentId.name}</h3>
+                          <div className="flex items-center gap-2 text-xs text-gray-600">
+                            <Tag className="w-3 h-3" />
+                            <span>{item.equipmentId.category}</span>
+                          </div>
+                          <div className="flex items-center justify-between mt-2">
+                            <span className="text-xs font-semibold text-[#391C71]">
+                              {item.pricePerDay} KWD/day
+                            </span>
+                            <span className="bg-[#391C71] text-white px-2 py-1 rounded-full text-xs">
+                              Qty: {item.quantity}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
+            </div>
 
-                {/* Notes */}
-                {packageData?.notes && (
-                  <div className="mt-6 p-4 bg-yellow-50/80 backdrop-blur-sm border border-yellow-200/50 rounded-2xl shadow-lg">
-                    <h4 className="font-bold text-yellow-800 mb-2">Your Notes</h4>
-                    <p className="text-yellow-700 text-sm">{packageData.notes}</p>
+            {/* Notes Section */}
+            {packageData?.notes && (
+              <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-yellow-400/20 to-transparent rounded-br-full"></div>
+                <div className="relative z-10">
+                  <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-full p-2 mr-3">
+                      <AlertCircle className="w-4 h-4 text-white" />
+                    </div>
+                    Package Notes
+                  </h3>
+                  <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 border border-yellow-200 rounded-2xl p-4">
+                    <p className="text-yellow-800 text-sm leading-relaxed">{packageData.notes}</p>
                   </div>
-                )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Column - Booking Form */}
+          <div className="lg:col-span-1">
+            <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 sticky top-24 relative overflow-hidden">
+              
+              {/* Decorative Elements */}
+              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-[#391C71]/10 to-transparent rounded-bl-full"></div>
+              <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-purple-100/50 to-transparent rounded-tr-full"></div>
+              
+              <div className="relative z-10">
+                {/* Booking Form Header */}
+                <div className="text-center mb-8">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center justify-center">
+                    <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-2 mr-3">
+                      <Calendar className="w-4 h-4 text-white" />
+                    </div>
+                    Book Package
+                  </h3>
+                  
+                  {/* Private Package Notice */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center mb-6">
+                    <Lock className="w-4 h-4 text-blue-600 mr-2" />
+                    <p className="text-blue-800 text-xs">
+                      This is your private custom package.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Booking Form */}
-          <div className="lg:col-span-2">
-            <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-8 relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-28 h-28 bg-gradient-to-br from-[#391C71]/10 to-transparent rounded-br-full"></div>
-              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-purple-100/20 to-transparent rounded-tl-full"></div>
+        {/* Booking Form Section */}
+        <div className="mt-8">
+          <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 lg:p-8 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-28 h-28 bg-gradient-to-br from-[#391C71]/10 to-transparent rounded-br-full"></div>
+            <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-purple-100/20 to-transparent rounded-tl-full"></div>
+            
+            <div className="relative z-10">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Complete Your Booking</h2>
+                <p className="text-gray-600">Fill in your event details to book this custom package</p>
+              </div>
               
-              <div className="relative z-10">
-                <form onSubmit={handleSubmit} className="space-y-8">
+              <form onSubmit={handleSubmit} className="space-y-6">
               {/* Success Message */}
               {success && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center">
@@ -509,11 +658,12 @@ const BookCustomPackagePage: React.FC = () => {
               )}
 
               {/* Event Details */}
-              <div className="bg-white/60 backdrop-blur-lg rounded-2xl shadow-xl border border-white/40 p-8 relative overflow-hidden">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white/60 backdrop-blur-lg rounded-2xl shadow-xl border border-white/40 p-6 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-[#391C71]/10 to-transparent rounded-bl-full"></div>
                 
                 <div className="relative z-10">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                  <h3 className="text-xl lg:text-2xl font-bold text-gray-900 mb-4 flex items-center">
                     <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-2xl p-2 mr-3">
                       <Calendar className="w-5 h-5 text-white" />
                     </div>
@@ -541,7 +691,7 @@ const BookCustomPackagePage: React.FC = () => {
 
                 {!formData.isMultiDay ? (
                   /* Single Day Event */
-                  <div className="grid grid-cols-1 gap-6">
+                  <div className="grid grid-cols-1 gap-4">
                     <div>
                       <label className="block text-sm font-bold text-gray-700 mb-3">
                         Event Date *
@@ -551,7 +701,7 @@ const BookCustomPackagePage: React.FC = () => {
                         value={formData.eventDate}
                         onChange={(e) => setFormData({...formData, eventDate: e.target.value})}
                         min={new Date().toISOString().split('T')[0]}
-                        className="w-full px-6 py-4 bg-white/80 backdrop-blur-sm border border-white/50 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-transparent shadow-lg text-gray-900 font-medium placeholder-gray-500 transition-all duration-200"
+                        className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71] shadow-lg text-gray-900 font-medium placeholder-gray-500 transition-all duration-200"
                         required
                       />
                     </div>
@@ -580,7 +730,7 @@ const BookCustomPackagePage: React.FC = () => {
                             value={eventDate.date}
                             onChange={(e) => updateEventDate(index, 'date', e.target.value)}
                             min={new Date().toISOString().split('T')[0]}
-                            className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391C71] focus:border-transparent"
+                            className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71]"
                             required
                           />
                         </div>
@@ -589,7 +739,7 @@ const BookCustomPackagePage: React.FC = () => {
                             type="time"
                             value={eventDate.startTime}
                             onChange={(e) => updateEventDate(index, 'startTime', e.target.value)}
-                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391C71] focus:border-transparent text-sm"
+                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71] text-sm"
                           />
                         </div>
                         <span className="text-gray-500 text-sm">to</span>
@@ -598,7 +748,7 @@ const BookCustomPackagePage: React.FC = () => {
                             type="time"
                             value={eventDate.endTime}
                             onChange={(e) => updateEventDate(index, 'endTime', e.target.value)}
-                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391C71] focus:border-transparent text-sm"
+                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71] text-sm"
                           />
                         </div>
                         {formData.eventDates.length > 1 && (
@@ -615,7 +765,7 @@ const BookCustomPackagePage: React.FC = () => {
                   </div>
                 )}
 
-                  <div className="mt-6">
+                  <div className="mt-4">
                     <label className="block text-sm font-bold text-gray-700 mb-3">
                       Event Description
                     </label>
@@ -624,18 +774,18 @@ const BookCustomPackagePage: React.FC = () => {
                       value={formData.eventDescription}
                       onChange={(e) => setFormData({...formData, eventDescription: e.target.value})}
                       placeholder="Tell us about your event..."
-                      className="w-full px-6 py-4 bg-white/80 backdrop-blur-sm border border-white/50 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-transparent shadow-lg text-gray-900 placeholder-gray-500 resize-none transition-all duration-200"
+                      className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71] shadow-lg text-gray-900 placeholder-gray-500 resize-none transition-all duration-200"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Contact Information */}
-              <div className="bg-white/60 backdrop-blur-lg rounded-2xl shadow-xl border border-white/40 p-8 relative overflow-hidden">
+              <div className="bg-white/60 backdrop-blur-lg rounded-2xl shadow-xl border border-white/40 p-6 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-purple-100/30 to-transparent rounded-br-full"></div>
                 
                 <div className="relative z-10">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                  <h3 className="text-xl lg:text-2xl font-bold text-gray-900 mb-4 flex items-center">
                     <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-2xl p-2 mr-3">
                       <User className="w-5 h-5 text-white" />
                     </div>
@@ -654,7 +804,7 @@ const BookCustomPackagePage: React.FC = () => {
                         ...formData,
                         userDetails: {...formData.userDetails, name: e.target.value}
                       })}
-                      className="w-full px-6 py-4 bg-white/80 backdrop-blur-sm border border-white/50 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-transparent shadow-lg text-gray-900 font-medium placeholder-gray-500 transition-all duration-200"
+                      className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71] shadow-lg text-gray-900 font-medium placeholder-gray-500 transition-all duration-200"
                       required
                     />
                   </div>
@@ -663,11 +813,11 @@ const BookCustomPackagePage: React.FC = () => {
                     <label className="block text-sm font-bold text-gray-700 mb-3">
                       Phone Number *
                     </label>
-                    <div className="flex">
+                    <div className="flex items-stretch rounded-2xl overflow-hidden bg-white/80 backdrop-blur-sm ring-1 ring-gray-300 focus-within:ring-2 focus-within:ring-[#391C71] shadow-lg">
                       <CountryCodeDropdown
                         selectedCountry={selectedCountry}
                         onCountrySelect={setSelectedCountry}
-                        buttonClassName="border-r-0 rounded-r-none"
+                        buttonClassName="px-4 py-3 bg-transparent border-0 rounded-none"
                       />
                       <input
                         type="tel"
@@ -677,14 +827,14 @@ const BookCustomPackagePage: React.FC = () => {
                           userDetails: {...formData.userDetails, phone: e.target.value}
                         })}
                         placeholder="Your phone number"
-                        className="flex-1 px-6 py-4 bg-white/80 backdrop-blur-sm border border-white/50 border-l-0 rounded-r-2xl focus:ring-2 focus:ring-[#391C71] focus:border-transparent shadow-lg text-gray-900 font-medium placeholder-gray-500 transition-all duration-200"
+                        className="flex-1 px-4 py-3 bg-transparent border-0 focus:outline-none text-gray-900 font-medium placeholder-gray-500"
                         required
                       />
                     </div>
                   </div>
                 </div>
                 
-                  <div className="mt-6">
+                  <div className="mt-4">
                     <label className="block text-sm font-bold text-gray-700 mb-3">
                       Email Address *
                     </label>
@@ -695,7 +845,7 @@ const BookCustomPackagePage: React.FC = () => {
                         ...formData,
                         userDetails: {...formData.userDetails, email: e.target.value}
                       })}
-                      className="w-full px-6 py-4 bg-gray-100/80 backdrop-blur-sm border border-white/50 rounded-2xl shadow-lg text-gray-700 font-medium"
+                      className="w-full px-4 py-3 bg-gray-100/80 backdrop-blur-sm border border-gray-300 rounded-2xl shadow-lg text-gray-700 font-medium"
                       readOnly
                     />
                   </div>
@@ -703,11 +853,11 @@ const BookCustomPackagePage: React.FC = () => {
               </div>
 
               {/* Venue Details */}
-              <div className="bg-white/60 backdrop-blur-lg rounded-2xl shadow-xl border border-white/40 p-8 relative overflow-hidden">
+              <div className="bg-white/60 backdrop-blur-lg rounded-2xl shadow-xl border border-white/40 p-6 relative overflow-hidden lg:col-span-2">
                 <div className="absolute bottom-0 right-0 w-28 h-28 bg-gradient-to-tl from-[#391C71]/10 to-transparent rounded-tl-full"></div>
                 
                 <div className="relative z-10">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                  <h3 className="text-xl lg:text-2xl font-bold text-gray-900 mb-4 flex items-center">
                     <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-2xl p-2 mr-3">
                       <MapPin className="w-5 h-5 text-white" />
                     </div>
@@ -727,7 +877,7 @@ const BookCustomPackagePage: React.FC = () => {
                           venueDetails: {...formData.venueDetails, address: e.target.value}
                         })}
                         placeholder="Street address where the equipment will be delivered"
-                        className="w-full px-6 py-4 bg-white/80 backdrop-blur-sm border border-white/50 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-transparent shadow-lg text-gray-900 font-medium placeholder-gray-500 transition-all duration-200"
+                        className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71] shadow-lg text-gray-900 font-medium placeholder-gray-500 transition-all duration-200"
                         required
                       />
                     </div>
@@ -744,7 +894,7 @@ const BookCustomPackagePage: React.FC = () => {
                             ...formData,
                             venueDetails: {...formData.venueDetails, city: e.target.value}
                           })}
-                          className="w-full px-6 py-4 bg-white/80 backdrop-blur-sm border border-white/50 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-transparent shadow-lg text-gray-900 font-medium placeholder-gray-500 transition-all duration-200"
+                          className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71] shadow-lg text-gray-900 font-medium placeholder-gray-500 transition-all duration-200"
                           required
                         />
                       </div>
@@ -760,7 +910,7 @@ const BookCustomPackagePage: React.FC = () => {
                             ...formData,
                             venueDetails: {...formData.venueDetails, state: e.target.value}
                           })}
-                          className="w-full px-6 py-4 bg-white/80 backdrop-blur-sm border border-white/50 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-transparent shadow-lg text-gray-900 font-medium placeholder-gray-500 transition-all duration-200"
+                          className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71] shadow-lg text-gray-900 font-medium placeholder-gray-500 transition-all duration-200"
                           required
                         />
                       </div>
@@ -776,7 +926,7 @@ const BookCustomPackagePage: React.FC = () => {
                             ...formData,
                             venueDetails: {...formData.venueDetails, country: e.target.value}
                           })}
-                          className="w-full px-6 py-4 bg-white/80 backdrop-blur-sm border border-white/50 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-transparent shadow-lg text-gray-900 font-medium placeholder-gray-500 transition-all duration-200"
+                          className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71] shadow-lg text-gray-900 font-medium placeholder-gray-500 transition-all duration-200"
                           required
                         />
                       </div>
@@ -794,7 +944,7 @@ const BookCustomPackagePage: React.FC = () => {
                             ...formData,
                             venueDetails: {...formData.venueDetails, postalCode: e.target.value}
                           })}
-                          className="w-full px-6 py-4 bg-white/80 backdrop-blur-sm border border-white/50 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-transparent shadow-lg text-gray-900 font-medium placeholder-gray-500 transition-all duration-200"
+                          className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71] shadow-lg text-gray-900 font-medium placeholder-gray-500 transition-all duration-200"
                         />
                       </div>
                       
@@ -808,7 +958,7 @@ const BookCustomPackagePage: React.FC = () => {
                             ...formData,
                             venueDetails: {...formData.venueDetails, venueType: e.target.value}
                           })}
-                          className="w-full px-6 py-4 bg-white/80 backdrop-blur-sm border border-white/50 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-transparent shadow-lg text-gray-900 font-medium appearance-none transition-all duration-200"
+                          className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71] shadow-lg text-gray-900 font-medium appearance-none transition-all duration-200"
                         >
                           <option value="">Select venue type</option>
                           <option value="outdoor">Outdoor</option>
@@ -834,7 +984,7 @@ const BookCustomPackagePage: React.FC = () => {
                           venueDetails: {...formData.venueDetails, additionalInfo: e.target.value}
                         })}
                         placeholder="Any special instructions for delivery or setup..."
-                        className="w-full px-6 py-4 bg-white/80 backdrop-blur-sm border border-white/50 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-transparent shadow-lg text-gray-900 placeholder-gray-500 resize-none transition-all duration-200"
+                        className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71] shadow-lg text-gray-900 placeholder-gray-500 resize-none transition-all duration-200"
                       />
                     </div>
                   </div>
@@ -842,11 +992,11 @@ const BookCustomPackagePage: React.FC = () => {
               </div>
 
               {/* Special Requests */}
-              <div className="bg-white/60 backdrop-blur-lg rounded-2xl shadow-xl border border-white/40 p-8 relative overflow-hidden">
+              <div className="bg-white/60 backdrop-blur-lg rounded-2xl shadow-xl border border-white/40 p-6 relative overflow-hidden lg:col-span-2">
                 <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-purple-100/30 to-transparent rounded-bl-full"></div>
                 
                 <div className="relative z-10">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                  <h3 className="text-xl lg:text-2xl font-bold text-gray-900 mb-4 flex items-center">
                     <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-2xl p-2 mr-3">
                       <CreditCard className="w-5 h-5 text-white" />
                     </div>
@@ -857,9 +1007,10 @@ const BookCustomPackagePage: React.FC = () => {
                     value={formData.specialRequests}
                     onChange={(e) => setFormData({...formData, specialRequests: e.target.value})}
                     placeholder="Any special requirements or requests for your booking..."
-                    className="w-full px-6 py-4 bg-white/80 backdrop-blur-sm border border-white/50 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-transparent shadow-lg text-gray-900 placeholder-gray-500 resize-none transition-all duration-200"
+                    className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-2xl focus:ring-2 focus:ring-[#391C71] focus:border-[#391C71] shadow-lg text-gray-900 placeholder-gray-500 resize-none transition-all duration-200"
                   />
                 </div>
+              </div>
               </div>
 
               {/* Submit Button */}
@@ -887,21 +1038,20 @@ const BookCustomPackagePage: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
 
-      {/* Terms and Conditions Modal */}
-      {termsData && (
-        <TermsAndConditionsModal
-          isOpen={showTermsModal}
-          onClose={() => setShowTermsModal(false)}
-          onAccept={handleTermsAccept}
-          onDecline={handleTermsDecline}
-          terms={termsData}
-        />
-      )}
+        {/* Terms and Conditions Modal */}
+        {termsData && (
+          <TermsAndConditionsModal
+            isOpen={showTermsModal}
+            onClose={() => setShowTermsModal(false)}
+            onAccept={handleTermsAccept}
+            onDecline={handleTermsDecline}
+            terms={termsData}
+          />
+        )}
 
-      <Footer />
-    </div>
+        <Footer />
+      </div>
   );
 };
 

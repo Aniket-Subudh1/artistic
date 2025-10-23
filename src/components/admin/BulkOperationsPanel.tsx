@@ -44,7 +44,7 @@ const BulkOperationsPanel: React.FC<BulkOperationsPanelProps> = ({
   onShowCurvePanel 
 }) => {
   const [rotationAngle, setRotationAngle] = useState(0);
-  const [scaleFactor, setScaleFactor] = useState(1);
+  const [scaleInput, setScaleInput] = useState<string>('1');
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
 
   const selectedSeats = layout.items.filter(item => 
@@ -175,18 +175,39 @@ const BulkOperationsPanel: React.FC<BulkOperationsPanelProps> = ({
           <div className="mt-1 flex gap-1">
             <input
               type="number"
-              value={scaleFactor}
-              onChange={(e) => setScaleFactor(parseFloat(e.target.value) || 1)}
+              value={scaleInput}
+              onChange={(e) => setScaleInput(e.target.value)}
               className="flex-1 px-2 py-1 border rounded text-xs h-7"
-              placeholder="Scale factor"
+              placeholder="Factor or % (e.g., 0.8 or 80)"
               step="0.1"
               min="0.1"
-              max="3"
+              max="300"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const raw = scaleInput.trim();
+                  if (!raw) return;
+                  let val = parseFloat(raw);
+                  if (isNaN(val)) return;
+                  // If user enters > 3, treat as percent
+                  if (val > 3) val = val / 100;
+                  // Clamp to sane range
+                  val = Math.max(0.1, Math.min(3, val));
+                  onScale(selectedItems, val);
+                }
+              }}
             />
             <Button
               variant="outline"
               size="sm"
-              onClick={() => onScale(selectedItems, scaleFactor)}
+              onClick={() => {
+                const raw = scaleInput.trim();
+                if (!raw) return;
+                let val = parseFloat(raw);
+                if (isNaN(val)) return;
+                if (val > 3) val = val / 100;
+                val = Math.max(0.1, Math.min(3, val));
+                onScale(selectedItems, val);
+              }}
               className="h-7 text-xs"
             >
               Apply
@@ -209,7 +230,7 @@ const BulkOperationsPanel: React.FC<BulkOperationsPanelProps> = ({
                 <option value="">Select category</option>
                 {layout.categories.map(cat => (
                   <option key={cat.id} value={cat.id}>
-                    {cat.name} - ${cat.price}
+                    {cat.name} - KD {cat.price}
                   </option>
                 ))}
               </select>

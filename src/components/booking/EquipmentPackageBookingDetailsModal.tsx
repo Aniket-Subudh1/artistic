@@ -63,6 +63,12 @@ export const EquipmentPackageBookingDetailsModal: React.FC<EquipmentPackageBooki
   const status = statusConfig[booking.status] || statusConfig.pending;
   const StatusIcon = status.icon;
 
+  // Enhanced package type detection
+  const isCustomPackage = !booking.packageId || booking.specialRequests?.includes('[CUSTOM PACKAGE]');
+  const hasPackageData = booking.packageId && booking.packageId.name;
+  const packageName = hasPackageData ? booking.packageId.name : 'Custom Equipment Package';
+  const packageDescription = hasPackageData ? booking.packageId.description : 'Custom equipment package configured by user with specific requirements';
+
   const formatDateRange = () => {
     return equipmentPackageBookingService.formatDateRange(booking.startDate, booking.endDate);
   };
@@ -130,57 +136,244 @@ export const EquipmentPackageBookingDetailsModal: React.FC<EquipmentPackageBooki
             <div className="space-y-3">
               <h3 className="text-lg font-semibold text-gray-900">Package Information</h3>
               
-              <div className="border border-gray-200 rounded-lg p-3">
+              <div className={`border rounded-lg p-3 ${isCustomPackage ? 'border-orange-200 bg-gradient-to-r from-orange-50 to-amber-50' : 'border-gray-200'}`}>
                 <div className="flex items-start gap-3">
                   <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
-                    {booking.packageId.coverImage || (booking.packageId.images && booking.packageId.images.length > 0) ? (
+                    {hasPackageData && (booking.packageId?.coverImage || (booking.packageId?.images && booking.packageId.images.length > 0)) ? (
                       <img 
                         src={booking.packageId.coverImage || booking.packageId.images![0]} 
-                        alt={booking.packageId.name}
+                        alt={packageName}
                         className="w-full h-full object-cover"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <Package className="h-6 w-6 text-gray-400" />
+                        {isCustomPackage ? (
+                          <MessageSquare className="h-6 w-6 text-orange-500" />
+                        ) : (
+                          <Package className="h-6 w-6 text-gray-400" />
+                        )}
                       </div>
                     )}
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-gray-900">{booking.packageId.name}</h4>
-                    <p className="text-gray-600 text-sm mt-1 line-clamp-2">{booking.packageId.description}</p>
+                    <div className="flex items-start gap-2 mb-1">
+                      <h4 className="font-semibold text-gray-900 flex-1">{packageName}</h4>
+                      {isCustomPackage && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
+                          <MessageSquare className="h-3 w-3" />
+                          Custom
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-gray-600 text-sm mt-1 line-clamp-2">{packageDescription}</p>
                     <div className="flex items-center mt-2 text-sm text-gray-600">
                       <User className="h-4 w-4 mr-1" />
-                      Provider: {booking.packageId.createdBy.firstName} {booking.packageId.createdBy.lastName}
+                      {hasPackageData && booking.packageId?.createdBy ? (
+                        <>Provider: {booking.packageId.createdBy.firstName} {booking.packageId.createdBy.lastName}</>
+                      ) : (
+                        <>Configured by: User</>
+                      )}
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Equipment Items */}
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">Equipment Included</h4>
-                <div className="space-y-2 max-h-32 overflow-y-auto">
-                  {booking.packageId.items.map((item, index) => (
-                    <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
-                      <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
-                        {item.equipmentId.images && item.equipmentId.images.length > 0 ? (
-                          <img 
-                            src={item.equipmentId.images[0]} 
-                            alt={item.equipmentId.name}
-                            className="w-full h-full object-cover rounded-lg"
-                          />
-                        ) : (
-                          <Package className="h-5 w-5 text-gray-400" />
-                        )}
+              {/* Equipment Items - Conditional Display */}
+              {hasPackageData && booking.packageId?.items && booking.packageId.items.length > 0 ? (
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-medium text-gray-900">Equipment Included</h4>
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                        <Package className="h-3 w-3" />
+                        {booking.packageId.items.length} items
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3 max-h-80 overflow-y-auto">
+                    {booking.packageId.items.map((item, index) => (
+                      <div key={index} className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                        <div className="flex items-start gap-3">
+                          {/* Equipment Image */}
+                          <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+                            {item.equipmentId?.images && item.equipmentId.images.length > 0 ? (
+                              <img 
+                                src={item.equipmentId.images[0]} 
+                                alt={item.equipmentId.name || 'Equipment'}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <Package className="h-8 w-8 text-gray-400" />
+                            )}
+                          </div>
+                          
+                          {/* Equipment Details */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex-1 min-w-0">
+                                <h5 className="font-semibold text-gray-900 text-sm mb-1">
+                                  {item.equipmentId?.name || 'Equipment Item'}
+                                </h5>
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-4 text-xs text-gray-600">
+                                    <span className="flex items-center gap-1">
+                                      <Package className="h-3 w-3" />
+                                      Category: {item.equipmentId?.category || 'Not specified'}
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                      <span className="w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                                        {item.quantity || 1}
+                                      </span>
+                                      Quantity: {item.quantity || 1}
+                                    </span>
+                                  </div>
+                                  
+                                  {/* Pricing Details */}
+                                  <div className="flex items-center gap-4 text-xs">
+                                    <span className="text-gray-600">
+                                      Rate: <span className="font-semibold text-gray-900">
+                                        {(item.equipmentId?.pricePerDay || 0).toLocaleString()} KWD/day
+                                      </span>
+                                    </span>
+                                    <span className="text-gray-600">
+                                      Subtotal: <span className="font-semibold text-blue-600">
+                                        {((item.equipmentId?.pricePerDay || 0) * (item.quantity || 1)).toLocaleString()} KWD/day
+                                      </span>
+                                    </span>
+                                  </div>
+                                  
+                                  {/* Total for rental period */}
+                                  <div className="bg-blue-50 rounded-md p-2 mt-2">
+                                    <div className="flex items-center justify-between text-xs">
+                                      <span className="text-blue-700 font-medium">
+                                        Total for {booking.numberOfDays} day{booking.numberOfDays !== 1 ? 's' : ''}:
+                                      </span>
+                                      <span className="font-bold text-blue-800">
+                                        {(((item.equipmentId?.pricePerDay || 0) * (item.quantity || 1)) * booking.numberOfDays).toLocaleString()} KWD
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 text-sm truncate">{item.equipmentId.name}</p>
-                        <p className="text-xs text-gray-600">Qty: {item.quantity} • {item.equipmentId.category}</p>
+                    ))}
+                    
+                    {/* Package Total Summary */}
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+                      <h5 className="font-semibold text-gray-900 mb-2 text-sm">Package Summary</h5>
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600">Daily Package Rate:</span>
+                          <span className="font-semibold text-gray-900">
+                            {booking.packageId.items.reduce((total, item) => 
+                              total + ((item.equipmentId?.pricePerDay || 0) * (item.quantity || 1)), 0
+                            ).toLocaleString()} KWD
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600">Rental Duration:</span>
+                          <span className="font-semibold text-gray-900">
+                            {booking.numberOfDays} day{booking.numberOfDays !== 1 ? 's' : ''}
+                          </span>
+                        </div>
+                        <div className="border-t border-blue-200 pt-1 mt-2">
+                          <div className="flex items-center justify-between text-base">
+                            <span className="font-semibold text-blue-700">Total Package Cost:</span>
+                            <span className="font-bold text-blue-800 text-lg">
+                              {booking.totalPrice.toLocaleString()} KWD
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-medium text-gray-900">Custom Equipment Configuration</h4>
+                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
+                      <MessageSquare className="h-3 w-3" />
+                      Custom Package
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {/* Custom Package Summary */}
+                    <div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <MessageSquare className="h-5 w-5 text-orange-500" />
+                        <span className="font-medium text-orange-700">Custom Package Information</span>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4 mb-3">
+                        <div className="bg-white rounded-lg p-3 border border-orange-200">
+                          <div className="text-xs text-gray-600 mb-1">Package Type</div>
+                          <div className="font-semibold text-orange-700">User Configured</div>
+                        </div>
+                        <div className="bg-white rounded-lg p-3 border border-orange-200">
+                          <div className="text-xs text-gray-600 mb-1">Configuration Status</div>
+                          <div className="font-semibold text-orange-700">Custom Setup</div>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-white rounded-lg p-3 border border-orange-200">
+                        <h5 className="font-medium text-gray-900 mb-2 text-sm">Pricing Details</h5>
+                        <div className="space-y-1 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Daily Rate:</span>
+                            <span className="font-semibold text-gray-900">{booking.pricePerDay.toLocaleString()} KWD</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Duration:</span>
+                            <span className="font-semibold text-gray-900">{booking.numberOfDays} day{booking.numberOfDays !== 1 ? 's' : ''}</span>
+                          </div>
+                          <div className="border-t border-orange-200 pt-1 mt-2">
+                            <div className="flex justify-between">
+                              <span className="font-semibold text-orange-700">Total Cost:</span>
+                              <span className="font-bold text-orange-800 text-lg">{booking.totalPrice.toLocaleString()} KWD</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <p className="text-xs text-orange-600 leading-relaxed mt-3">
+                        This booking contains custom equipment configured by the user through the custom package builder. 
+                        The specific equipment list and requirements were provided during the booking process.
+                      </p>
+                    </div>
+                    
+                    {/* Special Requirements */}
+                    {booking.specialRequests && !booking.specialRequests.includes('[CUSTOM PACKAGE]') && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <AlertCircle className="h-4 w-4 text-blue-500" />
+                          <span className="font-medium text-blue-700 text-sm">Special Requirements</span>
+                        </div>
+                        <div className="bg-white rounded-lg p-3 border border-blue-200">
+                          <p className="text-sm text-gray-700 leading-relaxed">{booking.specialRequests}</p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Contact Information */}
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <MessageSquare className="h-4 w-4 text-gray-500" />
+                        <span className="font-medium text-gray-700 text-sm">Equipment Details</span>
+                      </div>
+                      <p className="text-xs text-gray-600 leading-relaxed">
+                        For detailed equipment specifications and inventory list, please contact the customer directly 
+                        or refer to the original custom package configuration provided during booking.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Booking Status and Actions */}

@@ -16,12 +16,17 @@ import {
   CheckCircle,
   Shield,
   Settings,
-  Building
+  Building,
+  Grid
 } from 'lucide-react';
 import { VenueProviderService, VenueProvider, CreateVenueProviderRequest } from '@/services/venue-provider.service';
 import { CountryCodeDropdown, Country, getDefaultCountry, formatPhoneNumber } from '@/components/ui/CountryCodeDropdown';
 
-export function VenueProviderManagement() {
+interface VenueProviderManagementProps {
+  onViewLayouts?: (provider: VenueProvider) => void;
+}
+
+export function VenueProviderManagement({ onViewLayouts }: VenueProviderManagementProps = {}) {
   const [providers, setProviders] = useState<VenueProvider[]>([]);
   const [filteredProviders, setFilteredProviders] = useState<VenueProvider[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -333,6 +338,15 @@ export function VenueProviderManagement() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center gap-2">
+                          {onViewLayouts && (
+                            <button
+                              onClick={() => onViewLayouts(provider)}
+                              className="text-green-600 hover:text-green-900 p-1 hover:bg-green-100 rounded"
+                              title="View Layouts"
+                            >
+                              <Grid className="w-4 h-4" />
+                            </button>
+                          )}
                           <button
                             onClick={() => handleViewProvider(provider)}
                             className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-100 rounded"

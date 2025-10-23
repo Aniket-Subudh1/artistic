@@ -189,9 +189,12 @@ export class BookingService {
   }
 
   static async getUserBookings(): Promise<any[]> {
-    return apiRequest<any[]>(API_CONFIG.ENDPOINTS.BOOKINGS.MY_BOOKINGS, {
+    const bookings = await apiRequest<any[]>(API_CONFIG.ENDPOINTS.BOOKINGS.MY_BOOKINGS, {
       method: 'GET',
     });
+    
+    console.log('📋 BookingService.getUserBookings response:', bookings);
+    return bookings;
   }
 
   static async getBookingById(bookingId: string): Promise<any> {

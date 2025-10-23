@@ -34,15 +34,26 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
   const [formData, setFormData] = useState({ name: '', color: '#10b981', price: 0 });
 
   const handleSubmit = useCallback(() => {
-    if (!formData.name.trim()) return;
-    
+    if (!formData.name.trim()) {
+      alert('Please enter a category name.');
+      return;
+    }
+    if (!formData.color) {
+      alert('Please pick a color.');
+      return;
+    }
+    if (isNaN(Number(formData.price)) || Number(formData.price) < 0) {
+      alert('Please enter a valid non-negative price.');
+      return;
+    }
+
     if (editingId) {
       onUpdate(editingId, formData);
       setEditingId(null);
     } else {
       onAdd(formData);
     }
-    
+
     setFormData({ name: '', color: '#10b981', price: 0 });
   }, [formData, editingId, onAdd, onUpdate]);
 
@@ -111,8 +122,18 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
                   className="text-xs h-6"
                 />
               </div>
-            
-              
+            </div>
+            <div className="flex gap-1">
+              {editingId ? (
+                <>
+                  <Button size="sm" className="h-7 text-xs flex-1" onClick={handleSubmit}>Save</Button>
+                  <Button size="sm" variant="outline" className="h-7 text-xs flex-1" onClick={cancelEdit}>Cancel</Button>
+                </>
+              ) : (
+                <Button size="sm" className="h-7 text-xs w-full" onClick={handleSubmit}>
+                  <Plus className="h-3 w-3 mr-1" /> Add Category
+                </Button>
+              )}
             </div>
           </div>
           
@@ -131,7 +152,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
                     style={{ backgroundColor: category.color }}
                   />
                   <span className="text-xs font-medium">{category.name}</span>
-                  <span className="text-xs text-gray-500">${category.price}</span>
+                  <span className="text-xs text-gray-500">KD {category.price}</span>
                 </div>
                 <div className="flex items-center gap-0.5">
                   <Button
@@ -150,7 +171,8 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
-                      onRemove(category.id);
+                      const ok = window.confirm(`Delete category "${category.name}"? Items using it will switch to no category.`);
+                      if (ok) onRemove(category.id);
                     }}
                     className="h-5 w-5 p-0 text-red-600 hover:text-red-700"
                   >

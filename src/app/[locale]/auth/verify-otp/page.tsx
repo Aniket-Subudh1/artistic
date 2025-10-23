@@ -16,6 +16,7 @@ export default function VerifyOTPPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const phoneNumber = searchParams.get('phone') || '';
+  const returnUrl = searchParams.get('returnUrl') || '';
   
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
@@ -75,9 +76,13 @@ export default function VerifyOTPPage() {
       
       setSuccess(tSuccess('phoneVerified'));
       
-      // Redirect to dashboard or signin page after success
+      // Redirect back to where the user came from if provided; otherwise go home
       setTimeout(() => {
-        router.push('/dashboard');
+        if (returnUrl) {
+          router.push(returnUrl);
+        } else {
+          router.push('/');
+        }
       }, 2000);
       
     } catch (error: any) {
@@ -228,7 +233,7 @@ export default function VerifyOTPPage() {
               <div className="mt-6 text-center">
                 <p className="text-gray-700 text-sm">
                   {t('wrongNumber')}{' '}
-                  <Link href="/auth/signup" className="text-purple-600 hover:text-purple-700 font-medium transition-colors">
+                  <Link href={`/auth/signup${returnUrl ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ''}`} className="text-purple-600 hover:text-purple-700 font-medium transition-colors">
                     {t('goBack')}
                   </Link>
                 </p>

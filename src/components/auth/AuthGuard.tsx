@@ -24,8 +24,8 @@ export function AuthGuard({ children, redirectTo = '/auth/signin', requiredRole 
       }
 
       if (requiredRole && user?.role !== requiredRole) {
-        // User doesn't have the required role
-        router.push('/dashboard');
+        // User doesn't have the required role; send to home instead of dashboard
+        router.push('/');
         return;
       }
     }

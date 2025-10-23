@@ -11,6 +11,7 @@ export interface VenueProvider {
   createdAt: string;
   updatedAt: string;
   profile?: {
+    _id?: string;
     address: string;
     category: string;
     profileImage?: string;

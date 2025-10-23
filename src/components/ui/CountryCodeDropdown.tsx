@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
@@ -29,6 +29,21 @@ export function CountryCodeDropdown({
 }: CountryCodeDropdownProps) {
   const [showDropdown, setShowDropdown] = useState(false);
   const tCountries = useTranslations('auth.countries');
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const countries: Country[] = [
     { code: '+965', flag: '🇰🇼', name: tCountries('kuwait') },
@@ -48,7 +63,7 @@ export function CountryCodeDropdown({
   };
 
   return (
-    <div className={`relative ${className}`}>
+    <div ref={dropdownRef} className={`relative ${className}`}>
       <button
         type="button"
         onClick={() => setShowDropdown(!showDropdown)}
@@ -61,13 +76,14 @@ export function CountryCodeDropdown({
       </button>
       
       {showDropdown && (
-        <div className={`absolute top-full left-0 mt-1 w-60 bg-white border border-gray-300 rounded-lg shadow-lg z-[9999] max-h-48 overflow-y-auto ${dropdownClassName}`}>
+        <div className={`absolute top-full left-0 mt-1 w-60 bg-white border border-gray-300 rounded-lg shadow-2xl max-h-48 overflow-y-auto ${dropdownClassName}`}
+             style={{ zIndex: 999999 }}>
           {countries.map((country) => (
             <button
               key={country.code}
               type="button"
               onClick={() => handleCountrySelect(country)}
-              className="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-purple-50 transition-colors text-left"
+              className="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-purple-50 transition-colors text-left first:rounded-t-lg last:rounded-b-lg"
             >
               <span className="mr-2">{country.flag}</span>
               <span className="mr-2 font-medium">{country.code}</span>

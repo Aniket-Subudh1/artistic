@@ -24,6 +24,13 @@ export default function VenueOwnerDashboard() {
       color: 'blue' as const
     },
     {
+      title: 'Layouts',
+      description: 'View your saved venue layouts',
+      icon: MapPin,
+      href: '/dashboard/venue-owner/layouts',
+      color: 'purple' as const
+    },
+    {
       title: 'Bookings',
       description: 'View venue bookings',
       icon: Calendar,
@@ -41,7 +48,7 @@ export default function VenueOwnerDashboard() {
 
   return (
     <RoleBasedRoute allowedRoles={['venue_owner']} userRole={user.role}>
-      <div className="space-y-6">
+      <div className="space-y-6 ">
         <DashboardHeader
           title="Venue Owner Dashboard"
           subtitle={`Welcome back, ${user.firstName}!`}

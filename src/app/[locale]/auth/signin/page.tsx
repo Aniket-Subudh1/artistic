@@ -33,26 +33,7 @@ export default function SignInPage() {
         router.push(returnUrl);
         return;
       }
-      
-      // Redirect based on role
-      switch (user.role) {
-        case 'admin':
-        case 'super_admin':
-          router.push('/dashboard/admin');
-          break;
-        case 'artist':
-          router.push('/dashboard/artist');
-          break;
-        case 'equipment_provider':
-          router.push('/dashboard/equipment-provider');
-          break;
-        case 'venue_owner':
-          router.push('/dashboard/venue-owner');
-          break;
-        default:
-          router.push('/dashboard');
-          break;
-      }
+      router.push('/');
     }
   }, [authLoading, isAuthenticated, user, router, searchParams]);
 
@@ -68,34 +49,15 @@ export default function SignInPage() {
     try {
       const response = await login(formData.email, formData.password);
       
-      // Check if there's a return URL for users
+      // Prefer returning users to the page they came from if provided
       const returnUrl = searchParams.get('returnUrl');
-      
-      if (returnUrl && response.role.toUpperCase() === 'USER') {
-        // For users who were redirected from artist pages, take them back
+      if (returnUrl) {
         router.push(returnUrl);
         return;
       }
-      
-      // Redirect based on role
-      switch (response.role.toUpperCase()) {
-        case 'ADMIN':
-        case 'SUPER_ADMIN':
-          router.push('/dashboard/admin');
-          break;
-        case 'ARTIST':
-          router.push('/dashboard/artist');
-          break;
-        case 'EQUIPMENT_PROVIDER':
-          router.push('/dashboard/equipment-provider');
-          break;
-        case 'VENUE_OWNER':
-          router.push('/dashboard/venue-owner');
-          break;
-        default:
-          router.push('/dashboard');
-          break;
-      }
+
+      // Fallback: send to home if no returnUrl
+      router.push('/');
     } catch (error: any) {
       console.error('Sign in error:', error);
       setError(error.message || tErrors('invalidCredentials'));
@@ -265,7 +227,7 @@ export default function SignInPage() {
                 <div className="mt-6 text-center">
                   <p className="text-gray-700 text-sm">
                     {t('noAccount')}{' '}
-                    <Link href="/auth/signup" className="text-purple-600 hover:text-purple-700 font-semibold transition-colors">
+                    <Link href={`/auth/signup${searchParams.get('returnUrl') ? `?returnUrl=${encodeURIComponent(searchParams.get('returnUrl') as string)}` : ''}`} className="text-purple-600 hover:text-purple-700 font-semibold transition-colors">
                       {t('signUpHere')}
                     </Link>
                   </p>

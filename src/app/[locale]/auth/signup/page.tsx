@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link, useRouter } from '@/i18n/routing';
+import { useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, Mail, User, Lock, ChevronDown, AlertCircle, CheckCircle } from 'lucide-react';
 import Image from 'next/image';
 import { Footer } from '@/components/main/Footer';
@@ -15,6 +16,8 @@ export default function SignUpPage() {
   const tSuccess = useTranslations('auth.signUp.success');
   const router = useRouter();
   const { signup, isLoading } = useAuthLogic();
+  const searchParams = useSearchParams();
+  const returnUrl = searchParams.get('returnUrl');
   
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -102,13 +105,15 @@ export default function SignUpPage() {
         
         // Redirect to OTP verification page with phone number
         setTimeout(() => {
-          router.push(`/auth/verify-otp?phone=${encodeURIComponent(phoneNumber)}`);
+          const next = `/auth/verify-otp?phone=${encodeURIComponent(phoneNumber)}${returnUrl ? `&returnUrl=${encodeURIComponent(returnUrl)}` : ''}`;
+          router.push(next);
         }, 2000);
       } else {
         setSuccess(tSuccess('accountCreatedSignIn'));
         
         setTimeout(() => {
-          router.push('/auth/signin');
+          const next = `/auth/signin${returnUrl ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ''}`;
+          router.push(next);
         }, 2000);
       }
       
@@ -170,7 +175,7 @@ export default function SignUpPage() {
                   </h1>
                   <p className="text-gray-700 text-xs">
                     {t('alreadyHaveAccount')}{' '}
-                    <Link href="/auth/signin" className="text-purple-600 hover:text-purple-700 font-semibold transition-colors">
+                    <Link href={`/auth/signin${returnUrl ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ''}`} className="text-purple-600 hover:text-purple-700 font-semibold transition-colors">
                       {t('signInHere')}
                     </Link>
                   </p>

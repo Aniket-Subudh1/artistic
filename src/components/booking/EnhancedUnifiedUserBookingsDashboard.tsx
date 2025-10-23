@@ -9,6 +9,7 @@ import { EnhancedEquipmentPackageBookingCard } from './EnhancedEquipmentPackageB
 import { EquipmentPackageBookingDetailsModal } from './EquipmentPackageBookingDetailsModal';
 import { BookingService } from '@/services/booking.service';
 import { equipmentPackageBookingService } from '@/services/equipment-package-booking.service';
+import { EquipmentBookingService, EquipmentBooking } from '@/services/equipment-booking.service';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { 
   Search, Filter, Calendar, TrendingUp, Clock, CheckCircle, 
@@ -19,8 +20,8 @@ import {
 import { format, isAfter, isBefore, parseISO } from 'date-fns';
 
 type UnifiedBooking = {
-  type: 'artist' | 'equipment';
-  data: Booking | EquipmentPackageBooking;
+  type: 'artist' | 'equipment-package' | 'equipment';
+  data: Booking | EquipmentPackageBooking | EquipmentBooking;
   eventDate: Date;
   status: string;
   totalPrice: number;
@@ -32,7 +33,8 @@ type SortOption = 'date' | 'price' | 'status' | 'type';
 export function EnhancedUnifiedUserBookingsDashboard() {
   const router = useRouter();
   const [artistBookings, setArtistBookings] = useState<Booking[]>([]);
-  const [equipmentBookings, setEquipmentBookings] = useState<EquipmentPackageBooking[]>([]);
+  const [equipmentPackageBookings, setEquipmentPackageBookings] = useState<EquipmentPackageBooking[]>([]);
+  const [equipmentBookings, setEquipmentBookings] = useState<EquipmentBooking[]>([]);
   const [unifiedBookings, setUnifiedBookings] = useState<UnifiedBooking[]>([]);
   const [filteredBookings, setFilteredBookings] = useState<UnifiedBooking[]>([]);
   const [filters, setFilters] = useState<BookingFilters>({
@@ -53,7 +55,7 @@ export function EnhancedUnifiedUserBookingsDashboard() {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [sortBy, setSortBy] = useState<SortOption>('date');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  const [selectedBookingTypes, setSelectedBookingTypes] = useState<string[]>(['artist', 'equipment']);
+  const [selectedBookingTypes, setSelectedBookingTypes] = useState<string[]>(['artist', 'equipment-package', 'equipment']);
 
   useEffect(() => {
     fetchAllBookings();
@@ -61,7 +63,7 @@ export function EnhancedUnifiedUserBookingsDashboard() {
 
   useEffect(() => {
     combineAndSortBookings();
-  }, [artistBookings, equipmentBookings, sortBy]);
+  }, [artistBookings, equipmentPackageBookings, equipmentBookings, sortBy]);
 
   useEffect(() => {
     applyFilters();
@@ -71,14 +73,22 @@ export function EnhancedUnifiedUserBookingsDashboard() {
     try {
       setError(null);
       
-      const [artistData, equipmentData] = await Promise.all([
+      const [artistData, equipmentPackageData, standaloneEquipmentData] = await Promise.all([
         BookingService.getUserBookings().catch(() => []),
-        equipmentPackageBookingService.getMyBookings().then(res => res.bookings).catch(() => [])
+        equipmentPackageBookingService.getMyBookings().then(res => res.bookings).catch(() => []),
+        EquipmentBookingService.getMyEquipmentBookings().then(res => res.bookings).catch(() => [])
       ]);
 
+      console.log('📊 Fetched bookings:', {
+        artist: artistData.length,
+        equipmentPackage: equipmentPackageData.length,
+        standaloneEquipment: standaloneEquipmentData.length
+      });
+
       setArtistBookings(artistData || []);
-      setEquipmentBookings(equipmentData || []);
-      calculateEnhancedSummary(artistData || [], equipmentData || []);
+      setEquipmentPackageBookings(equipmentPackageData || []);
+      setEquipmentBookings(standaloneEquipmentData || []);
+      calculateEnhancedSummary(artistData || [], equipmentPackageData || [], standaloneEquipmentData || []);
     } catch (error) {
       console.error('Error fetching bookings:', error);
       setError('Failed to load bookings. Please try again.');
@@ -104,6 +114,18 @@ export function EnhancedUnifiedUserBookingsDashboard() {
     });
 
     // Add equipment package bookings
+    equipmentPackageBookings.forEach(booking => {
+      const eventDate = new Date(booking.startDate);
+      unified.push({
+        type: 'equipment-package',
+        data: booking,
+        eventDate,
+        status: booking.status,
+        totalPrice: booking.totalPrice
+      });
+    });
+
+    // Add standalone equipment bookings
     equipmentBookings.forEach(booking => {
       const eventDate = new Date(booking.startDate);
       unified.push({
@@ -140,7 +162,7 @@ export function EnhancedUnifiedUserBookingsDashboard() {
     setUnifiedBookings(unified);
   };
 
-  const calculateEnhancedSummary = (artistBookings: Booking[], equipmentBookings: EquipmentPackageBooking[]) => {
+  const calculateEnhancedSummary = (artistBookings: Booking[], equipmentPackageBookings: EquipmentPackageBooking[], standaloneEquipmentBookings: EquipmentBooking[]) => {
     const now = new Date();
     
     const artistStats = {
@@ -153,24 +175,34 @@ export function EnhancedUnifiedUserBookingsDashboard() {
       totalSpent: artistBookings.reduce((sum, b) => sum + b.totalPrice, 0)
     };
 
-    const equipmentStats = {
-      total: equipmentBookings.length,
-      upcoming: equipmentBookings.filter(b => isAfter(new Date(b.startDate), now)).length,
-      pending: equipmentBookings.filter(b => b.status === 'pending').length,
-      confirmed: equipmentBookings.filter(b => b.status === 'confirmed').length,
-      completed: equipmentBookings.filter(b => b.status === 'completed').length,
-      cancelled: equipmentBookings.filter(b => b.status === 'cancelled').length,
-      totalSpent: equipmentBookings.reduce((sum, b) => sum + b.totalPrice, 0)
+    const equipmentPackageStats = {
+      total: equipmentPackageBookings.length,
+      upcoming: equipmentPackageBookings.filter(b => isAfter(new Date(b.startDate), now)).length,
+      pending: equipmentPackageBookings.filter(b => b.status === 'pending').length,
+      confirmed: equipmentPackageBookings.filter(b => b.status === 'confirmed').length,
+      completed: equipmentPackageBookings.filter(b => b.status === 'completed').length,
+      cancelled: equipmentPackageBookings.filter(b => b.status === 'cancelled').length,
+      totalSpent: equipmentPackageBookings.reduce((sum, b) => sum + b.totalPrice, 0)
+    };
+
+    const standaloneEquipmentStats = {
+      total: standaloneEquipmentBookings.length,
+      upcoming: standaloneEquipmentBookings.filter(b => isAfter(new Date(b.startDate), now)).length,
+      pending: standaloneEquipmentBookings.filter(b => b.status === 'pending').length,
+      confirmed: standaloneEquipmentBookings.filter(b => b.status === 'confirmed').length,
+      completed: standaloneEquipmentBookings.filter(b => b.status === 'completed').length,
+      cancelled: standaloneEquipmentBookings.filter(b => b.status === 'cancelled').length,
+      totalSpent: standaloneEquipmentBookings.reduce((sum, b) => sum + b.totalPrice, 0)
     };
 
     setSummary({
-      total: artistStats.total + equipmentStats.total,
-      upcomingBookings: artistStats.upcoming + equipmentStats.upcoming,
-      pending: artistStats.pending + equipmentStats.pending,
-      totalSpent: artistStats.totalSpent + equipmentStats.totalSpent,
-      confirmed: artistStats.confirmed + equipmentStats.confirmed,
-      completed: artistStats.completed + equipmentStats.completed,
-      cancelled: artistStats.cancelled + equipmentStats.cancelled
+      total: artistStats.total + equipmentPackageStats.total + standaloneEquipmentStats.total,
+      upcomingBookings: artistStats.upcoming + equipmentPackageStats.upcoming + standaloneEquipmentStats.upcoming,
+      pending: artistStats.pending + equipmentPackageStats.pending + standaloneEquipmentStats.pending,
+      totalSpent: artistStats.totalSpent + equipmentPackageStats.totalSpent + standaloneEquipmentStats.totalSpent,
+      confirmed: artistStats.confirmed + equipmentPackageStats.confirmed + standaloneEquipmentStats.confirmed,
+      completed: artistStats.completed + equipmentPackageStats.completed + standaloneEquipmentStats.completed,
+      cancelled: artistStats.cancelled + equipmentPackageStats.cancelled + standaloneEquipmentStats.cancelled
     });
   };
 
@@ -198,10 +230,20 @@ export function EnhancedUnifiedUserBookingsDashboard() {
             artistBooking.venueDetails.city.toLowerCase().includes(searchTerm) ||
             artistBooking.venueDetails.address.toLowerCase().includes(searchTerm)
           );
-        } else {
-          const equipmentBooking = booking.data as EquipmentPackageBooking;
+        } else if (booking.type === 'equipment-package') {
+          const equipmentPackageBooking = booking.data as EquipmentPackageBooking;
           return (
-            equipmentBooking.packageId.name.toLowerCase().includes(searchTerm) ||
+            equipmentPackageBooking.packageId?.name?.toLowerCase().includes(searchTerm) ||
+            equipmentPackageBooking.eventDescription?.toLowerCase().includes(searchTerm) ||
+            equipmentPackageBooking.venueDetails.city.toLowerCase().includes(searchTerm) ||
+            equipmentPackageBooking.venueDetails.address.toLowerCase().includes(searchTerm)
+          );
+        } else {
+          const equipmentBooking = booking.data as EquipmentBooking;
+          return (
+            equipmentBooking.equipments?.some(eq => eq.equipmentId?.name?.toLowerCase().includes(searchTerm)) ||
+            equipmentBooking.packages?.some(pkg => pkg.name?.toLowerCase().includes(searchTerm)) ||
+            equipmentBooking.customPackages?.some(pkg => pkg.name?.toLowerCase().includes(searchTerm)) ||
             equipmentBooking.eventDescription?.toLowerCase().includes(searchTerm) ||
             equipmentBooking.venueDetails.city.toLowerCase().includes(searchTerm) ||
             equipmentBooking.venueDetails.address.toLowerCase().includes(searchTerm)
@@ -435,6 +477,17 @@ export function EnhancedUnifiedUserBookingsDashboard() {
                   <span className="hidden sm:inline">Artists</span>
                 </button>
                 <button
+                  onClick={() => toggleBookingType('equipment-package')}
+                  className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    selectedBookingTypes.includes('equipment-package')
+                      ? 'bg-blue-100 text-blue-700 border border-blue-300'
+                      : 'bg-gray-100 text-gray-600 border border-gray-300 hover:bg-gray-200'
+                  }`}
+                >
+                  <Package className="h-4 w-4" />
+                  <span className="hidden sm:inline">Packages</span>
+                </button>
+                <button
                   onClick={() => toggleBookingType('equipment')}
                   className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     selectedBookingTypes.includes('equipment')
@@ -442,7 +495,7 @@ export function EnhancedUnifiedUserBookingsDashboard() {
                       : 'bg-gray-100 text-gray-600 border border-gray-300 hover:bg-gray-200'
                   }`}
                 >
-                  <Package className="h-4 w-4" />
+                  <Layers className="h-4 w-4" />
                   <span className="hidden sm:inline">Equipment</span>
                 </button>
               </div>
@@ -518,7 +571,7 @@ export function EnhancedUnifiedUserBookingsDashboard() {
         ) : (
           <div className={`
             ${viewMode === 'grid' 
-              ? 'grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-4 lg:gap-6' 
+              ? ' grid grid-cols-2 ' 
               : 'space-y-4'
             }
           `}>
@@ -529,16 +582,23 @@ export function EnhancedUnifiedUserBookingsDashboard() {
                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium shadow-sm border backdrop-blur-sm ${
                     booking.type === 'artist' 
                       ? 'bg-purple-100/95 text-purple-700 border-purple-200'
+                      : booking.type === 'equipment-package'
+                      ? 'bg-blue-100/95 text-blue-700 border-blue-200'
                       : 'bg-orange-100/95 text-orange-700 border-orange-200'
                   }`}>
                     {booking.type === 'artist' ? (
                       <>
-                        <User className="h-3 w-3 mr-1" />
+                        <User className="h-3 w-3 mr-1 " />
                         Artist
+                      </>
+                    ) : booking.type === 'equipment-package' ? (
+                      <>
+                        <Package className="h-3 w-3 mr-1" />
+                        Package
                       </>
                     ) : (
                       <>
-                        <Package className="h-3 w-3 mr-1" />
+                        <Layers className="h-3 w-3 mr-1" />
                         Equipment
                       </>
                     )}
@@ -554,9 +614,16 @@ export function EnhancedUnifiedUserBookingsDashboard() {
                       onCancel={handleCancelArtistBooking}
                       className="h-full"
                     />
-                  ) : (
+                  ) : booking.type === 'equipment-package' ? (
                     <EnhancedEquipmentPackageBookingCard
                       booking={booking.data as EquipmentPackageBooking}
+                      onViewDetails={handleViewEquipmentDetails}
+                      onCancel={handleCancelEquipmentBooking}
+                      className="h-full"
+                    />
+                  ) : (
+                    <EnhancedEquipmentPackageBookingCard
+                      booking={booking.data as any}
                       onViewDetails={handleViewEquipmentDetails}
                       onCancel={handleCancelEquipmentBooking}
                       className="h-full"

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useRouter as useI18nRouter } from '@/i18n/routing';
 import Image from 'next/image';
 import { 
   Calendar, Clock, MapPin, User, Phone, Mail, 
@@ -45,7 +46,8 @@ interface FormData {
 const BookEquipmentPackagePage: React.FC = () => {
   const { id } = useParams();
   const router = useRouter();
-  const { user } = useAuthLogic();
+  const i18nRouter = useI18nRouter();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuthLogic();
   
   const [packageData, setPackageData] = useState<EquipmentPackage | null>(null);
   const [loading, setLoading] = useState(true);
@@ -115,6 +117,14 @@ const BookEquipmentPackagePage: React.FC = () => {
       checkAvailability();
     }
   }, [formData.startDate, formData.endDate, packageData]);
+
+  // Require authentication to access booking page
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/';
+      i18nRouter.push(`/auth/signin?returnUrl=${encodeURIComponent(currentPath)}`);
+    }
+  }, [authLoading, isAuthenticated, i18nRouter]);
 
   const fetchPackage = async () => {
     try {
@@ -600,7 +610,7 @@ const BookEquipmentPackagePage: React.FC = () => {
               </div>
 
               {/* Contact Details */}
-              <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-8 relative overflow-hidden">
+              <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-8 relative">
                 <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-[#391C71]/20 to-transparent rounded-br-full"></div>
                 
                 <div className="relative z-10">
@@ -638,15 +648,16 @@ const BookEquipmentPackagePage: React.FC = () => {
                       />
                     </div>
                     
-                    <div className="md:col-span-2">
+                    <div className="md:col-span-2 z-50">
                       <label className="block text-sm font-bold text-gray-700 mb-3">
                         Phone Number
                       </label>
-                      <div className="flex">
+                      <div className="flex relative" style={{ zIndex: 999999 }}>
                         <CountryCodeDropdown
                           selectedCountry={selectedCountry}
                           onCountrySelect={setSelectedCountry}
-                          buttonClassName="border-r-0 rounded-r-none"
+                          buttonClassName="border-r-0 z-[999999] h-14 bg-white rounded-r-none"
+                          className="z-[999999]"
                         />
                         <input
                           type="tel"
@@ -663,10 +674,10 @@ const BookEquipmentPackagePage: React.FC = () => {
               </div>
 
               {/* Venue Details */}
-              <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-8 relative overflow-hidden">
+              <div className="bg-white/70 - backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-8 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-28 h-28 bg-gradient-to-bl from-[#391C71]/10 to-transparent rounded-bl-full"></div>
                 
-                <div className="relative z-10">
+                <div className="relative ">
                   <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
                     <div className="bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full p-3 mr-4">
                       <MapPin className="w-6 h-6 text-white" />
