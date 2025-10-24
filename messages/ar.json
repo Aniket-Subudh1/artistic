@@ -556,7 +556,9 @@
     "bookingSubjectApproval": "حجزك خاضع لموافقة الفنان",
     "paymentAfterConfirmation": "سيتم معالجة الدفع بعد التأكيد",
     "cancellationPolicy": "تسري سياسة الإلغاء حسب الشروط والأحكام",
-    "confirmationEmail": "ستتلقى بريد إلكتروني للتأكيد قريباً"
+    "confirmationEmail": "ستتلقى بريد إلكتروني للتأكيد قريباً",
+    "addToCart": "أضف إلى السلة",
+    "addingToCart": "جاري الإضافة إلى السلة..."
   },
   "calendar": {
     "selectDateTime": "اختر التاريخ والوقت",

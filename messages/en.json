@@ -556,7 +556,9 @@
     "bookingSubjectApproval": "Your booking is subject to artist approval",
     "paymentAfterConfirmation": "Payment will be processed after confirmation",
     "cancellationPolicy": "Cancellation policy applies as per terms and conditions",
-    "confirmationEmail": "You will receive a confirmation email shortly"
+    "confirmationEmail": "You will receive a confirmation email shortly",
+    "addToCart": "Add to Cart",
+    "addingToCart": "Adding to cart..."
   },
   "calendar": {
     "selectDateTime": "Select Date & Time",

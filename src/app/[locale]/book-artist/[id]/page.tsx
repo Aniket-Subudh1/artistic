@@ -35,6 +35,7 @@ import { Navbar } from '@/components/main/Navbar';
 import { Footer } from '@/components/main/Footer';
 import { TranslatedDataWrapper } from '@/components/ui/TranslatedDataWrapper';
 import { TermsAndConditionsModal } from '@/components/booking/TermsAndConditionsModal';
+import { CartService } from '@/services/cart.service';
 import { TermsAndConditionsService, TermsAndConditions, TermsType } from '@/services/terms-and-conditions.service';
 import { CountryCodeDropdown, Country, getDefaultCountry, formatPhoneNumber } from '@/components/ui/CountryCodeDropdown';
 
@@ -102,6 +103,7 @@ export default function BookArtistPage() {
   const [equipmentPackages, setEquipmentPackages] = useState<EquipmentPackage[]>([]);
   const [customPackages, setCustomPackages] = useState<CustomEquipmentPackage[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [addingToCart, setAddingToCart] = useState(false);
   const [step, setStep] = useState(1);
   const [isMultiDayBooking, setIsMultiDayBooking] = useState(false);
   const [isArtistMultiDay, setIsArtistMultiDay] = useState(false);
@@ -399,6 +401,88 @@ export default function BookArtistPage() {
 
     // If terms have been accepted, proceed with booking
     await processBooking();
+  };
+
+  const handleAddToCart = async () => {
+    // No terms needed for adding to cart; just validate and add items
+    try {
+      setAddingToCart(true);
+      const items: Array<{ bookingDate: string; startTime: string; endTime: string }> = [];
+      if (isMultiDayBooking && formData.eventDates.length > 0) {
+        for (const d of formData.eventDates) {
+          if (!d.date || !d.startTime || !d.endTime) continue;
+          items.push({ bookingDate: d.date, startTime: d.startTime, endTime: d.endTime });
+        }
+      } else {
+        if (!formData.eventDate || !formData.startTime || !formData.endTime) {
+          setErrorModal({ show: true, title: 'Missing details', message: 'Select date and time before adding to cart.' });
+          setAddingToCart(false);
+          return;
+        }
+        items.push({ bookingDate: formData.eventDate, startTime: formData.startTime, endTime: formData.endTime });
+      }
+
+      if (items.length === 0) {
+        setErrorModal({ show: true, title: 'No slots selected', message: 'Please choose at least one date and time.' });
+        setAddingToCart(false);
+        return;
+      }
+
+      // Calculate per-day price approximations using pricing API for accuracy
+      // We'll compute rate per hour and multiply by hours for each day
+      let ratePerHour = 0;
+      try {
+        const pricing = await BookingService.calculateBookingPricing(
+          items.length > 1
+            ? {
+                artistId,
+                eventType: 'private',
+                isMultiDay: true,
+                eventDates: items.map((i) => ({ date: i.bookingDate, startTime: i.startTime, endTime: i.endTime })),
+              }
+            : {
+                artistId,
+                eventType: 'private',
+                eventDate: items[0].bookingDate,
+                startTime: items[0].startTime,
+                endTime: items[0].endTime,
+              },
+        );
+        ratePerHour = pricing.artistFee.totalHours > 0 ? pricing.artistFee.amount / pricing.artistFee.totalHours : 0;
+      } catch {}
+
+      for (const i of items) {
+        const startH = parseInt(i.startTime.split(':')[0]);
+        const endH = parseInt(i.endTime.split(':')[0]);
+        const hours = Math.max(1, endH - startH);
+        const totalPrice = ratePerHour > 0 ? Math.round(ratePerHour * hours) : (artist?.pricePerHour || 0) * hours;
+        await CartService.addToCart({
+          artistId, // profile id
+          bookingDate: i.bookingDate,
+          startTime: i.startTime,
+          endTime: i.endTime,
+          hours,
+          totalPrice,
+          selectedEquipmentPackages: formData.selectedEquipmentPackages || [],
+          selectedCustomPackages: formData.selectedCustomPackages || [],
+          isEquipmentMultiDay: isEquipmentMultiDay,
+          equipmentEventDates: isEquipmentMultiDay && formData.equipmentEventDates.length > 0 ? formData.equipmentEventDates : undefined,
+          userDetails: {
+            ...formData.userDetails,
+            phone: formatPhoneNumber(selectedCountry.code, formData.userDetails.phone),
+          },
+          venueDetails: formData.venueDetails,
+        });
+      }
+
+      // Redirect back to artist listing for additional selections
+      i18nRouter.push('/artists');
+    } catch (error: any) {
+      const msg = error?.data?.message || error?.message || 'Unable to add to cart.';
+      setErrorModal({ show: true, title: 'Add to Cart Failed', message: msg });
+    } finally {
+      setAddingToCart(false);
+    }
   };
 
   const processBooking = async () => {
@@ -856,24 +940,47 @@ export default function BookArtistPage() {
                   <ArrowLeft className="w-4 h-4 rotate-180 relative z-10" />
                 </button>
               ) : (
-                <button
-                  onClick={handleSubmit}
-                  disabled={submitting}
-                  className="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-2xl hover:from-emerald-600 hover:to-green-500 hover:shadow-xl hover:scale-105 font-bold transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 relative overflow-hidden group"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                  {submitting ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white relative z-10"></div>
-                      <span className="relative z-10">{t('bookArtistForm.processing')}</span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="w-5 h-5 relative z-10" />
-                      <span className="relative z-10">{t('bookArtistForm.completeBooking')}</span>
-                    </>
-                  )}
-                </button>
+                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                  {/* Add to Cart */}
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={addingToCart}
+                    className="px-8 py-3 bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white rounded-2xl hover:from-[#5B2C87] hover:to-[#391C71] hover:shadow-xl hover:scale-105 font-bold transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 relative overflow-hidden group"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                    {addingToCart ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white relative z-10"></div>
+                        <span className="relative z-10">{t('bookArtistForm.addingToCart') || 'Adding to Cart'}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Package className="w-5 h-5 relative z-10" />
+                        <span className="relative z-10">{t('bookArtistForm.addToCart') || 'Add to Cart'}</span>
+                      </>
+                    )}
+                  </button>
+
+                  {/* Book Now */}
+                  <button
+                    onClick={handleSubmit}
+                    disabled={submitting}
+                    className="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-2xl hover:from-emerald-600 hover:to-green-500 hover:shadow-xl hover:scale-105 font-bold transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 relative overflow-hidden group"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                    {submitting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white relative z-10"></div>
+                        <span className="relative z-10">{t('bookArtistForm.processing')}</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="w-5 h-5 relative z-10" />
+                        <span className="relative z-10">{t('bookArtistForm.completeBooking')}</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               )}
             </div>
           </div>
