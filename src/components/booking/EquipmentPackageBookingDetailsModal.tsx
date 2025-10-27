@@ -101,6 +101,23 @@ export const EquipmentPackageBookingDetailsModal: React.FC<EquipmentPackageBooki
     }
   };
 
+  // Safe currency formatting
+  const formatCurrency = (amount: number | undefined | null): string => {
+    if (amount === null || amount === undefined || isNaN(amount)) {
+      return 'KWD 0.000';
+    }
+    return `KWD ${Number(amount).toFixed(3)}`;
+  };
+
+  // Calculate daily rate safely
+  const calculateDailyRate = (): number => {
+    const total = booking.totalPrice || 0;
+    const days = booking.numberOfDays || 1;
+    return total / days;
+  };
+
+  const dailyRate = calculateDailyRate();
+
   const canCancel = () => {
     return booking.status === 'pending' || booking.status === 'confirmed';
   };
@@ -284,7 +301,7 @@ export const EquipmentPackageBookingDetailsModal: React.FC<EquipmentPackageBooki
                           <div className="flex items-center justify-between text-base">
                             <span className="font-semibold text-blue-700">Total Package Cost:</span>
                             <span className="font-bold text-blue-800 text-lg">
-                              {booking.totalPrice.toLocaleString()} KWD
+                              {formatCurrency(booking.totalPrice)}
                             </span>
                           </div>
                         </div>
@@ -326,7 +343,7 @@ export const EquipmentPackageBookingDetailsModal: React.FC<EquipmentPackageBooki
                         <div className="space-y-1 text-sm">
                           <div className="flex justify-between">
                             <span className="text-gray-600">Daily Rate:</span>
-                            <span className="font-semibold text-gray-900">{booking.pricePerDay.toLocaleString()} KWD</span>
+                            <span className="font-semibold text-gray-900">{formatCurrency(dailyRate)}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-600">Duration:</span>
@@ -335,7 +352,7 @@ export const EquipmentPackageBookingDetailsModal: React.FC<EquipmentPackageBooki
                           <div className="border-t border-orange-200 pt-1 mt-2">
                             <div className="flex justify-between">
                               <span className="font-semibold text-orange-700">Total Cost:</span>
-                              <span className="font-bold text-orange-800 text-lg">{booking.totalPrice.toLocaleString()} KWD</span>
+                              <span className="font-bold text-orange-800 text-lg">{formatCurrency(booking.totalPrice)}</span>
                             </div>
                           </div>
                         </div>
@@ -406,9 +423,9 @@ export const EquipmentPackageBookingDetailsModal: React.FC<EquipmentPackageBooki
                   <DollarSign className="h-4 w-4 text-gray-400" />
                   <div className="flex-1">
                     <p className="font-medium text-gray-900 text-sm">Total Amount</p>
-                    <p className="text-lg font-bold text-purple-600">{booking.totalPrice.toLocaleString()} KWD</p>
+                    <p className="text-lg font-bold text-purple-600">{formatCurrency(booking.totalPrice)}</p>
                     <p className="text-xs text-gray-500">
-                      {booking.pricePerDay.toLocaleString()} KWD × {booking.numberOfDays} day{booking.numberOfDays !== 1 ? 's' : ''}
+                      {formatCurrency(dailyRate)} × {booking.numberOfDays} day{booking.numberOfDays !== 1 ? 's' : ''}
                     </p>
                   </div>
                 </div>

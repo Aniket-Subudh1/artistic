@@ -4,6 +4,9 @@ import { apiRequest, API_CONFIG } from '@/lib/api-config';
 export interface EquipmentBookingRequest {
   equipments?: Array<{ equipmentId: string; quantity: number }>;
   packages?: string[];
+  // Prefer this for custom user packages (backend expects this key)
+  userEquipmentPackages?: string[];
+  // Backward-compat: allow customPackages but will remap to userEquipmentPackages
   customPackages?: string[];
   date: string;
   startTime: string;
@@ -86,9 +89,19 @@ export interface EquipmentBookingsResponse {
 // Equipment booking service for standalone equipment bookings
 export class EquipmentBookingService {
   static async createEquipmentBooking(data: EquipmentBookingRequest) {
+    // Remap legacy customPackages -> userEquipmentPackages if needed
+    const payload = {
+      ...data,
+      userEquipmentPackages:
+        data.userEquipmentPackages && data.userEquipmentPackages.length > 0
+          ? data.userEquipmentPackages
+          : data.customPackages || [],
+    };
+    delete (payload as any).customPackages;
+
     return apiRequest('/bookings/equipment', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify(payload),
     });
   }
 
@@ -103,9 +116,81 @@ export class EquipmentBookingService {
     if (limit) params.append('limit', limit.toString());
 
     const url = `/bookings/equipment/my?${params.toString()}`;
-    return await apiRequest(url, {
-      method: 'GET',
-    });
+    try {
+      const direct = await apiRequest<EquipmentBookingsResponse>(url, { method: 'GET' });
+      // If backend returns no bookings (or unexpected shape), derive from unified endpoint
+      if (!direct || !Array.isArray((direct as any).bookings) || (direct as any).bookings.length === 0) {
+        const unified = await apiRequest<any[]>('/bookings/my', { method: 'GET' });
+        const equipmentOnly = (unified || []).filter((b) => b.bookingType === 'equipment_only');
+
+        const bookings = equipmentOnly.map((b: any) => ({
+          _id: b._id,
+          bookedBy: b.bookedBy?._id || b.bookedBy,
+          startDate: b.eventDate,
+          endDate: b.eventDate,
+          numberOfDays: (b.eventDates && b.eventDates.length) || 1,
+          totalPrice: b.equipmentPrice ?? b.totalPrice ?? 0,
+          status: b.status,
+          userDetails: b.userDetails || { name: '', email: '', phone: '' },
+          venueDetails: b.venueDetails || { address: '', city: '', state: '', country: '' },
+          packages: b.selectedEquipmentPackages || [],
+          customPackages: b.selectedCustomPackages || [],
+          equipments: b.equipments || [],
+          bookingDate: b.bookingDate,
+          createdAt: b.bookingDate,
+          updatedAt: b.bookingDate,
+        }));
+
+        return {
+          bookings,
+          pagination: {
+            current: 1,
+            total: bookings.length,
+            count: bookings.length,
+            perPage: bookings.length,
+          },
+        };
+      }
+      return direct;
+    } catch (err: any) {
+      // Fallback: derive from unified bookings endpoint
+      try {
+        const unified = await apiRequest<any[]>('/bookings/my', { method: 'GET' });
+        const equipmentOnly = (unified || []).filter((b) => b.bookingType === 'equipment_only');
+
+        const bookings = equipmentOnly.map((b: any) => ({
+          _id: b._id,
+          bookedBy: b.bookedBy?._id || b.bookedBy,
+          // Map to expected fields
+          startDate: b.eventDate,
+          endDate: b.eventDate,
+          numberOfDays: 1,
+          totalPrice: b.equipmentPrice ?? b.totalPrice ?? 0,
+          status: b.status,
+          userDetails: b.userDetails || { name: '', email: '', phone: '' },
+          venueDetails: b.venueDetails || { address: '', city: '', state: '', country: '' },
+          // Map package/equipment arrays
+          packages: b.selectedEquipmentPackages || [],
+          customPackages: b.selectedCustomPackages || [],
+          equipments: b.equipments || [],
+          bookingDate: b.bookingDate,
+          createdAt: b.bookingDate,
+          updatedAt: b.bookingDate,
+        }));
+
+        return {
+          bookings,
+          pagination: {
+            current: 1,
+            total: bookings.length,
+            count: bookings.length,
+            perPage: bookings.length,
+          },
+        };
+      } catch (fallbackErr) {
+        throw err; // preserve original error if fallback fails
+      }
+    }
   }
 
   static async getEquipmentBookingById(bookingId: string): Promise<EquipmentBooking> {

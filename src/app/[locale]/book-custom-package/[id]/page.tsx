@@ -14,13 +14,15 @@ import {
   CustomEquipmentPackage 
 } from '@/services/custom-equipment-packages.service';
 import { BookingService } from '@/services/booking.service';
+import { PaymentService, PaymentInitiateRequest } from '@/services/payment.service';
 import { CountryCodeDropdown, Country, getDefaultCountry, formatPhoneNumber } from '@/components/ui/CountryCodeDropdown';
 
 // Equipment-only booking interface (for custom packages)
 interface EquipmentBookingRequest {
   equipments?: Array<{ equipmentId: string; quantity: number }>;
   packages?: string[];
-  customPackages?: string[];
+  // Backend expects this name for custom user packages
+  userEquipmentPackages?: string[];
   date: string;
   startTime: string;
   endTime: string;
@@ -36,7 +38,7 @@ interface EquipmentBookingRequest {
 
 // Equipment booking service
 class EquipmentBookingService {
-  static async createEquipmentBooking(data: EquipmentBookingRequest) {
+  static async createEquipmentBooking(data: EquipmentBookingRequest): Promise<{ _id: string; [key: string]: any }> {
     return apiRequest('/bookings/equipment', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -277,11 +279,14 @@ const BookCustomPackagePage: React.FC = () => {
     setError('');
 
     try {
+      console.log('Starting booking process...');
+      
       // Format phone number with country code
       const formattedPhone = formatPhoneNumber(selectedCountry.code, formData.userDetails.phone);
       
       const bookingData: EquipmentBookingRequest = {
-        customPackages: [packageData._id],
+        // Use backend-expected field name for custom packages
+        userEquipmentPackages: [packageData._id],
         equipments: [], // No individual equipment items
         packages: [], // No regular packages
         date: formData.isMultiDay ? formData.eventDates[0]?.date || '' : formData.eventDate,
@@ -293,26 +298,55 @@ const BookCustomPackagePage: React.FC = () => {
         equipmentDates: formData.isMultiDay ? formData.eventDates : undefined,
       };
 
-      // Set the formatted phone number in form data for the booking
-      const bookingFormData = {
-        ...formData,
-        userDetails: {
-          ...formData.userDetails,
-          phone: formattedPhone
-        }
+      console.log('Creating booking with data:', JSON.stringify(bookingData, null, 2));
+
+      // First create the booking
+      const response = await EquipmentBookingService.createEquipmentBooking(bookingData);
+
+      console.log('Booking created:', response);
+
+      // Extract bookingId robustly from different possible response shapes
+      const bookingId =
+        (response && (response as any)._id) ||
+        (response as any)?.id ||
+        (response as any)?.bookingId ||
+        (response as any)?.booking?._id ||
+        (response as any)?.data?._id ||
+        (response as any)?.data?.booking?._id;
+
+      if (!bookingId) {
+        console.error('Unable to determine bookingId from response:', response);
+        throw new Error('Unable to create booking: missing booking ID');
+      }
+
+      // Prefer server-provided payment link (backend initiates payment)
+      const paymentLink = (response as any)?.paymentLink;
+      if (paymentLink) {
+        console.log('Redirecting to payment gateway (server-provided link):', paymentLink);
+        PaymentService.redirectToPayment(paymentLink);
+        return;
+      }
+
+      // Fallback: initiate payment from client if link not provided
+      const paymentData: PaymentInitiateRequest = {
+        bookingId,
+        amount: calculateTotalPrice(),
+        // Backend treats custom package equipment booking as 'equipment'
+        type: 'equipment',
+        description: `Custom Equipment Package: ${packageData.name}`,
+        customerMobile: formattedPhone,
       };
 
-      const response = await EquipmentBookingService.createEquipmentBooking(bookingData);
-      setSuccess('Custom package booking created successfully!');
-      
-      // Redirect to booking details or dashboard after 2 seconds
-      setTimeout(() => {
-        router.push(`/dashboard/user/bookings`);
-      }, 2000);
+      console.log('No paymentLink in response. Initiating payment from client with:', paymentData);
+      const paymentResponse = await PaymentService.initiatePayment(paymentData);
+      if (!paymentResponse?.paymentLink) {
+        throw new Error('Payment link not received from server');
+      }
+      PaymentService.redirectToPayment(paymentResponse.paymentLink);
       
     } catch (err: any) {
-      setError(err.message || 'Failed to create booking');
-    } finally {
+      console.error('Error in booking process:', err);
+      setError(err.message || 'Failed to process booking and payment');
       setSubmitting(false);
     }
   };
@@ -1028,7 +1062,7 @@ const BookCustomPackagePage: React.FC = () => {
                   ) : (
                     <>
                       <CreditCard className="w-5 h-5" />
-                      Book Custom Package
+                      Proceed to Payment
                     </>
                   )}
                 </button>

@@ -26,8 +26,15 @@ export function EnhancedEquipmentPackageBookingCard({
 }: EnhancedEquipmentPackageBookingCardProps) {
   const status = BOOKING_STATUSES[booking.status];
   
-  const startDate = new Date(booking.startDate);
-  const endDate = new Date(booking.endDate);
+  // Safe date parsing with fallbacks
+  const parseDate = (dateStr: string | undefined) => {
+    if (!dateStr) return new Date();
+    const parsed = new Date(dateStr);
+    return isNaN(parsed.getTime()) ? new Date() : parsed;
+  };
+  
+  const startDate = parseDate(booking.startDate);
+  const endDate = parseDate(booking.endDate);
   const isUpcoming = startDate > new Date();
   const canCancel = booking.status === 'pending' || booking.status === 'confirmed';
 
@@ -37,7 +44,14 @@ export function EnhancedEquipmentPackageBookingCard({
   const packageName = hasPackageData ? booking.packageId.name : 'Custom Equipment Package';
   const packageDescription = hasPackageData ? booking.packageId.description : 'Custom equipment package configured by user';
 
+  // Calculate daily rate safely
+  const numberOfDays = booking.numberOfDays || 1;
+  const dailyRate = booking.totalPrice && numberOfDays ? booking.totalPrice / numberOfDays : 0;
+
   const formatCurrency = (amount: number) => {
+    if (isNaN(amount) || amount === null || amount === undefined) {
+      return 'KWD 0.00';
+    }
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'KWD'
@@ -191,13 +205,13 @@ export function EnhancedEquipmentPackageBookingCard({
             <div className="flex justify-between">
               <span className="text-gray-600 text-xs">Start:</span>
               <span className="font-medium text-gray-900 text-xs">
-                {format(startDate, 'MMM d, yyyy')}
+                {isNaN(startDate.getTime()) ? 'Invalid Date' : format(startDate, 'MMM d, yyyy')}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600 text-xs">End:</span>
               <span className="font-medium text-gray-900 text-xs">
-                {format(endDate, 'MMM d, yyyy')}
+                {isNaN(endDate.getTime()) ? 'Invalid Date' : format(endDate, 'MMM d, yyyy')}
               </span>
             </div>
           </div>
@@ -311,7 +325,7 @@ export function EnhancedEquipmentPackageBookingCard({
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-gray-600">Daily Rate:</span>
-                  <span className="font-medium text-gray-900">{formatCurrency(booking.pricePerDay)}</span>
+                  <span className="font-medium text-gray-900">{formatCurrency(dailyRate)}</span>
                 </div>
               </div>
             </div>
@@ -365,7 +379,7 @@ export function EnhancedEquipmentPackageBookingCard({
           <div className="space-y-1 text-xs">
             <div className="flex justify-between">
               <span className="text-gray-600">Per Day:</span>
-              <span className="font-medium text-gray-900">{formatCurrency(booking.pricePerDay)}</span>
+              <span className="font-medium text-gray-900">{formatCurrency(dailyRate)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Duration:</span>

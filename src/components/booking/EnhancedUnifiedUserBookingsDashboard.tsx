@@ -73,22 +73,63 @@ export function EnhancedUnifiedUserBookingsDashboard() {
     try {
       setError(null);
       
-      const [artistData, equipmentPackageData, standaloneEquipmentData] = await Promise.all([
-        BookingService.getUserBookings().catch(() => []),
+      // First try the unified endpoint to see all bookings
+      const unifiedData = await BookingService.getUserBookings().catch(() => []);
+      
+      // Extract different booking types from unified response
+      const artistData = (unifiedData || []).filter(b => 
+        b.bookingType === 'artist_only' || 
+        b.bookingType === 'combined' || 
+        (b.artistId && !b.bookingType)
+      );
+      
+      const equipmentOnlyData = (unifiedData || []).filter(b => 
+        b.bookingType === 'equipment_only' ||
+        (b.selectedCustomPackages && b.selectedCustomPackages.length > 0) ||
+        (b.selectedEquipmentPackages && b.selectedEquipmentPackages.length > 0) ||
+        (b.equipments && b.equipments.length > 0)
+      ).map(booking => ({
+        ...booking,
+        // Ensure consistent field names for equipment bookings from unified endpoint
+        startDate: booking.eventDate || booking.startDate || booking.date,
+        endDate: booking.eventDate || booking.endDate || booking.date, // Same as start date for single-day bookings
+        numberOfDays: 1, // Default for single-day bookings
+        _id: booking._id
+      }));
+      
+      // Also try dedicated endpoints as fallback
+      const [equipmentPackageData, standaloneEquipmentData] = await Promise.all([
         equipmentPackageBookingService.getMyBookings().then(res => res.bookings).catch(() => []),
         EquipmentBookingService.getMyEquipmentBookings().then(res => res.bookings).catch(() => [])
       ]);
+      
+      // Combine equipment bookings from both sources, avoiding duplicates
+      const combinedEquipmentIds = new Set();
+      const allEquipmentBookings = [
+        ...equipmentOnlyData.filter(booking => {
+          if (combinedEquipmentIds.has(booking._id)) return false;
+          combinedEquipmentIds.add(booking._id);
+          return true;
+        }),
+        ...standaloneEquipmentData.filter(booking => {
+          if (combinedEquipmentIds.has(booking._id)) return false;
+          combinedEquipmentIds.add(booking._id);
+          return true;
+        })
+      ];
 
       console.log('📊 Fetched bookings:', {
         artist: artistData.length,
         equipmentPackage: equipmentPackageData.length,
-        standaloneEquipment: standaloneEquipmentData.length
+        standaloneEquipment: standaloneEquipmentData.length,
+        equipmentFromUnified: equipmentOnlyData.length,
+        totalEquipment: allEquipmentBookings.length
       });
 
       setArtistBookings(artistData || []);
       setEquipmentPackageBookings(equipmentPackageData || []);
-      setEquipmentBookings(standaloneEquipmentData || []);
-      calculateEnhancedSummary(artistData || [], equipmentPackageData || [], standaloneEquipmentData || []);
+      setEquipmentBookings(allEquipmentBookings || []);
+      calculateEnhancedSummary(artistData || [], equipmentPackageData || [], allEquipmentBookings || []);
     } catch (error) {
       console.error('Error fetching bookings:', error);
       setError('Failed to load bookings. Please try again.');
@@ -127,7 +168,16 @@ export function EnhancedUnifiedUserBookingsDashboard() {
 
     // Add standalone equipment bookings
     equipmentBookings.forEach(booking => {
-      const eventDate = new Date(booking.startDate);
+      // Handle different date field names from different sources
+      const dateStr = booking.startDate || (booking as any).eventDate || (booking as any).date;
+      const eventDate = dateStr ? new Date(dateStr) : new Date();
+      
+      // Validate the date
+      if (isNaN(eventDate.getTime())) {
+        console.warn('Invalid date for equipment booking:', booking._id, 'dateStr:', dateStr);
+        eventDate.setTime(Date.now()); // Fallback to current date
+      }
+      
       unified.push({
         type: 'equipment',
         data: booking,
@@ -576,7 +626,7 @@ export function EnhancedUnifiedUserBookingsDashboard() {
             }
           `}>
             {filteredBookings.map((booking, index) => (
-              <div key={`${booking.type}-${(booking.data as any)._id}`} className="relative">
+              <div key={`${booking.type}-${(booking.data as any)._id}-${index}`} className="relative">
                 {/* Booking Type Badge */}
                 <div className="absolute top-2 left-4 z-20">
                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium shadow-sm border backdrop-blur-sm ${

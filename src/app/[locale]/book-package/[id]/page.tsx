@@ -14,6 +14,7 @@ import {
   equipmentPackageBookingService, 
   CreateEquipmentPackageBookingRequest 
 } from '@/services/equipment-package-booking.service';
+import { PaymentService, PaymentInitiateRequest } from '@/services/payment.service';
 import { useAuthLogic } from '@/hooks/useAuth';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { TermsAndConditionsModal } from '@/components/booking/TermsAndConditionsModal';
@@ -266,17 +267,24 @@ const BookEquipmentPackagePage: React.FC = () => {
         specialRequests: formData.specialRequests,
       };
 
+      // First create the booking
       const response = await equipmentPackageBookingService.createBooking(bookingData);
-      setSuccess('Package booking created successfully!');
       
-      // Redirect to booking details or dashboard after 2 seconds
-      setTimeout(() => {
-        router.push(`/dashboard/user/bookings`);
-      }, 2000);
+      // Then initiate payment
+      const paymentData: PaymentInitiateRequest = {
+        bookingId: response.booking._id,
+        amount: totalPrice,
+        type: 'equipment-package',
+        description: `Equipment Package: ${packageData.name}`
+      };
+
+      const paymentResponse = await PaymentService.initiatePayment(paymentData);
+      
+      // Redirect to payment gateway
+      PaymentService.redirectToPayment(paymentResponse.paymentLink);
       
     } catch (err: any) {
-      setError(err.message || 'Failed to create booking');
-    } finally {
+      setError(err.message || 'Failed to process booking and payment');
       setSubmitting(false);
     }
   };
@@ -865,7 +873,7 @@ const BookEquipmentPackagePage: React.FC = () => {
                       ) : (
                         <>
                           <CreditCard className="w-5 h-5 relative z-10" />
-                          <span className="relative z-10">Book Package</span>
+                          <span className="relative z-10">Proceed to Payment</span>
                         </>
                       )}
                     </button>
