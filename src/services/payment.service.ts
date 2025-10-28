@@ -15,6 +15,25 @@ export interface PaymentInitiateResponse {
   type: string;
 }
 
+export interface BatchItem {
+  bookingId: string;
+  type: 'equipment-package' | 'custom-equipment-package' | 'equipment' | 'artist' | 'combo';
+  amount: number;
+  description?: string;
+}
+
+export interface BatchInitiateRequest {
+  items: BatchItem[];
+  customerMobile?: string;
+}
+
+export interface BatchInitiateResponse {
+  paymentLink: string;
+  trackId: string;
+  bookingId: string; // comboId
+  type: string; // 'combo'
+}
+
 export interface PaymentVerifyRequest {
   bookingId: string;
   type: string;
@@ -32,6 +51,13 @@ export interface PaymentVerifyResponse {
 export class PaymentService {
   static async initiatePayment(data: PaymentInitiateRequest): Promise<PaymentInitiateResponse> {
     return apiRequest('/payment/initiate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async initiateBatch(data: BatchInitiateRequest): Promise<BatchInitiateResponse> {
+    return apiRequest('/payment/initiate-batch', {
       method: 'POST',
       body: JSON.stringify(data),
     });

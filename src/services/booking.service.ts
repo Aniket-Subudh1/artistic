@@ -197,6 +197,20 @@ export class BookingService {
     return bookings;
   }
 
+  static async getArtistOwnBookings(): Promise<any[]> {
+    const bookings = await apiRequest<any[]>(API_CONFIG.ENDPOINTS.BOOKINGS.ARTIST_MY, {
+      method: 'GET',
+    });
+    return bookings;
+  }
+
+  static async getArtistAnalytics(): Promise<any> {
+    const analytics = await apiRequest<any>(API_CONFIG.ENDPOINTS.BOOKINGS.ARTIST_ANALYTICS, {
+      method: 'GET',
+    });
+    return analytics;
+  }
+
   static async getBookingById(bookingId: string): Promise<any> {
     return apiRequest<any>(API_CONFIG.ENDPOINTS.BOOKINGS.GET_BY_ID(bookingId), {
       method: 'GET',

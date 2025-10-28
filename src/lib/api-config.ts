@@ -148,6 +148,8 @@ export const API_CONFIG = {
       UPDATE: (id: string) => `/bookings/${id}`,
       DELETE: (id: string) => `/bookings/${id}`,
       MY_BOOKINGS: '/bookings/my',
+      ARTIST_MY: '/bookings/artist/my',
+      ARTIST_ANALYTICS: '/bookings/artist/analytics',
       PENDING: '/bookings/pending',
       APPROVE: (id: string) => `/bookings/${id}/approve`,
       REJECT: (id: string) => `/bookings/${id}/reject`,

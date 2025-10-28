@@ -19,10 +19,12 @@ import {
   equipmentPackageBookingService,
   CreateEquipmentPackageBookingRequest
 } from '@/services/equipment-package-booking.service';
+import { EquipmentBookingService, EquipmentBookingRequest } from '@/services/equipment-booking.service';
 import { useAuthLogic } from '@/hooks/useAuth';
 import { EquipmentPackage } from '@/services/equipment-packages.service';
 import { CustomEquipmentPackage } from '@/services/custom-equipment-packages.service';
 import { CountryCodeDropdown, Country, getDefaultCountry, formatPhoneNumber } from '@/components/ui/CountryCodeDropdown';
+import { PaymentInitiateRequest, PaymentService } from '@/services/payment.service';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -108,45 +110,210 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     setError('');
 
     try {
-      const formattedPhone = formatPhoneNumber(selectedCountry.code, formData.userDetails.phone);
+  const formattedPhone = formatPhoneNumber(selectedCountry.code, formData.userDetails.phone);
       
-      // Create individual bookings for each cart item using the equipment package booking service
-      const bookingPromises = cartItems.map(async (item) => {
+      if (cartItems.length === 0) {
+        setError('Your cart is empty');
+        return;
+      }
+
+      // If multiple items are in the cart, create bookings for all and initiate a single combined payment.
+      if (cartItems.length > 1) {
+        type BookingBuild = { bookingId: string; type: PaymentInitiateRequest['type']; amount: number; description: string };
+        const built: BookingBuild[] = [];
+
+        const getDaysInclusive = (start: string, end: string): number => {
+          const s = new Date(start);
+          const e = new Date(end);
+          const ms = e.getTime() - s.getTime();
+          return Math.floor(ms / (1000 * 60 * 60 * 24)) + 1;
+        };
+
+        for (const item of cartItems) {
+          if (item.type === 'regular') {
+            const days = getDaysInclusive(item.startDate, item.endDate);
+            const perDay = (item.package as EquipmentPackage).totalPrice;
+            const amountKwd = perDay * days;
+            const description = `Equipment Package: ${(item.package as EquipmentPackage).name}`;
+            const paymentType: PaymentInitiateRequest['type'] = 'equipment-package';
+
+            const bookingData: CreateEquipmentPackageBookingRequest = {
+              packageId: item.package._id,
+              startDate: item.startDate,
+              endDate: item.endDate,
+              userDetails: {
+                ...formData.userDetails,
+                phone: formattedPhone,
+              },
+              venueDetails: formData.venueDetails,
+              eventDescription: formData.eventDescription,
+              specialRequests: formData.specialRequests,
+            };
+
+            const response = await equipmentPackageBookingService.createBooking(bookingData);
+            const bookingId = (response as any)?.booking?._id || (response as any)?._id || (response as any)?.id || (response as any)?.bookingId;
+            if (!bookingId) throw new Error('Unable to determine booking ID for package booking');
+            built.push({ bookingId, type: paymentType, amount: amountKwd, description });
+          } else {
+            const days = getDaysInclusive(item.startDate, item.endDate);
+            const perDay = (item.package as CustomEquipmentPackage).totalPricePerDay;
+            const amountKwd = perDay * days;
+            const description = `Custom Equipment Package: ${(item.package as CustomEquipmentPackage).name}`;
+            const paymentType: PaymentInitiateRequest['type'] = 'custom-equipment-package';
+
+            const generateEquipmentDates = (start: string, end: string) => {
+              const dates: { date: string; startTime: string; endTime: string }[] = [];
+              const s = new Date(start + 'T00:00:00Z');
+              const e = new Date(end + 'T00:00:00Z');
+              for (let d = new Date(s); d.getTime() <= e.getTime(); d.setUTCDate(d.getUTCDate() + 1)) {
+                const iso = d.toISOString().split('T')[0];
+                dates.push({ date: iso, startTime: '09:00', endTime: '18:00' });
+              }
+              return dates;
+            };
+
+            const equipmentBooking: EquipmentBookingRequest = {
+              userEquipmentPackages: [item.package._id],
+              equipments: [],
+              packages: [],
+              date: item.startDate,
+              startTime: '09:00',
+              endTime: '18:00',
+              totalPrice: amountKwd,
+              address: `${formData.venueDetails.address}, ${formData.venueDetails.city}, ${formData.venueDetails.state}, ${formData.venueDetails.country}`,
+              isMultiDay: item.startDate !== item.endDate,
+              equipmentDates: item.startDate !== item.endDate ? generateEquipmentDates(item.startDate, item.endDate) : undefined,
+            };
+
+            const response = await EquipmentBookingService.createEquipmentBooking(equipmentBooking);
+            const bookingId = (response as any)?._id || (response as any)?.id || (response as any)?.bookingId || (response as any)?.booking?._id;
+            if (!bookingId) throw new Error('Unable to determine booking ID for custom equipment booking');
+            built.push({ bookingId, type: paymentType, amount: amountKwd, description });
+          }
+        }
+
+        const batchPayload = {
+          items: built.map((b) => ({ bookingId: b.bookingId, type: b.type, amount: b.amount, description: b.description })),
+          customerMobile: formattedPhone,
+        };
+        const batch = await PaymentService.initiateBatch(batchPayload);
+        if (!batch?.paymentLink) throw new Error('Batch payment link not received');
+
+        // Clear cart and redirect
+        clearCart();
+        PaymentService.redirectToPayment(batch.paymentLink);
+        return;
+      }
+
+      // Single item flow
+      const item = cartItems[0];
+
+      // Helper to compute number of days between start and end (inclusive)
+      const getDaysInclusive = (start: string, end: string): number => {
+        const s = new Date(start);
+        const e = new Date(end);
+        const ms = e.getTime() - s.getTime();
+        return Math.floor(ms / (1000 * 60 * 60 * 24)) + 1;
+      };
+
+      // Create booking depending on type
+      let bookingId = '';
+      let amountKwd = 0;
+      let paymentType: PaymentInitiateRequest['type'] = 'equipment-package';
+      let description = '';
+
+      if (item.type === 'regular') {
+        const days = getDaysInclusive(item.startDate, item.endDate);
+        const perDay = (item.package as EquipmentPackage).totalPrice;
+        amountKwd = perDay * days;
+        description = `Equipment Package: ${(item.package as EquipmentPackage).name}`;
+        paymentType = 'equipment-package';
+
         const bookingData: CreateEquipmentPackageBookingRequest = {
           packageId: item.package._id,
           startDate: item.startDate,
           endDate: item.endDate,
           userDetails: {
             ...formData.userDetails,
-            phone: formattedPhone
+            phone: formattedPhone,
           },
           venueDetails: formData.venueDetails,
           eventDescription: formData.eventDescription,
           specialRequests: formData.specialRequests,
         };
 
-        console.log('🔄 Creating booking for item:', {
-          type: item.type,
-          packageId: item.package._id,
-          packageName: item.package.name,
-          dates: `${item.startDate} to ${item.endDate}`
-        });
+        const response = await equipmentPackageBookingService.createBooking(bookingData);
+        bookingId = (response as any)?.booking?._id || (response as any)?._id || (response as any)?.id || (response as any)?.bookingId;
+        if (!bookingId) throw new Error('Unable to determine booking ID for package booking');
 
-        return equipmentPackageBookingService.createBooking(bookingData);
-      });
+        // Prefer server-provided paymentLink if present
+        const serverPaymentLink = (response as any)?.paymentLink;
+        if (serverPaymentLink) {
+          PaymentService.redirectToPayment(serverPaymentLink);
+          return;
+        }
+  } else {
+        // Custom package: create equipment booking with userEquipmentPackages
+        const days = getDaysInclusive(item.startDate, item.endDate);
+        const perDay = (item.package as CustomEquipmentPackage).totalPricePerDay;
+        amountKwd = perDay * days;
+        description = `Custom Equipment Package: ${(item.package as CustomEquipmentPackage).name}`;
+  paymentType = 'custom-equipment-package';
 
-      const bookingResults = await Promise.all(bookingPromises);
-      
-      console.log('✅ All bookings created successfully:', bookingResults.length);
-      setSuccess(`Successfully created ${bookingResults.length} booking${bookingResults.length > 1 ? 's' : ''}!`);
-      clearCart();
-      setShowBookingForm(false);
-      
-      // Redirect to bookings page after success
-      setTimeout(() => {
-        router.push('/dashboard/user/bookings');
-        onClose();
-      }, 2000);
+        // Build equipmentDates for multi-day range
+        const generateEquipmentDates = (start: string, end: string) => {
+          const dates: { date: string; startTime: string; endTime: string }[] = [];
+          const s = new Date(start + 'T00:00:00Z');
+          const e = new Date(end + 'T00:00:00Z');
+          for (let d = new Date(s); d.getTime() <= e.getTime(); d.setUTCDate(d.getUTCDate() + 1)) {
+            const iso = d.toISOString().split('T')[0];
+            dates.push({ date: iso, startTime: '09:00', endTime: '18:00' });
+          }
+          return dates;
+        };
+
+        const equipmentBooking: EquipmentBookingRequest = {
+          userEquipmentPackages: [item.package._id],
+          equipments: [],
+          packages: [],
+          date: item.startDate,
+          startTime: '09:00',
+          endTime: '18:00',
+          totalPrice: amountKwd,
+          address: `${formData.venueDetails.address}, ${formData.venueDetails.city}, ${formData.venueDetails.state}, ${formData.venueDetails.country}`,
+          isMultiDay: item.startDate !== item.endDate,
+          equipmentDates: item.startDate !== item.endDate ? generateEquipmentDates(item.startDate, item.endDate) : undefined,
+        };
+
+        const response = await EquipmentBookingService.createEquipmentBooking(equipmentBooking);
+        bookingId = (response as any)?._id || (response as any)?.id || (response as any)?.bookingId || (response as any)?.booking?._id;
+        if (!bookingId) throw new Error('Unable to determine booking ID for custom equipment booking');
+
+        // Prefer server-provided payment link
+        const serverPaymentLink = (response as any)?.paymentLink;
+        if (serverPaymentLink) {
+          PaymentService.redirectToPayment(serverPaymentLink);
+          return;
+        }
+      }
+
+      // Initiate payment for the created booking
+      const paymentData: PaymentInitiateRequest = {
+        bookingId,
+        amount: amountKwd,
+        type: paymentType,
+        description,
+        customerMobile: formattedPhone,
+      };
+
+      const paymentResponse = await PaymentService.initiatePayment(paymentData);
+      if (!paymentResponse?.paymentLink) {
+        throw new Error('Payment link not received from server');
+      }
+
+  // Optionally remove the processed item from cart before redirect
+  removeFromCart(item.id);
+      PaymentService.redirectToPayment(paymentResponse.paymentLink);
       
     } catch (err: any) {
       console.error('❌ Booking creation failed:', err);

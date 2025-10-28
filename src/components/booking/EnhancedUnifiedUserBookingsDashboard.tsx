@@ -73,37 +73,33 @@ export function EnhancedUnifiedUserBookingsDashboard() {
     try {
       setError(null);
       
-      // First try the unified endpoint to see all bookings
       const unifiedData = await BookingService.getUserBookings().catch(() => []);
       
-      // Extract different booking types from unified response
       const artistData = (unifiedData || []).filter(b => 
         b.bookingType === 'artist_only' || 
         b.bookingType === 'combined' || 
         (b.artistId && !b.bookingType)
       );
       
-      const equipmentOnlyData = (unifiedData || []).filter(b => 
-        b.bookingType === 'equipment_only' ||
-        (b.selectedCustomPackages && b.selectedCustomPackages.length > 0) ||
-        (b.selectedEquipmentPackages && b.selectedEquipmentPackages.length > 0) ||
-        (b.equipments && b.equipments.length > 0)
-      ).map(booking => ({
+      const equipmentOnlyData = (unifiedData || []).filter(b => {
+        const hasEquip = (b.selectedCustomPackages && b.selectedCustomPackages.length > 0) ||
+                         (b.selectedEquipmentPackages && b.selectedEquipmentPackages.length > 0) ||
+                         (b.equipments && b.equipments.length > 0);
+        const isCombined = b.bookingType === 'combined' || !!b.artistId; 
+        return (b.bookingType === 'equipment_only' || (hasEquip && !isCombined));
+      }).map(booking => ({
         ...booking,
-        // Ensure consistent field names for equipment bookings from unified endpoint
         startDate: booking.eventDate || booking.startDate || booking.date,
-        endDate: booking.eventDate || booking.endDate || booking.date, // Same as start date for single-day bookings
-        numberOfDays: 1, // Default for single-day bookings
+        endDate: booking.eventDate || booking.endDate || booking.date,
+        numberOfDays: 1, 
         _id: booking._id
       }));
       
-      // Also try dedicated endpoints as fallback
       const [equipmentPackageData, standaloneEquipmentData] = await Promise.all([
         equipmentPackageBookingService.getMyBookings().then(res => res.bookings).catch(() => []),
         EquipmentBookingService.getMyEquipmentBookings().then(res => res.bookings).catch(() => [])
       ]);
       
-      // Combine equipment bookings from both sources, avoiding duplicates
       const combinedEquipmentIds = new Set();
       const allEquipmentBookings = [
         ...equipmentOnlyData.filter(booking => {
@@ -118,13 +114,7 @@ export function EnhancedUnifiedUserBookingsDashboard() {
         })
       ];
 
-      console.log('📊 Fetched bookings:', {
-        artist: artistData.length,
-        equipmentPackage: equipmentPackageData.length,
-        standaloneEquipment: standaloneEquipmentData.length,
-        equipmentFromUnified: equipmentOnlyData.length,
-        totalEquipment: allEquipmentBookings.length
-      });
+     ;
 
       setArtistBookings(artistData || []);
       setEquipmentPackageBookings(equipmentPackageData || []);

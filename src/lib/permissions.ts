@@ -65,6 +65,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     'view_equipment_bookings',
     'manage_equipment_listings',
     'view_equipment_analytics',
+    'manage_equipment_bookings',
+    'view_my_bookings',
     'change_own_password',
     'manage_own_profile',
     'update_profile_picture'
@@ -434,15 +436,7 @@ export const getSidebarItems = (): SidebarItem[] => [
         href: '/dashboard/admin/bookings',
         roles: ['super_admin', 'admin'],
       },
-      {
-        id: 'pending-bookings',
-        label: 'Pending Approvals',
-        labelAr: 'الموافقات المعلقة',
-        icon: 'Clock',
-        href: '/dashboard/bookings/pending',
-        roles: ['super_admin', 'admin', 'venue_owner', 'equipment_provider'],
-        badge: 'new',
-      },
+     
     ],
   },
 

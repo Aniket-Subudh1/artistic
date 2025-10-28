@@ -46,6 +46,101 @@ export interface ChangePasswordResponse {
   message: string;
 }
 
+export interface BookingFilters {
+  status?: string;
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface EquipmentBookingItem {
+  _id: string;
+  type: 'equipment' | 'package';
+  customer: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber: string;
+  };
+  items?: Array<{
+    equipment: any;
+    quantity: number;
+  }>;
+  packages?: any[];
+  customPackages?: Array<{
+    _id: string;
+    name: string;
+    description: string;
+    totalPricePerDay: number;
+    notes?: string;
+    items?: Array<{
+      equipmentId: any;
+      quantity: number;
+      pricePerDay: number;
+    }>;
+  }>;
+  package?: any;
+  date?: string;
+  startDate?: string;
+  endDate?: string;
+  startTime?: string;
+  endTime?: string;
+  numberOfDays?: number;
+  pricePerDay?: number;
+  totalPrice: number;
+  status: string;
+  paymentStatus: string;
+  userDetails?: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+  venueDetails?: {
+    address: string;
+    city: string;
+    state: string;
+    country: string;
+    postalCode?: string;
+    venueType?: string;
+    additionalInfo?: string;
+  };
+  eventDescription?: string;
+  specialRequests?: string;
+  address?: string;
+  equipmentDates?: Array<{
+    date: string;
+    startTime: string;
+    endTime: string;
+  }>;
+  isMultiDay?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BookingAnalytics {
+  overview: {
+    totalEquipment: number;
+    totalPackages: number;
+    totalBookingsThisMonth: number;
+    totalBookingsLastMonth: number;
+    totalRevenue: number;
+    equipmentRevenue: number;
+    packageRevenue: number;
+  };
+  bookingTrends: {
+    equipmentBookingsThisMonth: number;
+    equipmentBookingsLastMonth: number;
+    packageBookingsThisMonth: number;
+    packageBookingsLastMonth: number;
+  };
+  statusBreakdown: {
+    equipment: Array<{ _id: string; count: number }>;
+    packages: Array<{ _id: string; count: number }>;
+  };
+}
+
 export class EquipmentProviderService {
   static async createEquipmentProvider(data: CreateEquipmentProviderRequest): Promise<{ message: string }> {
     return apiRequest<{ message: string }>(API_CONFIG.ENDPOINTS.EQUIPMENT_PROVIDER.CREATE, {
@@ -126,5 +221,63 @@ export class EquipmentProviderService {
     } catch (error) {
       throw new Error('Failed to get provider statistics');
     }
+  }
+
+  // Get provider bookings
+  static async getMyBookings(filters: BookingFilters = {}): Promise<{
+    bookings: EquipmentBookingItem[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+    stats: {
+      totalEquipmentBookings: number;
+      totalPackageBookings: number;
+      totalBookings: number;
+    };
+  }> {
+    const queryParams = new URLSearchParams();
+    
+    if (filters.status) queryParams.append('status', filters.status);
+    if (filters.startDate) queryParams.append('startDate', filters.startDate);
+    if (filters.endDate) queryParams.append('endDate', filters.endDate);
+    if (filters.page) queryParams.append('page', filters.page.toString());
+    if (filters.limit) queryParams.append('limit', filters.limit.toString());
+
+    const endpoint = `/equipment-provider/bookings/my-bookings${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    
+    return apiRequest<{
+      bookings: EquipmentBookingItem[];
+      pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+      };
+      stats: {
+        totalEquipmentBookings: number;
+        totalPackageBookings: number;
+        totalBookings: number;
+      };
+    }>(endpoint, {
+      method: 'GET',
+    });
+  }
+
+  // Get booking analytics
+  static async getBookingAnalytics(): Promise<BookingAnalytics> {
+    return apiRequest<BookingAnalytics>('/equipment-provider/bookings/analytics', {
+      method: 'GET',
+    });
+  }
+
+  // Update booking status
+  static async updateBookingStatus(bookingId: string, status: string, notes?: string): Promise<{ message: string; booking: any }> {
+    return apiRequest<{ message: string; booking: any }>(`/equipment-provider/bookings/${bookingId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status, notes }),
+    });
   }
 }

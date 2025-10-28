@@ -287,8 +287,8 @@ export function EnhancedBookingCard({ booking, onViewDetails, onCancel, classNam
             </div>
             
             <div className="space-y-1">
-              {/* Provider Packages */}
-              {booking.selectedEquipmentPackages?.slice(0, 2).map((pkg, idx) => (
+              {/* Provider Packages (show all) */}
+              {booking.selectedEquipmentPackages?.map((pkg, idx) => (
                 <div key={idx} className="flex items-center justify-between bg-white rounded p-2 text-xs">
                   <div className="flex items-center gap-2 min-w-0 flex-1">
                     <Package className="h-3 w-3 text-orange-600 flex-shrink-0" />
@@ -300,8 +300,8 @@ export function EnhancedBookingCard({ booking, onViewDetails, onCancel, classNam
                 </div>
               ))}
               
-              {/* Custom Packages */}
-              {booking.selectedCustomPackages?.slice(0, 1).map((pkg, idx) => (
+              {/* Custom Packages (show all) */}
+              {booking.selectedCustomPackages?.map((pkg, idx) => (
                 <div key={idx} className="flex items-center justify-between bg-white rounded p-2 text-xs">
                   <div className="flex items-center gap-2 min-w-0 flex-1">
                     <Settings className="h-3 w-3 text-amber-600 flex-shrink-0" />
@@ -312,12 +312,7 @@ export function EnhancedBookingCard({ booking, onViewDetails, onCancel, classNam
                   </span>
                 </div>
               ))}
-              
-              {equipmentCount > 3 && (
-                <div className="text-xs text-gray-500 text-center py-1">
-                  +{equipmentCount - 3} more packages
-                </div>
-              )}
+
             </div>
           </div>
         )}

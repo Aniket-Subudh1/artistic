@@ -246,44 +246,73 @@ const BookEquipmentPackagePage: React.FC = () => {
 
   const processBooking = async () => {
     if (!packageData) return; // Add null check
-    
+
     setSubmitting(true);
     setError('');
 
     try {
       // Format phone number with country code
-      const formattedPhone = formatPhoneNumber(selectedCountry.code, formData.userDetails.phone);
-      
+      const formattedPhone = formatPhoneNumber(
+        selectedCountry.code,
+        formData.userDetails.phone
+      );
+
       const bookingData: CreateEquipmentPackageBookingRequest = {
         packageId: packageData._id,
         startDate: formData.startDate,
         endDate: formData.endDate,
         userDetails: {
           ...formData.userDetails,
-          phone: formattedPhone
+          phone: formattedPhone,
         },
         venueDetails: formData.venueDetails,
         eventDescription: formData.eventDescription,
         specialRequests: formData.specialRequests,
       };
 
-      // First create the booking
-      const response = await equipmentPackageBookingService.createBooking(bookingData);
-      
-      // Then initiate payment
+      // 1) Create the booking first
+      const response = await equipmentPackageBookingService.createBooking(
+        bookingData
+      );
+
+      // 2) Try to extract bookingId robustly from various response shapes
+      const bookingId =
+        (response as any)?.booking?._id ||
+        (response as any)?._id ||
+        (response as any)?.id ||
+        (response as any)?.bookingId ||
+        (response as any)?.data?.booking?._id ||
+        (response as any)?.data?._id;
+
+      if (!bookingId) {
+        console.error('Unable to determine bookingId from response:', response);
+        throw new Error('Unable to create booking: missing booking ID');
+      }
+
+      // 3) Prefer server-provided payment link if available
+      const serverPaymentLink = (response as any)?.paymentLink;
+      if (serverPaymentLink) {
+        PaymentService.redirectToPayment(serverPaymentLink);
+        return;
+      }
+
+      // 4) Fallback: initiate payment from client
+      const amount = calculateTotalPrice();
       const paymentData: PaymentInitiateRequest = {
-        bookingId: response.booking._id,
-        amount: totalPrice,
+        bookingId,
+        amount,
         type: 'equipment-package',
-        description: `Equipment Package: ${packageData.name}`
+        description: `Equipment Package: ${packageData.name}`,
+        customerMobile: formattedPhone,
       };
 
       const paymentResponse = await PaymentService.initiatePayment(paymentData);
-      
-      // Redirect to payment gateway
+      if (!paymentResponse?.paymentLink) {
+        throw new Error('Payment link not received from server');
+      }
       PaymentService.redirectToPayment(paymentResponse.paymentLink);
-      
     } catch (err: any) {
+      console.error('Error in booking process:', err);
       setError(err.message || 'Failed to process booking and payment');
       setSubmitting(false);
     }
