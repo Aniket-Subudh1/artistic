@@ -101,6 +101,36 @@ export function EnhancedBookingDetailsModal({
     }).format(amount);
   };
 
+  // Map various backend payment status shapes to UI-friendly status
+  const getDisplayPaymentStatus = (b: Booking): 'paid' | 'pending' | 'failed' | 'refunded' => {
+    const normalize = (val?: string) => (val || '').toString().trim().toLowerCase();
+
+    const map = (val?: string): 'paid' | 'pending' | 'failed' | 'refunded' | undefined => {
+      const v = normalize(val);
+      if (!v) return undefined;
+      if (['paid', 'success', 'succeeded', 'captured', 'confirmed'].includes(v)) return 'paid';
+      if (['pending', 'processing', 'initiated', 'created'].includes(v)) return 'pending';
+      if (['refunded', 'refund', 'partial_refund'].includes(v)) return 'refunded';
+      if (['failed', 'failure', 'cancel', 'cancelled', 'error'].includes(v)) return 'failed';
+      return undefined;
+    };
+
+    // Short-circuit: if the overall booking itself is confirmed, treat as paid
+    const overall = map(b.status);
+    if (overall === 'paid') return 'paid';
+
+    // Prefer equipment payment status for combined scenarios (more up-to-date)
+    const fromEquipment = map((b as any).equipmentPaymentStatus);
+    if (fromEquipment) return fromEquipment;
+
+    // Then consider any explicit parent paymentStatus (may be stale on combined)
+    const fromPaymentStatus = map((b as any).paymentStatus);
+    if (fromPaymentStatus) return fromPaymentStatus;
+
+    // Default fallback
+    return overall || 'pending';
+  };
+
   const toggleSection = (section: string) => {
     setExpandedSections(prev => 
       prev.includes(section) 
@@ -681,13 +711,23 @@ export function EnhancedBookingDetailsModal({
                   <div className="bg-white rounded-lg p-4 border border-green-200">
                     <div className="flex items-center justify-between">
                       <span className="text-gray-700">Payment Status</span>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        booking.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' :
-                        booking.paymentStatus === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
-                        {booking.paymentStatus || 'Pending'}
-                      </span>
+                      {(() => {
+                        const payStatus = getDisplayPaymentStatus(booking);
+                        const cls =
+                          payStatus === 'paid'
+                            ? 'bg-green-100 text-green-700'
+                            : payStatus === 'pending'
+                            ? 'bg-yellow-100 text-yellow-700'
+                            : payStatus === 'refunded'
+                            ? 'bg-blue-100 text-blue-700'
+                            : 'bg-red-100 text-red-700';
+                        const label = payStatus.charAt(0).toUpperCase() + payStatus.slice(1);
+                        return (
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${cls}`}>
+                            {label}
+                          </span>
+                        );
+                      })()}
                     </div>
                   </div>
 

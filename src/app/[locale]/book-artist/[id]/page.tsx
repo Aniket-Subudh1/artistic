@@ -36,6 +36,7 @@ import { Footer } from '@/components/main/Footer';
 import { TranslatedDataWrapper } from '@/components/ui/TranslatedDataWrapper';
 import { TermsAndConditionsModal } from '@/components/booking/TermsAndConditionsModal';
 import { CartService } from '@/services/cart.service';
+import { PaymentService, PaymentInitiateRequest } from '@/services/payment.service';
 import { TermsAndConditionsService, TermsAndConditions, TermsType } from '@/services/terms-and-conditions.service';
 import { CountryCodeDropdown, Country, getDefaultCountry, formatPhoneNumber } from '@/components/ui/CountryCodeDropdown';
 
@@ -631,8 +632,43 @@ export default function BookArtistPage() {
 
       const response = await BookingService.createArtistBooking(bookingData);
       
-      // Redirect to success page or booking confirmation
-      i18nRouter.push('/dashboard/user/bookings');
+      // Extract booking ID robustly from various response shapes
+      const bookingId =
+        (response as any)?.data?._id ||
+        (response as any)?._id ||
+        (response as any)?.id ||
+        (response as any)?.bookingId ||
+        (response as any)?.data?.booking?._id;
+
+      if (!bookingId) {
+        console.error('Unable to determine bookingId from response:', response);
+        throw new Error('Unable to create booking: missing booking ID');
+      }
+
+      // Prefer server-provided payment link if available
+      const serverPaymentLink = (response as any)?.paymentLink;
+      if (serverPaymentLink) {
+        PaymentService.redirectToPayment(serverPaymentLink);
+        return;
+      }
+
+      // Fallback: initiate payment from client  
+      const paymentData: PaymentInitiateRequest = {
+        bookingId,
+        amount: pricingResponse.totalAmount,
+        type: 'artist', // Use 'artist' type for both artist-only and combined bookings
+        description: formData.selectedEquipmentPackages.length > 0 || formData.selectedCustomPackages.length > 0
+          ? `Artist & Equipment Booking: ${artist?.user?.firstName || artist?.stageName || 'Artist'}`
+          : `Artist Booking: ${artist?.user?.firstName || artist?.stageName || 'Artist'}`,
+        customerMobile: formatPhoneNumber(selectedCountry.code, formData.userDetails.phone),
+      };
+
+      const paymentResponse = await PaymentService.initiatePayment(paymentData);
+      if (!paymentResponse?.paymentLink) {
+        throw new Error('Payment link not received from server');
+      }
+      
+      PaymentService.redirectToPayment(paymentResponse.paymentLink);
     } catch (error: any) {
       setErrorModal({
         show: true,
