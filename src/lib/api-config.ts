@@ -229,18 +229,42 @@ export class APIError extends Error {
 
 const handleUnauthorized = () => {
   if (typeof window !== 'undefined') {
-    // Only handle unauthorized if there's actually no token or it's invalid
+    // Get current path to check if user is on a public page
+    const currentPath = window.location.pathname;
+    const publicPaths = ['/', '/artists', '/packages', '/artist-profile', '/package-details', '/auth/signin', '/auth/signup', '/join-us', '/coming-soon'];
+    
+    // Check if user is on a public page
+    const isOnPublicPage = publicPaths.some(path => 
+      currentPath === path || 
+      currentPath.startsWith(`/${path}`) ||
+      currentPath.match(/\/[a-z]{2}\/(artists|packages|artist-profile|package-details|auth|join-us|coming-soon)/) ||
+      currentPath.match(/\/[a-z]{2}\/$/) // matches locale home pages like /en/ or /ar/
+    );
+    
+    
     const token = localStorage.getItem('authToken');
     const user = localStorage.getItem('user');
     
     if (!token || !user) {
+      // Clear any stale auth data
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');
-      window.location.href = '/auth/signin';
+      
+      // Only redirect if user is trying to access a protected page
+      if (!isOnPublicPage) {
+        window.location.href = '/auth/signin';
+      }
     } else {
       // Token exists but server rejected it - this might be a temporary issue
-      // Log the error but don't automatically logout
-      console.warn('API returned 401 but token exists - might be temporary server issue');
+      // Don't automatically logout on public pages
+      if (!isOnPublicPage) {
+        console.warn('API returned 401 but token exists - redirecting to login');
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        window.location.href = '/auth/signin';
+      } else {
+        console.warn('API returned 401 on public page - ignoring redirect');
+      }
     }
   }
 };
@@ -271,8 +295,11 @@ export const apiRequest = async <T>(
     if (response.status === 401) {
       if (requireAuth) {
         handleUnauthorized();
+        throw new APIError(401, 'Unauthorized - Please login again');
+      } else {
+        // For public endpoints, don't handle unauthorized automatically
+        throw new APIError(401, 'Authentication required for this resource');
       }
-      throw new APIError(401, requireAuth ? 'Unauthorized - Please login again' : 'Authentication required for this resource');
     }
 
     if (!response.ok) {

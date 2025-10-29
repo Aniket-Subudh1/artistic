@@ -26,7 +26,8 @@ import {
   Camera,
   Video,
   Eye,
-  ThumbsUp
+  ThumbsUp,
+  Heart
 } from 'lucide-react';
 import { Navbar } from '@/components/main/Navbar';
 import { Footer } from '@/components/main/Footer';
@@ -48,6 +49,9 @@ export default function ArtistProfilePage() {
   const [portfolioLoading, setPortfolioLoading] = useState(false);
   const [pricingData, setPricingData] = useState<ArtistPricingData | null>(null);
   const [hasDynamicPricing, setHasDynamicPricing] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [likeLoading, setLikeLoading] = useState(false);
 
   // Function to get display pricing information
   const getPricingDisplay = () => {
@@ -140,6 +144,18 @@ export default function ArtistProfilePage() {
           console.error('Error fetching pricing:', pricingErr);
           // Don't set error for pricing, just log it
         }
+
+        // Initialize like count and check if user has liked this artist
+        setLikeCount(foundArtist.likeCount || 0);
+        
+        if (isAuthenticated) {
+          try {
+            const likeStatus = await ArtistService.checkLikeStatus(artistId);
+            setIsLiked(likeStatus.isLiked);
+          } catch (err) {
+            console.error('Error checking like status:', err);
+          }
+        }
       } catch (err) {
         console.error('Error fetching artist:', err);
         setError(t('artistProfile.failedToLoad'));
@@ -151,7 +167,7 @@ export default function ArtistProfilePage() {
     if (artistId) {
       fetchArtist();
     }
-  }, [artistId]);
+  }, [artistId, isAuthenticated]);
 
   const handleBookArtist = () => {
     // Don't do anything if auth is still loading
@@ -169,6 +185,36 @@ export default function ArtistProfilePage() {
     
     // Navigate to booking page
     i18nRouter.push(`/book-artist/${artistId}`);
+  };
+
+  const handleLikeToggle = async () => {
+    // Don't do anything if already loading
+    if (likeLoading) {
+      return;
+    }
+
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      // Redirect to signin with current page as return URL
+      const currentPath = window.location.pathname;
+      i18nRouter.push(`/auth/signin?returnUrl=${encodeURIComponent(currentPath)}`);
+      return;
+    }
+
+    try {
+      setLikeLoading(true);
+      const result = await ArtistService.toggleLikeArtist(artistId);
+      
+      if (result.success) {
+        setIsLiked(result.isLiked);
+        setLikeCount(result.likeCount);
+      }
+    } catch (err) {
+      console.error('Error toggling like:', err);
+      // You could add a toast notification here for error feedback
+    } finally {
+      setLikeLoading(false);
+    }
   };
 
   const handleShare = async () => {
@@ -382,11 +428,21 @@ export default function ArtistProfilePage() {
                       <div className="text-xs text-gray-600 font-medium">{t('artistProfile.yearsExperienceLabel')}</div>
                       <Clock className="w-4 h-4 text-[#391C71] mx-auto mt-2" />
                     </div>
-                    <div className="text-center p-3 bg-gradient-to-r from-[#391C71]/10 to-purple-100 rounded-2xl border border-[#391C71]/20">
-                      <div className="text-2xl font-bold text-[#391C71] mb-1">{artist.likeCount || 0}</div>
+                    <button
+                      onClick={handleLikeToggle}
+                      disabled={likeLoading}
+                      className={`text-center p-3 bg-gradient-to-r from-[#391C71]/10 to-purple-100 rounded-2xl border border-[#391C71]/20 transition-all duration-200 hover:scale-105 hover:shadow-md ${
+                        likeLoading ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'
+                      } ${isLiked ? 'bg-gradient-to-r from-red-50 to-pink-50 border-red-200' : ''}`}
+                    >
+                      <div className="text-2xl font-bold text-[#391C71] mb-1">{likeCount}</div>
                       <div className="text-xs text-gray-600 font-medium">{t('artistProfile.likesLabel')}</div>
-                      <Star className="w-4 h-4 text-[#391C71] mx-auto mt-2" />
-                    </div>
+                      <Heart 
+                        className={`w-4 h-4 mx-auto mt-2 transition-colors duration-200 ${
+                          isLiked ? 'text-red-500 fill-red-500' : 'text-[#391C71]'
+                        }`} 
+                      />
+                    </button>
                     <div className="text-center p-3 bg-gradient-to-r from-[#391C71]/10 to-purple-100 rounded-2xl border border-[#391C71]/20">
                       <div className="text-lg font-bold text-[#391C71] mb-1">
                         {getPricingDisplay().mainPrice}

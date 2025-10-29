@@ -16,3 +16,4 @@ export { default as VenueLayoutManagement } from './VenueLayoutManagement';
 export { TermsAndConditionsManagement } from './TermsAndConditionsManagement';
 export { UserManagement } from './UserManagement';
 export { AdminManagement } from './AdminManagement';
+export { CarouselManagement } from './CarouselManagement';

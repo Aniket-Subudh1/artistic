@@ -73,9 +73,19 @@ export function Navbar() {
       try {
         const stored = typeof window !== 'undefined' ? localStorage.getItem('artistCartCount') : null
         if (stored) setCartCount(parseInt(stored))
-        const cart = await CartService.getCart()
-        if (mounted) setCartCount(cart.items?.length || 0)
-      } catch {}
+        
+        // Only fetch cart if user is authenticated
+        if (isAuthenticated) {
+          const cart = await CartService.getCart()
+          if (mounted) setCartCount(cart.items?.length || 0)
+        } else {
+          // For non-authenticated users, set cart count to 0
+          if (mounted) setCartCount(0)
+        }
+      } catch (error) {
+        // Silently handle errors and set count to 0
+        if (mounted) setCartCount(0)
+      }
     }
     load()
     const handler = (e: Event) => {
@@ -88,7 +98,7 @@ export function Navbar() {
     }
     window.addEventListener('cart:updated', handler as EventListener)
     return () => { mounted = false; window.removeEventListener('cart:updated', handler as EventListener) }
-  }, [])
+  }, [isAuthenticated])
 
   const toggleLanguage = () => {
     const newLocale = locale === 'en' ? 'ar' : 'en'

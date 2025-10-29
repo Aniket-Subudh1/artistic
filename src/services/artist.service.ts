@@ -615,4 +615,35 @@ export class ArtistService {
       body: JSON.stringify(settingsData),
     });
   }
+
+  // Like/Unlike functionality
+  static async toggleLikeArtist(artistId: string): Promise<{
+    success: boolean;
+    isLiked: boolean;
+    message: string;
+    likeCount: number;
+  }> {
+    return apiRequest(`/artist/like/${artistId}`, {
+      method: 'POST',
+    });
+  }
+
+  static async getUserLikedArtists(): Promise<{
+    success: boolean;
+    data: any[];
+    total: number;
+  }> {
+    return apiRequest('/artist/liked', {
+      method: 'GET',
+    });
+  }
+
+  static async checkLikeStatus(artistId: string): Promise<{
+    success: boolean;
+    isLiked: boolean;
+  }> {
+    return apiRequest(`/artist/like-status/${artistId}`, {
+      method: 'GET',
+    });
+  }
 }

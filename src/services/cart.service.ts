@@ -51,7 +51,15 @@ export interface CartResponse {
 
 export class CartService {
 	static async getCart(): Promise<CartResponse> {
-		return apiRequest<CartResponse>('/cart', { method: 'GET' });
+		try {
+			return apiRequest<CartResponse>('/cart', { method: 'GET' });
+		} catch (error: any) {
+			// If user is not authenticated, return empty cart
+			if (error.status === 401) {
+				return { items: [] };
+			}
+			throw error;
+		}
 	}
 
 	static async addToCart(item: CartItemDTO): Promise<CartItemResponse> {

@@ -12,10 +12,13 @@ import PublicArtists from '@/components/main/PublicArtists';
 import { Iansui } from 'next/font/google';
 import Image from 'next/image';
 import TitleTag from '@/components/ui/TitleTag';
+import { CarouselService } from '@/services/carousel.service';
 
 export default function HomePage() {
   const t = useTranslations();
   const [scrollY, setScrollY] = useState(0);
+  const [carouselSlides, setCarouselSlides] = useState<any[]>([]);
+  const [isLoadingSlides, setIsLoadingSlides] = useState(true);
 
   const testimonials = [
     {
@@ -44,7 +47,8 @@ export default function HomePage() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const carouselSlides = [
+  // Fallback slides (current hardcoded content)
+  const fallbackSlides = [
     {
       image: '/1.jpg',
       title: t('home.heroTitle'),
@@ -92,8 +96,32 @@ export default function HomePage() {
     },
   ];
 
+  // Load carousel slides from API
+  useEffect(() => {
+    const loadCarouselSlides = async () => {
+      try {
+        setIsLoadingSlides(true);
+        const apiSlides = await CarouselService.getActiveSlides();
+        
+        if (apiSlides && apiSlides.length > 0) {
+          // Convert API slides to hero carousel format
+          const heroSlides = CarouselService.convertToHeroSlides(apiSlides);
+          setCarouselSlides(heroSlides);
+        } else {
+          // Use fallback slides if no API slides
+          setCarouselSlides(fallbackSlides);
+        }
+      } catch (error) {
+        console.error('Failed to load carousel slides:', error);
+        // Use fallback slides on error
+        setCarouselSlides(fallbackSlides);
+      } finally {
+        setIsLoadingSlides(false);
+      }
+    };
 
-
+    loadCarouselSlides();
+  }, [t]); // Re-run when translations change
 
   return (
     <div className="min-h-screen bg-white relative">
@@ -112,7 +140,14 @@ export default function HomePage() {
       
       <Navbar />
 
-      <HeroCarousel slides={carouselSlides} />
+      {isLoadingSlides ? (
+        <section className="py-20 pt-24 flex justify-center items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#391C71]"></div>
+        </section>
+      ) : (
+        <HeroCarousel slides={carouselSlides} />
+      )}
+      
       <TitleTag />
 
 
