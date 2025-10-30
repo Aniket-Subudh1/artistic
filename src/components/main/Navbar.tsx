@@ -4,8 +4,7 @@ import { useState, useEffect } from "react"
 import { useTranslations, useLocale } from 'next-intl'
 import { Link, useRouter, usePathname } from '@/i18n/routing'
 import Image from "next/image"
-import { Users, Music, Calendar, Languages, Mic, Package, User, ShoppingCart } from "lucide-react"
-import { CartService } from '@/services/cart.service'
+import { Users, Music, Calendar, Languages, Mic, Package, User } from "lucide-react"
 import { useAuthLogic } from '@/hooks/useAuth'
 import { LocationIndicator } from './LocationIndicator'
 
@@ -21,7 +20,6 @@ export function Navbar() {
   const [isVisible, setIsVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
   const [showUserDropdown, setShowUserDropdown] = useState(false)
-  const [cartCount, setCartCount] = useState<number>(0)
   
   useEffect(() => {
     const handleScroll = () => {
@@ -65,40 +63,6 @@ export function Navbar() {
     document.addEventListener('click', handleClickOutside)
     return () => document.removeEventListener('click', handleClickOutside)
   }, [showUserDropdown, activeDropdown])
-
-  // Cart badge: fetch on mount and listen for updates
-  useEffect(() => {
-    let mounted = true
-    const load = async () => {
-      try {
-        const stored = typeof window !== 'undefined' ? localStorage.getItem('artistCartCount') : null
-        if (stored) setCartCount(parseInt(stored))
-        
-        // Only fetch cart if user is authenticated
-        if (isAuthenticated) {
-          const cart = await CartService.getCart()
-          if (mounted) setCartCount(cart.items?.length || 0)
-        } else {
-          // For non-authenticated users, set cart count to 0
-          if (mounted) setCartCount(0)
-        }
-      } catch (error) {
-        // Silently handle errors and set count to 0
-        if (mounted) setCartCount(0)
-      }
-    }
-    load()
-    const handler = (e: Event) => {
-      const detail = (e as CustomEvent).detail
-      if (detail && typeof detail.count === 'number') setCartCount(detail.count)
-      else {
-        const stored = localStorage.getItem('artistCartCount')
-        if (stored) setCartCount(parseInt(stored))
-      }
-    }
-    window.addEventListener('cart:updated', handler as EventListener)
-    return () => { mounted = false; window.removeEventListener('cart:updated', handler as EventListener) }
-  }, [isAuthenticated])
 
   const toggleLanguage = () => {
     const newLocale = locale === 'en' ? 'ar' : 'en'
@@ -300,21 +264,6 @@ export function Navbar() {
             <div className="hidden lg:flex items-center space-x-3 z-10">
               {/* Location Indicator */}
               <LocationIndicator isScrolled={isScrolled} />
-              {/* Cart Indicator */}
-              <Link
-                href="/cart"
-                className={`relative px-3 py-2 rounded-full transition-all duration-300 ${
-                  isScrolled ? 'text-gray-800 hover:bg-white/30 border border-white/20' : 'text-gray-700 hover:bg-purple-100'
-                }`}
-                aria-label="Cart"
-              >
-                <ShoppingCart className="w-5 h-5" />
-                {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">
-                    {cartCount}
-                  </span>
-                )}
-              </Link>
               
               {/* Language Toggle Button */}
               <button
