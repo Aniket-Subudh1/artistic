@@ -124,6 +124,7 @@ export function Navbar() {
         }
       ]
     },
+    { href: "/calendar", label: t('calendar') },
     { href: "/coming-soon", label: t('bookTicket') },
     {
       label: t('createEvent'),
