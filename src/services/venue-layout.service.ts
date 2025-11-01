@@ -352,6 +352,41 @@ export const venueLayoutService = {
     return transformToLegacyFormat(result as VenueLayoutData);
   },
 
+  async getVenueLayouts(token: string, query?: { venueOwnerId?: string; eventId?: string }): Promise<VenueLayout[]> {
+    const params = new URLSearchParams();
+    if (query?.venueOwnerId) params.append('venueOwnerId', query.venueOwnerId);
+    if (query?.eventId) params.append('eventId', query.eventId);
+    
+    const queryString = params.toString();
+    const url = queryString ? `/venue-layout?${queryString}` : '/venue-layout';
+    
+    try {
+      const results: VenueLayoutData[] = await apiRequest(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (!Array.isArray(results)) {
+        console.error('Expected array but received:', typeof results, results);
+        return [];
+      }
+      
+      const transformedResults = results.map(result => {
+        if (!result || typeof result !== 'object') {
+          console.warn('Invalid layout data received:', result);
+          return null;
+        }
+        return transformToLegacyFormat(result);
+      }).filter(Boolean) as VenueLayout[];
+      
+      return transformedResults;
+    } catch (error) {
+      console.error('Error fetching layouts:', error);
+      throw error;
+    }
+  },
+
   async getAllLayouts(query?: { venueOwnerId?: string; eventId?: string }): Promise<VenueLayout[]> {
     const params = new URLSearchParams();
     if (query?.venueOwnerId) params.append('venueOwnerId', query.venueOwnerId);

@@ -162,6 +162,13 @@ export const API_CONFIG = {
       UPDATE: (id: string) => `/events/${id}`,
       DELETE: (id: string) => `/events/${id}`,
       MY_EVENTS: '/events/my',
+      PUBLIC: '/events/public',
+      PUBLISH: (id: string) => `/events/${id}/publish`,
+      CANCEL: (id: string) => `/events/${id}/cancel`,
+      OPEN_BOOKING: '/events/booking/open',
+      LAYOUT_DETAILS: (eventId: string) => `/events/${eventId}/layout`,
+      BY_PERFORMANCE_TYPE: (performanceType: string) => `/events/performance-type/${performanceType}`,
+      STATS: '/events/stats',
     },
     ANALYTICS: {
       OVERVIEW: '/analytics/overview',
@@ -185,6 +192,13 @@ export const API_CONFIG = {
       MARK_READ: (id: string) => `/notifications/${id}/read`,
       MARK_ALL_READ: '/notifications/mark-all-read',
       DELETE: (id: string) => `/notifications/${id}`,
+    },
+    SEAT_BOOKING: {
+      BOOK: '/seat-book/book',
+      CANCEL: (id: string) => `/seat-book/cancel/${id}`,
+      USER_BOOKINGS: '/seat-book/user-bookings',
+      BOOKING_DETAILS: (id: string) => `/seat-book/booking/${id}`,
+      AVAILABILITY: (eventId: string) => `/seat-book/availability/${eventId}`,
     },
     SETTINGS: {
       GET_PROFILE: '/settings/profile',
@@ -231,13 +245,13 @@ const handleUnauthorized = () => {
   if (typeof window !== 'undefined') {
     // Get current path to check if user is on a public page
     const currentPath = window.location.pathname;
-    const publicPaths = ['/', '/artists', '/packages', '/artist-profile', '/package-details', '/auth/signin', '/auth/signup', '/join-us', '/coming-soon'];
+    const publicPaths = ['/', '/artists', '/packages', '/events', '/artist-profile', '/package-details', '/auth/signin', '/auth/signup', '/join-us', '/coming-soon'];
     
     // Check if user is on a public page
     const isOnPublicPage = publicPaths.some(path => 
       currentPath === path || 
       currentPath.startsWith(`/${path}`) ||
-      currentPath.match(/\/[a-z]{2}\/(artists|packages|artist-profile|package-details|auth|join-us|coming-soon)/) ||
+      currentPath.match(/\/[a-z]{2}\/(artists|packages|events|artist-profile|package-details|auth|join-us|coming-soon)/) ||
       currentPath.match(/\/[a-z]{2}\/$/) // matches locale home pages like /en/ or /ar/
     );
     

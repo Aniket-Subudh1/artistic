@@ -9,6 +9,7 @@ import { Footer } from '@/components/main/Footer';
 import HeroCarousel from '@/components/ui/HeroCarousel';
 import PublicPackages from '@/components/main/PublicPackages';
 import PublicArtists from '@/components/main/PublicArtists';
+import EventsWidget from '@/components/public/EventsWidget';
 import { Iansui } from 'next/font/google';
 import Image from 'next/image';
 import TitleTag from '@/components/ui/TitleTag';
@@ -153,9 +154,30 @@ export default function HomePage() {
 
       <section className="py-20 relative z-10">
         <div className="absolute inset-0 bg-gradient-to-r from-gray-50 to-purple-50" />
-        <div className="max-w-7xl mx-auto px-6 relative">
-          <PublicArtists limit={8} showHeader={true} />
+        <div className="max-w-full mx-auto px-6 relative">
+          <div className="max-w-7xl mx-auto">
+            <PublicArtists limit={12} showHeader={true} />
+          </div>
         </div>
+      </section>
+
+      <section className="py-20 max-w-7xl mx-auto px-6 relative z-10">
+        <div className="text-center mb-16">
+          <h2 className="text-5xl font-bold text-gray-900 mb-6 relative">
+            {t('home.upcomingEvents.title', { default: 'Upcoming Events' })}
+            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 h-1 bg-[#391C71] rounded-full" />
+          </h2>
+          <p className="text-gray-600 text-xl max-w-3xl mx-auto leading-relaxed">
+            {t('home.upcomingEvents.description', { default: 'Discover amazing events happening near you and book your tickets today' })}
+          </p>
+        </div>
+        
+        <EventsWidget 
+          title="" 
+          limit={6} 
+          showViewAll={true}
+          className="events-home-section"
+        />
       </section>
 
       <section className="py-20 max-w-7xl mx-auto px-6 relative z-10">
@@ -312,6 +334,12 @@ export default function HomePage() {
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
           overflow: hidden;
+        }
+        .events-home-section {
+          /* Custom styling for events section on home page */
+        }
+        .events-home-section .group:hover {
+          transform: translateY(-8px);
         }
       `}</style>
     </div>

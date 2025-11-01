@@ -17,3 +17,4 @@ export { TermsAndConditionsManagement } from './TermsAndConditionsManagement';
 export { UserManagement } from './UserManagement';
 export { AdminManagement } from './AdminManagement';
 export { CarouselManagement } from './CarouselManagement';
+export { default as EventManagement } from './EventManagement';

@@ -223,3 +223,6 @@ export const useAuthLogic = () => {
     removeProfilePicture,
   };
 };
+
+// Export useAuth as an alias for useAuthLogic for compatibility
+export const useAuth = useAuthLogic;

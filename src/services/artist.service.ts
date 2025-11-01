@@ -243,6 +243,13 @@ export class ArtistService {
     });
   }
 
+  static async getArtistsByPerformanceType(performanceType: string): Promise<Artist[]> {
+    const params = new URLSearchParams({ performanceType });
+    return publicApiRequest<Artist[]>(`${API_CONFIG.ENDPOINTS.ARTIST.LIST_PUBLIC}?${params.toString()}`, {
+      method: 'GET',
+    });
+  }
+
   static async getArtistById(artistId: string): Promise<Artist> {
     return publicApiRequest<Artist>(API_CONFIG.ENDPOINTS.ARTIST.GET_BY_ID(artistId), {
       method: 'GET',

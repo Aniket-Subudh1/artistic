@@ -6,7 +6,7 @@ import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { QuickActions } from '@/components/dashboard/QuickActions';
 import { useAuthLogic } from '@/hooks/useAuth';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { MapPin, Calendar, Settings } from 'lucide-react';
+import { MapPin, Calendar, Settings, Music } from 'lucide-react';
 
 export default function VenueOwnerDashboard() {
   const { user, isLoading } = useAuthLogic();
@@ -17,10 +17,10 @@ export default function VenueOwnerDashboard() {
 
   const quickActions = [
     {
-      title: 'My Venues',
-      description: 'Manage your venue listings',
-      icon: MapPin,
-      href: '/dashboard/venue-owner/venues',
+      title: 'Events',
+      description: 'Create and manage your events',
+      icon: Music,
+      href: '/dashboard/venue-owner/events',
       color: 'blue' as const
     },
     {

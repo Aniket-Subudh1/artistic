@@ -188,6 +188,10 @@
     "contactUs": "Contact Us",
     "testimonials": "What Our Clients Say",
     "testimonialsDesc": "Hear from those who have experienced the Artistic difference",
+    "upcomingEvents": {
+      "title": "Upcoming Events",
+      "description": "Discover amazing events happening near you and book your tickets today"
+    },
     "equipmentPackages": {
       "title": "Book Equipment Packages",
       "description": "Complete equipment solutions for your events - professionally curated packages at discounted rates",

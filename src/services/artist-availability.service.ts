@@ -111,6 +111,22 @@ class ArtistAvailabilityService {
     
     return this.markDateUnavailable(date, hours);
   }
+
+  // Admin-only: mark a given artist profile unavailable for a date/time range
+  async adminMarkUnavailable(
+    artistProfileId: string,
+    date: string,
+    startHour: number,
+    endHour: number
+  ): Promise<{ message: string }> {
+    const hours: number[] = [];
+    for (let i = startHour; i < endHour; i++) hours.push(i);
+    return apiRequest('/artist-availability/admin/mark', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ artistProfileId, slots: [{ date, hours }] })
+    });
+  }
 }
 
 export const artistAvailabilityService = new ArtistAvailabilityService();
