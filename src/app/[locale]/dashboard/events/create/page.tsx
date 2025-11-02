@@ -12,7 +12,9 @@ export default function CreateEventPage() {
     return <LoadingSpinner text="Loading..." />;
   }
 
-  if (!user || !['admin', 'ADMIN', 'super_admin', 'SUPER_ADMIN', 'venue_owner', 'VENUE_OWNER'].includes(user.role)) {
+  const role = (user?.role || '').toString();
+  const roleUpper = role.toUpperCase();
+  if (!user || !['ADMIN', 'SUPER_ADMIN', 'VENUE_OWNER'].includes(roleUpper)) {
     return (
       <div className="text-center py-12">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
@@ -21,7 +23,7 @@ export default function CreateEventPage() {
     );
   }
 
-  const userRole = user.role.toUpperCase() as 'admin' | 'venue_owner';
+  const emRole: 'admin' | 'venue_owner' = (roleUpper === 'ADMIN' || roleUpper === 'SUPER_ADMIN') ? 'admin' : 'venue_owner';
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -29,7 +31,7 @@ export default function CreateEventPage() {
         <h1 className="text-3xl font-bold text-gray-900">Create New Event</h1>
         <p className="text-gray-600 mt-2">Fill in the details below to create a new event.</p>
       </div>
-      <EventManagement userRole={userRole} />
+  <EventManagement userRole={emRole} />
     </div>
   );
 }

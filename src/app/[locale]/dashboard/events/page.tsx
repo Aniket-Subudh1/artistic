@@ -12,7 +12,10 @@ export default function MyEventsPage() {
     return <LoadingSpinner text="Loading events..." />;
   }
 
-  if (!user || (user.role !== 'venue_owner' && user.role !== 'VENUE_OWNER')) {
+  const role = (user?.role || '').toString().toUpperCase();
+  const isAllowed = role === 'VENUE_OWNER' || role === 'ADMIN' || role === 'SUPER_ADMIN';
+
+  if (!user || !isAllowed) {
     return (
       <div className="text-center py-12">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
@@ -21,7 +24,8 @@ export default function MyEventsPage() {
     );
   }
 
-  return <EventManagement userRole="VENUE_OWNER" />;
+  const emRole: 'admin' | 'venue_owner' = (role === 'ADMIN' || role === 'SUPER_ADMIN') ? 'admin' : 'venue_owner';
+  return <EventManagement userRole={emRole} />;
 }
 
 
