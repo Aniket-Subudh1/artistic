@@ -15,6 +15,7 @@ export interface EventEquipment {
   quantity: number;
   cost?: number;
 }
+ 
 
 export interface VenueOwner {
   _id: string;
@@ -133,7 +134,7 @@ export interface SeatSize {
   height: number;
 }
 
-export type SeatBookingStatus = 'available' | 'booked' | 'blocked' | 'selected';
+export type SeatBookingStatus = 'available' | 'booked' | 'blocked' | 'locked' | 'selected';
 
 export interface EventSeat {
   _id: string;

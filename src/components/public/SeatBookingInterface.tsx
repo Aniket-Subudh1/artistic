@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import VenueLayoutDecorOverlay from '@/components/public/VenueLayoutDecorOverlay';
 
 interface SeatBookingInterfaceProps {
   event: Event;
@@ -27,9 +28,12 @@ interface SelectedItem {
   id: string;
   type: 'seat' | 'table' | 'booth';
   categoryId: string;
+  categoryName?: string;
+  color?: string;
   price: number;
   name?: string;
   position?: { x: number; y: number };
+  label?: string;
 }
 
 export default function SeatBookingInterface({ 
@@ -60,6 +64,7 @@ export default function SeatBookingInterface({
   const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
   const [bookingStep, setBookingStep] = useState<'selection' | 'details' | 'confirmation'>('selection');
   const [bookingLoading, setBookingLoading] = useState(false);
+  // Non-bookable decor items are not loaded until a proper public endpoint exists
 
   // Customer info form
   const [customerInfo, setCustomerInfo] = useState({
@@ -89,6 +94,7 @@ export default function SeatBookingInterface({
       setError(null);
       const details = await seatBookingService.getEventLayoutDetails(eventId);
       setLayoutDetails(details);
+      // Skipping decor fetch: backend has no public endpoint for original venue layout items
     } catch (err) {
       console.error('Failed to load event layout:', err);
       setError('Failed to load event details. Please try again.');
@@ -108,13 +114,17 @@ export default function SeatBookingInterface({
       setSelectedItems(prev => prev.filter(item => item.id !== itemId));
     } else {
       // Select
-      const category = layoutDetails?.layout.categories.find(cat => cat.id === seatData.catId);
+      const category = layoutDetails?.layout.categories.find((cat: any) => cat.id === seatData.catId);
+      const label = `${seatData.rl || ''}${seatData.sn || ''}`;
       const newItem: SelectedItem = {
         id: itemId,
         type: 'seat',
         categoryId: seatData.catId,
-        price: seatData.price,
+        categoryName: category?.name,
+        color: category?.color,
+        price: seatData.price || category?.price || 0,
         position: seatData.pos,
+        label,
       };
       setSelectedItems(prev => [...prev, newItem]);
     }
@@ -129,38 +139,44 @@ export default function SeatBookingInterface({
     if (isSelected) {
       setSelectedItems(prev => prev.filter(item => item.id !== itemId));
     } else {
+      const category = layoutDetails?.layout.categories.find((cat: any) => cat.id === tableData.catId);
       const newItem: SelectedItem = {
         id: itemId,
         type: 'table',
         categoryId: tableData.catId,
-        price: tableData.price,
+        categoryName: category?.name,
+        color: category?.color,
+        price: tableData.price || category?.price || 0,
         name: tableData.name,
         position: tableData.pos,
       };
       setSelectedItems(prev => [...prev, newItem]);
     }
-  }, [selectedItems]);
+  }, [selectedItems, layoutDetails]);
 
   const handleBoothClick = useCallback((boothData: any) => {
     if (boothData.bookingStatus !== 'available') return;
 
     const itemId = boothData.booth_id;
-    const isSelected = selectedItems.some(item => item.id !== itemId);
+    const isSelected = selectedItems.some(item => item.id === itemId);
 
     if (isSelected) {
       setSelectedItems(prev => prev.filter(item => item.id !== itemId));
     } else {
+      const category = layoutDetails?.layout.categories.find((cat: any) => cat.id === boothData.catId);
       const newItem: SelectedItem = {
         id: itemId,
         type: 'booth',
         categoryId: boothData.catId,
-        price: boothData.price,
+        categoryName: category?.name,
+        color: category?.color,
+        price: boothData.price || category?.price || 0,
         name: boothData.name,
         position: boothData.pos,
       };
       setSelectedItems(prev => [...prev, newItem]);
     }
-  }, [selectedItems]);
+  }, [selectedItems, layoutDetails]);
 
   const calculateTotal = () => {
     const subtotal = selectedItems.reduce((sum, item) => sum + item.price, 0);
@@ -282,40 +298,43 @@ export default function SeatBookingInterface({
               padding: fullScreen ? undefined : `${PADDING}px`
             }}
           >
-            {/* Stage label rendering - if present in layout */}
-            {layout.items?.find((item) => (item as any).type === 'stage' || (item as any).modelType === 'Stage') && (
-              <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-10">
-                <div className="bg-gray-700 text-white px-4 py-2 rounded-lg font-bold text-sm lg:text-base shadow-lg">
-                  STAGE / المسرح
-                </div>
-              </div>
-            )}
+            {/* Real decor from original venue layout (screen/stage/entry/exit/washroom) */}
+            <VenueLayoutDecorOverlay eventId={eventId} offsetX={PADDING} offsetY={PADDING} />
+            {/* Decor (stage/screen/etc.) intentionally omitted until backend exposes original venue layout publicly */}
             
-            {/* Render seats */}
+            {/* Render seats with category-based colors and status variants */}
             {layout.seats?.map((seat) => {
               const isSelected = selectedItems.some(item => item.id === seat.seatId);
-              const isAvailable = seat.bookingStatus === 'available';
+              const status = seat.bookingStatus as 'available' | 'booked' | 'locked' | 'blocked';
+              const isAvailable = status === 'available';
+              const category = layout.categories?.find((c: any) => c.id === seat.catId);
+              // status-driven colors
+              const bgColor = !isAvailable
+                ? (status === 'booked' ? '#fecaca' : status === 'locked' ? '#fed7aa' : '#e5e7eb')
+                : (category?.color || '#a7f3d0');
+              const borderColor = !isAvailable
+                ? (status === 'booked' ? '#f87171' : status === 'locked' ? '#fb923c' : '#9ca3af')
+                : (category?.color || '#6ee7b7');
+              const label = `${seat.rl || ''}${seat.sn || ''}`;
               
               return (
                 <div
                   key={seat._id}
-                  className={`absolute cursor-pointer border-2 rounded flex items-center justify-center text-xs font-medium transition-all hover:scale-110 ${
-                    !isAvailable 
-                      ? 'bg-red-200 border-red-400 cursor-not-allowed' 
-                      : isSelected
-                      ? 'bg-[#391C71] border-[#5B2C87] text-white shadow-lg'
-                      : 'bg-green-200 border-green-400 hover:bg-green-300 hover:shadow-md'
-                  }`}
+                  className={`absolute cursor-pointer rounded flex items-center justify-center text-xs font-semibold transition-all hover:scale-110 ${!isAvailable ? 'cursor-not-allowed' : ''}`}
                   style={{
                     left: `${seat.pos.x}px`,
                     top: `${seat.pos.y}px`,
                     width: `${seat.size.x}px`,
                     height: `${seat.size.y}px`,
+                    backgroundColor: bgColor,
+                    border: `2px solid ${borderColor}`,
+                    boxShadow: isSelected && isAvailable ? '0 0 0 2px #391C71' : 'none',
+                    color: '#111827'
                   }}
                   onClick={() => isAvailable && handleSeatClick(seat)}
-                  title={`${seat.rl || ''}${seat.sn || ''} - ${seat.price} KWD`}
+                  title={`${label} - ${(seat.price || category?.price || 0)} KWD • ${category?.name || ''}`}
                 >
-                  {seat.sn || 'S'}
+                  {label || 'S'}
                 </div>
               );
             })}
@@ -325,55 +344,86 @@ export default function SeatBookingInterface({
               if (item.modelType === 'Table') {
                 const tableData = item.refId as any; // This would be populated
                 const isSelected = selectedItems.some(selectedItem => selectedItem.id === tableData.table_id);
-                const isAvailable = tableData.bookingStatus === 'available';
+                const status = tableData.bookingStatus as 'available' | 'booked' | 'locked' | 'blocked';
+                const isAvailable = status === 'available';
+                const isRound = (tableData.shp === 'round');
+                const category = layout.categories?.find((c: any) => c.id === tableData.catId);
+                const bgColor = !isAvailable
+                  ? (status === 'booked' ? '#fecaca' : status === 'locked' ? '#fed7aa' : '#e5e7eb')
+                  : (category?.color || '#fde68a');
+                const borderColor = !isAvailable
+                  ? (status === 'booked' ? '#f87171' : status === 'locked' ? '#fb923c' : '#9ca3af')
+                  : (category?.color || '#f59e0b');
+                const displayLabel = tableData.name || tableData.lbl || (tableData.ts ? `T${tableData.ts}` : 'T');
                 
                 return (
+                  <React.Fragment key={`tbl-${tableData._id}`}>
                   <div
-                    key={tableData._id}
-                    className={`absolute cursor-pointer border-2 rounded-lg flex items-center justify-center text-xs font-medium transition-all hover:scale-105 ${
-                      !isAvailable 
-                        ? 'bg-red-200 border-red-400 cursor-not-allowed' 
-                        : isSelected
-                        ? 'bg-[#391C71] border-[#5B2C87] text-white shadow-lg'
-                        : 'bg-yellow-200 border-yellow-400 hover:bg-yellow-300 hover:shadow-md'
-                    }`}
+                    className={`absolute cursor-pointer ${isRound ? 'rounded-full' : 'rounded-lg'} flex items-center justify-center text-xs font-semibold transition-all hover:scale-105 ${!isAvailable ? 'cursor-not-allowed' : ''}`}
                     style={{
                       left: `${tableData.pos.x}px`,
                       top: `${tableData.pos.y}px`,
                       width: `${tableData.size.x}px`,
                       height: `${tableData.size.y}px`,
+                      backgroundColor: bgColor,
+                      border: `2px solid ${borderColor}`,
+                      boxShadow: isSelected && isAvailable ? '0 0 0 2px #391C71' : 'none',
+                      color: '#111827'
                     }}
                     onClick={() => isAvailable && handleTableClick(tableData)}
-                    title={`${tableData.name} - ${tableData.price} KWD`}
+                    title={`${tableData.name || tableData.lbl || 'Table'} - ${(tableData.price || category?.price || 0)} KWD • ${category?.name || ''}`}
                   >
-                    T{tableData.ts || ''}
+                    {displayLabel}
                   </div>
+                  {/* Decorative chairs around the table (non-clickable, non-bookable) */}
+                  {Array.isArray(tableData.chairs) && tableData.chairs.map((chair: any, idx: number) => (
+                    <div
+                      key={`${tableData._id}-chair-${idx}`}
+                      className={`absolute border-2 rounded-full flex items-center justify-center text-[10px] font-medium bg-green-100 border-green-300 text-gray-700 pointer-events-none`}
+                      style={{
+                        left: `${chair.pos.x}px`,
+                        top: `${chair.pos.y}px`,
+                        width: `${chair.size.x}px`,
+                        height: `${chair.size.y}px`,
+                      }}
+                      title={chair.rl ? `${chair.rl}${chair.sn || ''}` : ''}
+                    >
+                      S
+                    </div>
+                  ))}
+                  </React.Fragment>
                 );
               }
 
               if (item.modelType === 'Booth') {
                 const boothData = item.refId as any; // This would be populated
                 const isSelected = selectedItems.some(selectedItem => selectedItem.id === boothData.booth_id);
-                const isAvailable = boothData.bookingStatus === 'available';
+                const status = boothData.bookingStatus as 'available' | 'booked' | 'locked' | 'blocked';
+                const isAvailable = status === 'available';
+                const category = layout.categories?.find((c: any) => c.id === boothData.catId);
+                const bgColor = !isAvailable
+                  ? (status === 'booked' ? '#fecaca' : status === 'locked' ? '#fed7aa' : '#e5e7eb')
+                  : (category?.color || '#e9d5ff');
+                const borderColor = !isAvailable
+                  ? (status === 'booked' ? '#f87171' : status === 'locked' ? '#fb923c' : '#9ca3af')
+                  : (category?.color || '#c4b5fd');
                 
                 return (
                   <div
                     key={boothData._id}
-                    className={`absolute cursor-pointer border-2 rounded-lg flex items-center justify-center text-xs font-medium transition-all hover:scale-105 ${
-                      !isAvailable 
-                        ? 'bg-red-200 border-red-400 cursor-not-allowed' 
-                        : isSelected
-                        ? 'bg-[#391C71] border-[#5B2C87] text-white shadow-lg'
-                        : 'bg-purple-200 border-purple-400 hover:bg-purple-300 hover:shadow-md'
-                    }`}
+                    className={`absolute cursor-pointer rounded-lg flex items-center justify-center text-xs font-semibold transition-all hover:scale-105 ${!isAvailable ? 'cursor-not-allowed' : ''}`}
                     style={{
                       left: `${boothData.pos.x}px`,
                       top: `${boothData.pos.y}px`,
                       width: `${boothData.size.x}px`,
                       height: `${boothData.size.y}px`,
+                      backgroundColor: bgColor,
+                      border: `2px solid ${borderColor}`,
+                      boxShadow: isSelected && isAvailable ? '0 0 0 2px #391C71' : 'none',
+                      color: '#111827'
                     }}
                     onClick={() => isAvailable && handleBoothClick(boothData)}
-                    title={`${boothData.name} - ${boothData.price} KWD`}
+                    title={`${boothData.name} - ${(boothData.price || category?.price || 0)} KWD • ${category?.name || ''}`}
                   >
                     B
                   </div>
@@ -397,7 +447,15 @@ export default function SeatBookingInterface({
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 bg-red-200 border border-red-400 rounded"></div>
-                <span className="text-gray-700 font-medium">Unavailable</span>
+                <span className="text-gray-700 font-medium">Booked</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-amber-200 border border-amber-400 rounded"></div>
+                <span className="text-gray-700 font-medium">Locked</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-gray-200 border border-gray-400 rounded"></div>
+                <span className="text-gray-700 font-medium">Blocked</span>
               </div>
             </div>
           )}
@@ -417,7 +475,15 @@ export default function SeatBookingInterface({
               </div>
               <div className="flex items-center gap-1">
                 <div className="w-2.5 h-2.5 lg:w-3 lg:h-3 bg-red-200 border border-red-400 rounded"></div>
-                <span className="text-gray-700 font-medium">Unavailable</span>
+                <span className="text-gray-700 font-medium">Booked</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-2.5 h-2.5 lg:w-3 lg:h-3 bg-amber-200 border border-amber-400 rounded"></div>
+                <span className="text-gray-700 font-medium">Locked</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-2.5 h-2.5 lg:w-3 lg:h-3 bg-gray-200 border border-gray-400 rounded"></div>
+                <span className="text-gray-700 font-medium">Blocked</span>
               </div>
             </div>
           </div>
@@ -530,8 +596,13 @@ export default function SeatBookingInterface({
                   <div className="space-y-2 text-sm max-h-32 overflow-y-auto mb-4">
                     {selectedItems.slice(0, 3).map((item, index) => (
                       <div key={`${item.type}-${item.id}`} className="flex justify-between bg-white/70 backdrop-blur-sm rounded-xl p-3 border border-white/40">
-                        <span className="font-medium text-gray-800">{item.type === 'seat' ? `Seat ${item.id}` : item.name || `${item.type} ${item.id}`}</span>
-                        <span className="text-[#391C71] font-bold">{item.price} KWD</span>
+                        <span className="font-medium text-gray-800 flex items-center gap-2">
+                          {item.color && (
+                            <span className="inline-block w-3 h-3 rounded-full border" style={{ backgroundColor: item.color, borderColor: item.color }} />
+                          )}
+                          {item.type === 'seat' ? `Seat ${item.label || item.id}` : (item.name || `${item.type} ${item.id}`)}
+                        </span>
+                        <span className="text-[#391C71] font-bold">{(item.price ?? 0)} KWD</span>
                       </div>
                     ))}
                     {selectedItems.length > 3 && (
@@ -560,10 +631,10 @@ export default function SeatBookingInterface({
           ) : (
             <>
               {/* New Responsive Layout: Seat Map Left, Sidebar Right */}
-              <div className="flex flex-col xl:flex-row gap-2 lg:gap-6 h-full">
+              <div className="flex flex-col xl:flex-row gap-2 lg:gap-6">
                 {/* Left Side - Seat Map Container (adjustable width based on screen size) */}
-                <div className="flex-1 xl:w-[75%] min-h-[70vh]">
-                  <div className="bg-white/70 backdrop-blur-xl rounded-2xl lg:rounded-3xl shadow-2xl border border-white/30 p-4 lg:p-6 h-full">
+                <div className="flex-1 xl:w-[75%] min-h-[40vh]">
+                  <div className="bg-white/70 backdrop-blur-xl rounded-2xl lg:rounded-3xl shadow-2xl border border-white/30 p-4 lg:p-6">
                     <div className="flex items-center justify-between mb-3 lg:mb-4">
                       <h3 className="text-lg lg:text-xl font-bold text-gray-900 flex items-center gap-2">
                         <div className="w-5 h-5 lg:w-6 lg:h-6 bg-[#391C71] rounded-full flex items-center justify-center">
@@ -578,7 +649,7 @@ export default function SeatBookingInterface({
                     </div>
                     
                     {/* Seat Map with proper spacing */}
-                    <div className="h-[calc(100%-3rem)] lg:h-[calc(100%-4rem)] min-h-[60vh]">
+                    <div className="min-h-[60vh]">
                       {renderSeatMap()}
                     </div>
                   </div>
@@ -600,48 +671,100 @@ export default function SeatBookingInterface({
                     </CardHeader>
                     <CardContent className="space-y-2 lg:space-y-3">
                       {/* Price Categories - Mobile optimized */}
-                      {layoutDetails?.layout.categories
-                        ?.filter(category => category.appliesTo === 'seat')
-                        ?.slice(0, 4) // Limit on mobile
-                        ?.map((category) => (
-                        <div key={category.id} className="flex items-center justify-between p-2 lg:p-3 bg-white/40 backdrop-blur-sm rounded-lg lg:rounded-xl border border-white/30">
-                          <div className="flex items-center gap-2 lg:gap-3">
-                            <div 
-                              className="w-3 h-3 lg:w-4 lg:h-4 rounded-full border-2"
-                              style={{ backgroundColor: category.color, borderColor: category.color }}
-                            />
-                            <span className="font-medium text-gray-800 text-sm lg:text-base truncate">{category.name}</span>
-                          </div>
-                          <span className="font-bold text-[#391C71] text-sm lg:text-base">{category.price} KWD</span>
-                        </div>
-                      ))}
-                      
-                      {/* Show more categories link for mobile */}
-                      {layoutDetails?.layout.categories?.filter(category => category.appliesTo === 'seat').length > 4 && (
-                        <div className="text-center xl:hidden">
-                          <Button variant="ghost" size="sm" className="text-[#391C71] text-xs">
-                            +{layoutDetails.layout.categories.filter(category => category.appliesTo === 'seat').length - 4} more
-                          </Button>
-                        </div>
-                      )}
-                      
-                      {/* Table/Booth Pricing if available - Hidden on small mobile */}
-                      <div className="hidden sm:block xl:block">
-                        {layoutDetails?.layout.categories
-                          ?.filter(category => ['table', 'booth'].includes(category.appliesTo))
-                          ?.slice(0, 2)
-                          ?.map((category) => (
+                      {(() => {
+                        // Build unique list of actually used categories from seats/tables/booths
+                        const categories = layoutDetails?.layout.categories || [];
+                        const catMap = new Map(categories.map(c => [c.id, c]));
+                        const usedCatIds = new Set<string>();
+                        (layoutDetails?.layout.seats || []).forEach(s => { if (s.catId) usedCatIds.add(s.catId); });
+                        (layoutDetails?.layout.items || []).forEach((it: any) => {
+                          const ref = (it && (it as any).refId) || {};
+                          const catId = (ref && ref.catId) || undefined;
+                          if (catId) usedCatIds.add(catId);
+                        });
+                        const uniqueCats = Array.from(usedCatIds)
+                          .map(id => catMap.get(id))
+                          .filter(Boolean) as Array<{ id: string; name: string; color: string; price: number }>;
+                        // Limit on mobile to first 4 visually
+                        const displayCats = uniqueCats.slice(0, 4);
+                        return displayCats.map((category) => (
                           <div key={category.id} className="flex items-center justify-between p-2 lg:p-3 bg-white/40 backdrop-blur-sm rounded-lg lg:rounded-xl border border-white/30">
                             <div className="flex items-center gap-2 lg:gap-3">
                               <div 
-                                className="w-3 h-3 lg:w-4 lg:h-4 rounded border-2"
+                                className="w-3 h-3 lg:w-4 lg:h-4 rounded-full border-2"
                                 style={{ backgroundColor: category.color, borderColor: category.color }}
                               />
                               <span className="font-medium text-gray-800 text-sm lg:text-base truncate">{category.name}</span>
                             </div>
                             <span className="font-bold text-[#391C71] text-sm lg:text-base">{category.price} KWD</span>
                           </div>
-                        ))}
+                        ));
+                      })()}
+                      
+                      {/* Show more categories link for mobile */}
+                      {(() => {
+                        const categories = layoutDetails?.layout.categories || [];
+                        const catMap = new Map(categories.map(c => [c.id, c]));
+                        const usedCatIds = new Set<string>();
+                        (layoutDetails?.layout.seats || []).forEach(s => { if (s.catId) usedCatIds.add(s.catId); });
+                        (layoutDetails?.layout.items || []).forEach((it: any) => {
+                          const ref = (it && (it as any).refId) || {};
+                          const catId = (ref && ref.catId) || undefined;
+                          if (catId) usedCatIds.add(catId);
+                        });
+                        const uniqueCount = usedCatIds.size;
+                        return uniqueCount > 4;
+                      })() && (
+                        <div className="text-center xl:hidden">
+                          <Button variant="ghost" size="sm" className="text-[#391C71] text-xs">
+                            {/* Show remaining unique categories count */}
+                            {(() => {
+                              const categories = layoutDetails?.layout.categories || [];
+                              const catMap = new Map(categories.map(c => [c.id, c]));
+                              const usedCatIds = new Set<string>();
+                              (layoutDetails?.layout.seats || []).forEach(s => { if (s.catId) usedCatIds.add(s.catId); });
+                              (layoutDetails?.layout.items || []).forEach((it: any) => {
+                                const ref = (it && (it as any).refId) || {};
+                                const catId = (ref && ref.catId) || undefined;
+                                if (catId) usedCatIds.add(catId);
+                              });
+                              const uniqueCount = usedCatIds.size;
+                              return `+${Math.max(uniqueCount - 4, 0)} more`;
+                            })()}
+                          </Button>
+                        </div>
+                      )}
+                      
+                      {/* Table/Booth Pricing if available - Hidden on small mobile */}
+                      <div className="hidden sm:block xl:block">
+                        {(() => {
+                          // For larger screens, show all remaining unique categories (beyond the first 4 shown above)
+                          const categories = layoutDetails?.layout.categories || [];
+                          const catMap = new Map(categories.map(c => [c.id, c]));
+                          const usedCatIds = new Set<string>();
+                          (layoutDetails?.layout.seats || []).forEach(s => { if (s.catId) usedCatIds.add(s.catId); });
+                          (layoutDetails?.layout.items || []).forEach((it: any) => {
+                            const ref = (it && (it as any).refId) || {};
+                            const catId = (ref && ref.catId) || undefined;
+                            if (catId) usedCatIds.add(catId);
+                          });
+                          const uniqueCats = Array.from(usedCatIds)
+                            .map(id => catMap.get(id))
+                            .filter(Boolean) as Array<{ id: string; name: string; color: string; price: number }>;
+                          const remaining = uniqueCats.slice(4);
+                          return remaining.map((category) => (
+                            <div key={category.id} className="flex items-center justify-between p-2 lg:p-3 bg-white/40 backdrop-blur-sm rounded-lg lg:rounded-xl border border-white/30">
+                              <div className="flex items-center gap-2 lg:gap-3">
+                                <div 
+                                  className="w-3 h-3 lg:w-4 lg:h-4 rounded border-2"
+                                  style={{ backgroundColor: category.color, borderColor: category.color }}
+                                />
+                                <span className="font-medium text-gray-800 text-sm lg:text-base truncate">{category.name}</span>
+                              </div>
+                              <span className="font-bold text-[#391C71] text-sm lg:text-base">{category.price} KWD</span>
+                            </div>
+                          ));
+                        })()}
                       </div>
                     </CardContent>
                   </Card>
@@ -669,15 +792,18 @@ export default function SeatBookingInterface({
                           {selectedItems.map((item, index) => (
                             <div key={`${item.type}-${item.id}`} className="flex justify-between items-center p-2 lg:p-3 bg-white/50 backdrop-blur-sm rounded-lg lg:rounded-xl border border-white/40 shadow-sm hover:bg-white/70 transition-colors">
                               <div className="flex-1 min-w-0">
-                                <div className="font-medium text-gray-800 text-sm lg:text-base truncate">
-                                  {item.type === 'seat' ? `Seat ${item.id}` : item.name || `${item.type} ${item.id}`}
+                                <div className="font-medium text-gray-800 text-sm lg:text-base truncate flex items-center gap-2">
+                                  <span className="inline-flex items-center gap-1">
+                                    {item.color && (
+                                      <span className="inline-block w-3 h-3 rounded-full border" style={{ backgroundColor: item.color, borderColor: item.color }} />
+                                    )}
+                                    {item.type === 'seat' ? `Seat ${item.label || item.id}` : (item.name || `${item.type} ${item.id}`)}
+                                  </span>
                                 </div>
-                                <div className="text-xs lg:text-sm text-gray-600 truncate">
-                                  {item.categoryId}
-                                </div>
+                                <div className="text-xs lg:text-sm text-gray-600 truncate">{item.categoryName || item.categoryId}</div>
                               </div>
                               <div className="text-right flex items-center gap-2">
-                                <div className="font-bold text-[#391C71] text-sm lg:text-base">{item.price} KWD</div>
+                                <div className="font-bold text-[#391C71] text-sm lg:text-base">{(item.price ?? 0)} KWD</div>
                                 <Button
                                   size="sm"
                                   variant="ghost"

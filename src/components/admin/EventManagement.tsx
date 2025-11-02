@@ -15,7 +15,8 @@ import {
   MoreHorizontal,
   Play,
   Pause,
-  X
+  X,
+  RefreshCw
 } from 'lucide-react';
 import { eventService, Event, EventFilters } from '@/services/event.service';
 import { useAuth } from '@/hooks/useAuth';
@@ -198,6 +199,28 @@ export default function EventManagement({ userRole }: EventManagementProps) {
     } catch (err: any) {
       console.error('Failed to delete event:', err);
       setError(err.message || 'Failed to delete event. Please try again.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRebuildOpenBooking = async (eventId: string) => {
+    if (!token) {
+      setError('Not authenticated');
+      return;
+    }
+    try {
+      setActionLoading(true);
+      setError(null);
+      if (userRole === 'admin') {
+        await eventService.rebuildOpenBookingAsAdmin(eventId, token);
+      } else {
+        await eventService.rebuildOpenBookingAsVenueOwner(eventId, token);
+      }
+      await loadEvents();
+    } catch (err: any) {
+      console.error('Failed to rebuild open booking:', err);
+      setError(err.message || 'Failed to rebuild open booking.');
     } finally {
       setActionLoading(false);
     }
@@ -428,6 +451,12 @@ export default function EventManagement({ userRole }: EventManagementProps) {
                             <DropdownMenuItem onClick={() => handlePublishEvent(event)}>
                               <Play className="h-4 w-4 mr-2" />
                               Publish
+                            </DropdownMenuItem>
+                          )}
+                          {event.status === 'published' && (
+                            <DropdownMenuItem onClick={() => handleRebuildOpenBooking(event._id)}>
+                              <RefreshCw className="h-4 w-4 mr-2" />
+                              Rebuild Open Booking
                             </DropdownMenuItem>
                           )}
                           {(event.status === 'published' || event.status === 'draft') && (

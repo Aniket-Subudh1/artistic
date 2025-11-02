@@ -472,24 +472,18 @@ const SeatMapRenderer: React.FC<{
   // Update viewport bounds when zoom or pan changes
   const updateViewportBounds = useCallback((element: SVGSVGElement) => {
     const rect = element.getBoundingClientRect();
-    const svgPoint = element.createSVGPoint();
-    
-    // Get the current viewport in SVG coordinates
-    svgPoint.x = 0;
-    svgPoint.y = 0;
-    const topLeft = svgPoint.matrixTransform(element.getScreenCTM()?.inverse());
-    
-    svgPoint.x = rect.width;
-    svgPoint.y = rect.height;
-    const bottomRight = svgPoint.matrixTransform(element.getScreenCTM()?.inverse());
-    
+    const scroller = element.parentElement as HTMLElement | null;
+    const scrollLeft = scroller?.scrollLeft || 0;
+    const scrollTop = scroller?.scrollTop || 0;
+
+    // Convert the scroller viewport and offsets into SVG units
     setViewportBounds({
-      x: topLeft.x,
-      y: topLeft.y,
-      width: bottomRight.x - topLeft.x,
-      height: bottomRight.y - topLeft.y,
+      x: scrollLeft / zoom,
+      y: scrollTop / zoom,
+      width: rect.width / zoom,
+      height: rect.height / zoom,
     });
-  }, []);
+  }, [zoom]);
 
   // Debounced viewport update
   const debouncedUpdateViewport = useMemo(
@@ -537,12 +531,17 @@ const SeatMapRenderer: React.FC<{
   }, [layout.categories, mode, selectedItems, bookedSeats]);
 
   const getSVGCoordinates = useCallback((clientX: number, clientY: number) => {
-    const rect = svgRef.current?.getBoundingClientRect();
-    if (!rect) return { x: 0, y: 0 };
-    
+    const svgEl = svgRef.current;
+    if (!svgEl) return { x: 0, y: 0 };
+    const rect = svgEl.getBoundingClientRect();
+
+    const scroller = svgEl.parentElement as HTMLElement | null;
+    const scrollLeft = scroller?.scrollLeft || 0;
+    const scrollTop = scroller?.scrollTop || 0;
+
     return {
-      x: (clientX - rect.left) / zoom,
-      y: (clientY - rect.top) / zoom
+      x: (clientX - rect.left + scrollLeft) / zoom,
+      y: (clientY - rect.top + scrollTop) / zoom
     };
   }, [zoom]);
 

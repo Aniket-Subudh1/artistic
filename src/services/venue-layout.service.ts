@@ -177,6 +177,9 @@ export const transformToLegacyFormat = (data: VenueLayoutData): VenueLayout => {
     seatNumber: seat.sn,
     label: seat.lbl,
     tableId: seat.grpId,
+    metadata: {
+      ...(seat.grpId ? { tableId: seat.grpId } : {}),
+    },
     seatId: seat.id,
   } as SeatMapItem));
   
@@ -267,7 +270,8 @@ export const transformToNewFormat = (legacy: VenueLayout): Partial<VenueLayoutDa
         rl: item.rowLabel,
         sn: item.seatNumber,
         lbl: item.label,
-        grpId: (item as any).tableId,
+        // Accept table linkage from either explicit field or nested metadata
+        grpId: (item as any).tableId || (item as any).metadata?.tableId,
         status: SeatStatus.AVAILABLE,
       });
     } else {

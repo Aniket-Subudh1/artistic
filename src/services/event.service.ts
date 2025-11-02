@@ -169,6 +169,29 @@ export interface EventsResponse {
 }
 
 export const eventService = {
+  /**
+   * Rebuild open booking layout (admin)
+   */
+  async rebuildOpenBookingAsAdmin(eventId: string, token: string): Promise<{ message: string; openBookingLayoutId: string }>{
+    return apiRequest(`${API_CONFIG.BASE_URL}/events/admin/${eventId}/rebuild-open-booking`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  },
+
+  /**
+   * Rebuild open booking layout (venue owner)
+   */
+  async rebuildOpenBookingAsVenueOwner(eventId: string, token: string): Promise<{ message: string; openBookingLayoutId: string }>{
+    return apiRequest(`${API_CONFIG.BASE_URL}/events/venue-owner/${eventId}/rebuild-open-booking`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  },
   // Helper: append nested fields into FormData using dotted/array keys
   appendFormDataRecursively(form: FormData, value: any, parentKey?: string) {
     if (value === undefined || value === null) return;

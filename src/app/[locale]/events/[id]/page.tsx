@@ -326,11 +326,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                     <Badge className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">
                       {event.performanceType}
                     </Badge>
-                    {availability && (
-                      <Badge className={`${availability.color} px-3 py-1 rounded-full text-sm font-medium`}>
-                        {availability.label}
-                      </Badge>
-                    )}
+                   
                   </div>
 
                   <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4 leading-tight">
@@ -363,27 +359,17 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                       </div>
                     </div>
 
-                    {event.venueOwnerId && (
+                    {(event.venue?.name ) && (
                       <div className="flex items-center gap-3 bg-white/50 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
                         <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
                           <MapPin className="w-5 h-5 text-red-600" />
                         </div>
                         <div>
                           <p className="text-sm text-gray-500">Venue</p>
-                          <p className="font-semibold text-gray-900">{event.venueOwnerId.businessName}</p>
+                          <p className="font-semibold text-gray-900">{event.venue?.name || event.venueOwnerId?.businessName || 'Venue TBA'}</p>
                         </div>
                       </div>
                     )}
-
-                    <div className="flex items-center gap-3 bg-white/50 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
-                      <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                        <Users className="w-5 h-5 text-purple-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Capacity</p>
-                        <p className="font-semibold text-gray-900">{event.soldTickets} / {event.totalCapacity}</p>
-                      </div>
-                    </div>
                   </div>
 
                   {/* Action Buttons */}
@@ -432,7 +418,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {event.artists.map((artist, index) => (
                     <div key={index} className="bg-white/50 backdrop-blur-sm rounded-2xl p-4 border border-white/30 hover:bg-white/70 transition-all duration-300">
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-start gap-4">
                         <Avatar className="w-12 h-12 border-2 border-white/50">
                           <AvatarImage src={artist.artistPhoto} alt={artist.artistName} />
                           <AvatarFallback className="bg-[#391C71] text-white text-sm font-bold">
@@ -442,9 +428,12 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                         <div className="flex-1">
                           <h4 className="font-semibold text-gray-900 text-lg">{artist.artistName}</h4>
                           <p className="text-gray-600 text-sm capitalize">{event.performanceType}</p>
-                          {artist.fee && (
+                          {typeof artist.fee === 'number' && artist.fee > 0 && (
                             <p className="text-green-600 font-medium text-sm">Fee: ${artist.fee}</p>
                           )}
+                          {artist.notes ? (
+                            <p className="text-gray-700 text-sm mt-2 leading-relaxed">{artist.notes}</p>
+                          ) : null}
                         </div>
                       </div>
                     </div>
@@ -498,10 +487,17 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                 Venue Information
               </h3>
               
-              {event.venueOwnerId ? (
+              {(event.venue && (event.venue.name || event.venue.address)) ? (
                 <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
-                  <h4 className="font-semibold text-gray-900 text-xl mb-2">{event.venueOwnerId.businessName}</h4>
-                  <p className="text-gray-600 mb-3">{event.venue.name}, {event.venue.address}</p>
+                  {event.venueOwnerId?.businessName && (
+                    <h4 className="font-semibold text-gray-900 text-xl mb-1">{event.venueOwnerId.businessName}</h4>
+                  )}
+                  <p className="text-gray-600 mb-3">
+                    {event.venue.name}{event.venue.name && event.venue.address ? ', ' : ''}{event.venue.address}
+                    {event.venue.city ? `, ${event.venue.city}` : ''}
+                    {event.venue.state ? `, ${event.venue.state}` : ''}
+                    {event.venue.country ? `, ${event.venue.country}` : ''}
+                  </p>
                   <Badge className="bg-[#391C71] text-white px-3 py-1 rounded-full text-sm">
                     {event.venue.venueType || 'Venue'}
                   </Badge>

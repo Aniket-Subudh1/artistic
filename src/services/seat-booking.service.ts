@@ -189,6 +189,17 @@ export const seatBookingService = {
   },
 
   /**
+   * Get decor (stage/screen/entry/exit/washroom) from original venue layout for a public event
+   */
+  async getEventDecor(eventId: string): Promise<{
+    canvasW: number;
+    canvasH: number;
+    items: Array<{ id: string; type: string; x: number; y: number; w: number; h: number; label?: string }>;
+  }> {
+    return apiRequest(`${API_CONFIG.BASE_URL}/events/public/${eventId}/decor`);
+  },
+
+  /**
    * Get event ticket booking details
    */
   async getEventTicketBooking(bookingId: string, token: string): Promise<EventTicketBookingResponse['booking']> {
