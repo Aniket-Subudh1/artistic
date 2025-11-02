@@ -18,6 +18,7 @@ import {
   EyeOff,
   Camera,
   Music,
+  User,
   Settings,
   Layout
 } from 'lucide-react';
