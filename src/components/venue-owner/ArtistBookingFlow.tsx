@@ -51,6 +51,7 @@ export interface SelectedArtist {
   isCustomArtist: boolean;
   customArtistName?: string;
   customArtistPhoto?: string;
+  customArtistPhotoFile?: File; // Add actual file for upload
   notes?: string;
 }
 
@@ -121,6 +122,13 @@ export default function ArtistBookingFlow({
       loadArtistsWithAvailability();
     }
   }, [isOpen, eventDate, eventStartTime, eventEndTime, performanceType]);
+
+  // Sync tempSelectedArtists with selectedArtists prop when dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      setTempSelectedArtists(selectedArtists);
+    }
+  }, [isOpen, selectedArtists]);
 
   // Filter artists based on search and filters
   useEffect(() => {
@@ -289,6 +297,7 @@ export default function ArtistBookingFlow({
       artistName: '',
       customArtistName: customArtistForm.name,
       customArtistPhoto: customArtistPhotoPreview,
+      customArtistPhotoFile: customArtistPhoto || undefined, // Store the actual file
       fee: parseFloat(customArtistForm.fee),
       isCustomArtist: true,
       notes: customArtistForm.notes
@@ -321,8 +330,8 @@ export default function ArtistBookingFlow({
     return (
       <Card 
         key={artist._id} 
-        className={`cursor-pointer transition-all hover:shadow-md ${
-          isSelected ? 'ring-2 ring-primary bg-primary/5' : ''
+        className={`bg-white cursor-pointer transition-all hover:shadow-md ${
+          isSelected ? 'ring-2 ring-primary' : ''
         }`}
       >
         <CardContent className="p-4">
@@ -459,7 +468,7 @@ export default function ArtistBookingFlow({
     return (
       <div className="space-y-3">
         {tempSelectedArtists.map((artist, index) => (
-          <Card key={artist.artistId} className="bg-primary/5 border-primary/20">
+          <Card key={artist.artistId} className="bg-white border-primary/20">
             <CardContent className="p-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -528,7 +537,7 @@ export default function ArtistBookingFlow({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="bg-white max-w-7xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Music className="h-5 w-5" />
@@ -543,7 +552,7 @@ export default function ArtistBookingFlow({
           {/* Artists List */}
           <div className="lg:col-span-2 space-y-4">
             {/* Filters */}
-            <Card>
+            <Card className="bg-white">
               <CardContent className="p-4">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                   <div className="relative">
@@ -665,7 +674,7 @@ export default function ArtistBookingFlow({
         {/* Custom Artist Form Modal */}
         {showCustomArtistForm && (
           <Dialog open={showCustomArtistForm} onOpenChange={setShowCustomArtistForm}>
-            <DialogContent>
+            <DialogContent className="bg-white">
               <DialogHeader>
                 <DialogTitle>Add Custom Artist</DialogTitle>
                 <DialogDescription>

@@ -376,15 +376,6 @@ export const getSidebarItems = (): SidebarItem[] => [
         roles: ['venue_owner'],
       },
       
-      // Admin/User Venue Management
-      {
-        id: 'all-venues',
-        label: 'All Venues',
-        labelAr: 'جميع الأماكن',
-        icon: 'Map',
-        href: '/dashboard/admin/venues',
-        roles: ['super_admin', 'admin'],
-      },
       // Admin Venue Layouts
       {
         id: 'venue-layouts-admin',

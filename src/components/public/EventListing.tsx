@@ -16,13 +16,17 @@ interface EventListingProps {
   showFilters?: boolean;
   limit?: number;
   className?: string;
+  bookingType?: 'seat' | 'table' | 'booth';
+  disablePagination?: boolean;
 }
 
 export default function EventListing({ 
   performanceType, 
   showFilters = true, 
   limit = 12,
-  className = '' 
+  className = '',
+  bookingType,
+  disablePagination = false,
 }: EventListingProps) {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,6 +63,17 @@ export default function EventListing({
     loadEvents();
   }, [filters]);
 
+  const matchesBookingType = (event: Event): boolean => {
+    if (!bookingType) return true;
+    const hasSeat = Boolean(event.seatLayoutId) || Boolean(event.pricing?.categoryPricing && Object.keys(event.pricing.categoryPricing || {}).length > 0);
+    const hasTable = Boolean(event.pricing?.tablePricing && Object.keys(event.pricing.tablePricing || {}).length > 0);
+    const hasBooth = Boolean(event.pricing?.boothPricing && Object.keys(event.pricing.boothPricing || {}).length > 0);
+    if (bookingType === 'seat') return hasSeat;
+    if (bookingType === 'table') return hasTable;
+    if (bookingType === 'booth') return hasBooth;
+    return true;
+  };
+
   const loadEvents = async () => {
     try {
       setLoading(true);
@@ -71,8 +86,19 @@ export default function EventListing({
         response = await eventService.getPublicEvents(filters);
       }
 
-      setEvents(response.events);
-      setPagination(response.pagination);
+      const filtered = response.events.filter(matchesBookingType);
+      if (disablePagination) {
+        setEvents(filtered);
+        setPagination({
+          page: 1,
+          limit: filtered.length || limit,
+          total: filtered.length,
+          pages: 1,
+        });
+      } else {
+        setEvents(filtered);
+        setPagination(response.pagination);
+      }
     } catch (err) {
       console.error('Failed to load events:', err);
       setError('Failed to load events. Please try again.');
@@ -193,12 +219,12 @@ export default function EventListing({
               />
             </div>
 
-            <Select value={selectedCity} onValueChange={setSelectedCity}>
+            <Select value={selectedCity || "__all__"} onValueChange={(val) => setSelectedCity(val === "__all__" ? "" : val)}>
               <SelectTrigger className="bg-white/50 backdrop-blur-sm border border-white/30 rounded-xl hover:bg-white/70 transition-all duration-300">
                 <SelectValue placeholder="Select City" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Cities</SelectItem>
+                <SelectItem value="__all__">All Cities</SelectItem>
                 {cities.map((city) => (
                   <SelectItem key={city} value={city}>
                     {city}
@@ -208,12 +234,12 @@ export default function EventListing({
             </Select>
 
             {!performanceType && (
-              <Select value={selectedPerformanceType} onValueChange={setSelectedPerformanceType}>
+              <Select value={selectedPerformanceType || "__all__"} onValueChange={(val) => setSelectedPerformanceType(val === "__all__" ? "" : val)}>
                 <SelectTrigger className="bg-white/50 backdrop-blur-sm border border-white/30 rounded-xl hover:bg-white/70 transition-all duration-300">
                   <SelectValue placeholder="Performance Type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Types</SelectItem>
+                  <SelectItem value="__all__">All Types</SelectItem>
                   {performanceTypes.map((type) => (
                     <SelectItem key={type} value={type}>
                       {type}
@@ -370,7 +396,7 @@ export default function EventListing({
           </div>
 
           {/* Pagination */}
-          {pagination.pages > 1 && (
+          {!disablePagination && pagination.pages > 1 && (
             <div className="flex justify-center items-center gap-2 mt-8">
               <div className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-lg border border-white/30 p-2 flex items-center gap-2">
                 <Button

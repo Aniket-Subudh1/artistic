@@ -428,9 +428,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                         <div className="flex-1">
                           <h4 className="font-semibold text-gray-900 text-lg">{artist.artistName}</h4>
                           <p className="text-gray-600 text-sm capitalize">{event.performanceType}</p>
-                          {typeof artist.fee === 'number' && artist.fee > 0 && (
-                            <p className="text-green-600 font-medium text-sm">Fee: ${artist.fee}</p>
-                          )}
+                          {/* Hide artist fee on event details page as requested */}
                           {artist.notes ? (
                             <p className="text-gray-700 text-sm mt-2 leading-relaxed">{artist.notes}</p>
                           ) : null}
@@ -509,39 +507,6 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                 </div>
               )}
             </div>
-
-            {/* Equipment Section */}
-            {event.equipment.length > 0 && (
-              <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-[#391C71]/10 to-transparent rounded-bl-full"></div>
-                
-                <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                  <div className="w-8 h-8 bg-[#391C71] rounded-full flex items-center justify-center">
-                    <Tag className="w-4 h-4 text-white" />
-                  </div>
-                  Equipment & Services
-                </h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {event.equipment.map((equipment, index) => (
-                    <div key={index} className="bg-white/50 backdrop-blur-sm rounded-2xl p-4 border border-white/30 hover:bg-white/70 transition-all duration-300">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-[#391C71] rounded-xl flex items-center justify-center">
-                          <Tag className="w-6 h-6 text-white" />
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900">{equipment.equipmentName}</h4>
-                          <p className="text-gray-600 text-sm">Quantity: {equipment.quantity}</p>
-                          {equipment.totalPrice && (
-                            <p className="text-green-600 font-medium">${equipment.totalPrice}</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Right Column - QR & Share */}

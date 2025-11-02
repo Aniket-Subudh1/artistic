@@ -205,6 +205,12 @@ export function MyBookings() {
 
   const BookingCard = ({ booking }: { booking: EquipmentBookingItem }) => {
     const isExpanded = expandedBooking === booking._id;
+    const customer: any = (booking as any).customer || null;
+    const customerName = [customer?.firstName, customer?.lastName]
+      .filter(Boolean)
+      .join(' ');
+    const customerEmail = customer?.email || (booking as any).userDetails?.email || '';
+    const customerPhone = customer?.phoneNumber || (booking as any).userDetails?.phone || '';
 
     return (
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200">
@@ -231,7 +237,7 @@ export function MyBookings() {
                 <div className="flex items-center space-x-4 text-sm text-gray-600">
                   <div className="flex items-center">
                     <User className="w-4 h-4 mr-1" />
-                    {booking.customer.firstName} {booking.customer.lastName}
+                    {customerName || 'Unknown'}
                   </div>
                   <div className="flex items-center">
                     <CalendarIcon className="w-4 h-4 mr-1" />
@@ -288,11 +294,11 @@ export function MyBookings() {
                 <div className="space-y-3">
                   <div className="flex items-center">
                     <Mail className="w-4 h-4 mr-2 text-gray-400" />
-                    <span className="text-sm">{booking.customer.email}</span>
+                    <span className="text-sm">{customerEmail || '—'}</span>
                   </div>
                   <div className="flex items-center">
                     <Phone className="w-4 h-4 mr-2 text-gray-400" />
-                    <span className="text-sm">{booking.customer.phoneNumber}</span>
+                    <span className="text-sm">{customerPhone || '—'}</span>
                   </div>
                 </div>
                 {booking.userDetails && (

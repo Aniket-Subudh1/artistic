@@ -40,6 +40,7 @@ import EquipmentRentalFlow, { SelectedEquipment } from './EquipmentRentalFlow';
 
 import { useAuth } from '@/hooks/useAuth';
 import { eventService, CreateEventRequest, Event as AdminEvent } from '@/services/event.service';
+import { EventPaymentService } from '@/services/event-payment.service';
 import { venueLayoutService, VenueLayout } from '@/services/venue-layout.service';
 import { Artist, ArtistService } from '@/services/artist.service';
 import { Equipment, EquipmentService } from '@/services/equipment.service';
@@ -300,6 +301,7 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
   }, []);
 
   const handleArtistsSelected = useCallback((artists: SelectedArtist[]) => {
+    console.log('handleArtistsSelected called with:', artists);
     setSelectedArtists(artists);
   }, []);
 
@@ -370,6 +372,10 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
     setLoading(true);
     
     try {
+      // Debug logging for artist state
+      console.log('Event submission - selectedArtists state:', selectedArtists);
+      console.log('Event submission - selectedArtists length:', selectedArtists.length);
+      
       const baseEventData: CreateEventRequest = {
         name: formData.name,
         description: formData.description,
@@ -385,9 +391,27 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
         },
         seatLayoutId: formData.seatLayoutId === 'none' ? undefined : formData.seatLayoutId,
         artists: (() => {
-          const validArtists = selectedArtists.filter(artist => 
-            artist.artistId && artist.artistId.trim() !== ''
-          );
+          const validArtists = selectedArtists.filter(artist => {
+            // For custom artists: must have customArtistName and isCustomArtist flag
+            if (artist.isCustomArtist) {
+              return artist.customArtistName && artist.customArtistName.trim() !== '';
+            }
+            // For regular artists: must have artistId
+            return artist.artistId && artist.artistId.trim() !== '';
+          }).map(artist => ({
+            artistId: artist.isCustomArtist ? undefined : artist.artistId,
+            fee: artist.fee,
+            isCustomArtist: artist.isCustomArtist,
+            customArtistName: artist.isCustomArtist ? artist.customArtistName : undefined,
+            customArtistPhoto: artist.isCustomArtist ? artist.customArtistPhoto : undefined,
+            customArtistPhotoFile: artist.isCustomArtist ? artist.customArtistPhotoFile : undefined,
+            notes: artist.notes
+          }));
+          
+          // Debug logging for artist filtering
+          console.log('Artists filtering - Original selectedArtists:', selectedArtists);
+          console.log('Artists filtering - Filtered validArtists:', validArtists);
+          
           return validArtists.length > 0 ? validArtists : undefined;
         })(),
         equipment: (() => {
@@ -426,10 +450,13 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
         artists: eventData.artists,
         equipment: eventData.equipment,
         venueOwnerId: eventData.venueOwnerId,
-        userRole
+        userRole,
+        originalSelectedArtists: selectedArtists,
+        originalSelectedEquipment: selectedEquipment
       });
 
       if (mode === 'edit' && initialEventId) {
+        // Handle event updates (existing logic)
         const updated = userRole === 'admin'
           ? await eventService.updateEventAsAdmin(
               initialEventId,
@@ -448,20 +475,24 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
         return;
       }
 
-      const createdEvent = userRole === 'admin' 
-        ? await eventService.createEventAsAdmin(
-            eventData,
-            coverPhoto || undefined,
-            token
-          )
-        : await eventService.createEventAsVenueOwner(
-            eventData,
-            coverPhoto || undefined,
-            token
-          );
+      // Handle event creation with payment logic
+      const paymentResponse = await EventPaymentService.createEventWithPayment({
+        eventData,
+        coverPhoto: coverPhoto || undefined,
+        token,
+        userRole: userRole || 'venue_owner',
+        selectedArtists,
+        selectedEquipment
+      });
 
-      if (onSaved) onSaved(createdEvent._id);
-      router.push(`/dashboard/${userRole}/events`);
+      if (paymentResponse.paymentRequired && paymentResponse.paymentLink) {
+        // Redirect to payment
+        window.location.href = paymentResponse.paymentLink;
+      } else {
+        // No payment required or payment handled, event created
+        if (onSaved && paymentResponse.eventId) onSaved(paymentResponse.eventId);
+        router.push(`/dashboard/${userRole}/events`);
+      }
     } catch (err: any) {
       console.error('Failed to create event:', err);
       setError(err.message || 'Failed to create event. Please try again.');

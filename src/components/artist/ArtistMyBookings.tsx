@@ -363,16 +363,36 @@ export default function ArtistMyBookings() {
 
                 {/* Enhanced body */}
                 <div className="relative p-5 space-y-4 bg-white">
-                  {/* Location with enhanced styling */}
+                  {/* Location with enhanced styling (detailed) */}
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow flex-shrink-0">
                       <MapPin className="h-5 w-5 text-white" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Location</p>
-                      <p className="text-sm font-medium text-gray-900 line-clamp-2 leading-relaxed">
-                        {b.venueDetails?.address || "—"}
-                      </p>
+                      {b.venueDetails ? (
+                        <div className="space-y-0.5 text-sm">
+                          {b.venueDetails.address && (
+                            <p className="text-gray-900">{b.venueDetails.address}</p>
+                          )}
+                          {(b.venueDetails.city || b.venueDetails.state || b.venueDetails.country || b.venueDetails.postalCode) && (
+                            <p className="text-gray-700">
+                              {[b.venueDetails.city, b.venueDetails.state, b.venueDetails.country]
+                                .filter(Boolean)
+                                .join(', ')}
+                              {b.venueDetails.postalCode ? ` ${b.venueDetails.postalCode}` : ''}
+                            </p>
+                          )}
+                          {b.venueDetails.venueType && (
+                            <p className="text-gray-600 text-xs"><span className="font-medium">Type:</span> {b.venueDetails.venueType}</p>
+                          )}
+                          {b.venueDetails.additionalInfo && (
+                            <p className="text-gray-600 text-xs"><span className="font-medium">Info:</span> {b.venueDetails.additionalInfo}</p>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-sm font-medium text-gray-900">—</p>
+                      )}
                     </div>
                   </div>
 

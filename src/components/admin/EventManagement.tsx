@@ -26,7 +26,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Textarea } from '@/components/ui/textarea';
@@ -438,7 +438,21 @@ export default function EventManagement({ userRole }: EventManagementProps) {
                             <MoreHorizontal className="h-4 w-4" />
               </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
+                        <DropdownMenuContent 
+                          align="end" 
+                          className="bg-white border border-gray-200 shadow-lg min-w-[160px] z-[9999]"
+                          sideOffset={5}
+                          avoidCollisions={true}
+                          collisionPadding={10}
+                        >
+                          <DropdownMenuItem 
+                            onClick={() => setDeleteDialog({ open: true, event })}
+                            className="text-red-600 hover:bg-red-50 focus:bg-red-50 focus:text-red-600 cursor-pointer"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2 text-red-600" />
+                            <span className="text-red-600 font-medium">Delete</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => handleViewEvent(event._id)}>
                             <Eye className="h-4 w-4 mr-2" />
                             View
@@ -467,13 +481,6 @@ export default function EventManagement({ userRole }: EventManagementProps) {
                               Cancel
                             </DropdownMenuItem>
                           )}
-                          <DropdownMenuItem 
-                            onClick={() => setDeleteDialog({ open: true, event })}
-                            className="text-red-600"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -581,7 +588,7 @@ export default function EventManagement({ userRole }: EventManagementProps) {
               Cancel
             </Button>
             <Button 
-              variant="destructive" 
+              variant="outline" 
               onClick={handleDeleteEvent}
               disabled={actionLoading}
             >

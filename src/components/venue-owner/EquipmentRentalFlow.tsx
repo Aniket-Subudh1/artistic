@@ -250,8 +250,8 @@ export default function EquipmentRentalFlow({
     return (
       <Card 
         key={equipment._id} 
-        className={`transition-all hover:shadow-md ${
-          isSelected ? 'ring-2 ring-primary bg-primary/5' : ''
+        className={`bg-white transition-all hover:shadow-md ${
+          isSelected ? 'ring-2 ring-primary' : ''
         }`}
       >
         <CardContent className="p-4">
@@ -391,7 +391,7 @@ export default function EquipmentRentalFlow({
     return (
       <div className="space-y-3">
         {tempSelectedEquipment.map((item) => (
-          <Card key={item.equipmentId} className="bg-primary/5 border-primary/20">
+          <Card key={item.equipmentId} className="bg-white border-primary/20">
             <CardContent className="p-3">
               <div className="space-y-2">
                 <div className="flex items-start justify-between">
@@ -442,7 +442,7 @@ export default function EquipmentRentalFlow({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="bg-white max-w-7xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
@@ -457,7 +457,7 @@ export default function EquipmentRentalFlow({
           {/* Equipment List */}
           <div className="lg:col-span-2 space-y-4">
             {/* Filters */}
-            <Card>
+            <Card className="bg-white">
               <CardContent className="p-4">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                   <div className="relative">

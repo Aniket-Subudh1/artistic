@@ -10,9 +10,11 @@ import {
   CreditCard, 
   ArrowRight,
   Download,
-  Home
+  Home,
+  Plus
 } from 'lucide-react';
 import { PaymentService } from '@/services/payment.service';
+import { EventPaymentService } from '@/services/event-payment.service';
 import { Navbar } from '@/components/main/Navbar';
 import { Footer } from '@/components/main/Footer';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -25,6 +27,9 @@ const PaymentSuccessPage: React.FC = () => {
   const [verifying, setVerifying] = useState(false);
   const [verificationError, setVerificationError] = useState('');
   const [paymentDetails, setPaymentDetails] = useState<any>(null);
+  const [eventCreated, setEventCreated] = useState(false);
+  const [eventId, setEventId] = useState<string | null>(null);
+  const [isEventPayment, setIsEventPayment] = useState(false);
 
   const bookingId = searchParams.get('bookingId');
   const type = searchParams.get('type');
@@ -36,9 +41,41 @@ const PaymentSuccessPage: React.FC = () => {
     // Just read and display the callback params; verification already happened on backend
     const allParams = PaymentService.getPaymentCallbackParams();
     setPaymentDetails(allParams);
-  }, []);
+
+    // Check if this is an event creation payment
+    if (bookingId && type && EventPaymentService.isEventPayment(bookingId, type)) {
+      setIsEventPayment(true);
+      handleEventCreation(bookingId, trackId || '');
+    }
+  }, [bookingId, type, trackId]);
+
+  const handleEventCreation = async (comboBookingId: string, trackId: string) => {
+    setVerifying(true);
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
+      
+      const createdEventId = await EventPaymentService.handlePaymentSuccess(
+        trackId,
+        comboBookingId,
+        token
+      );
+      setEventId(createdEventId);
+      setEventCreated(true);
+    } catch (error) {
+      console.error('Event creation failed:', error);
+      setVerificationError(error instanceof Error ? error.message : 'Event creation failed');
+    } finally {
+      setVerifying(false);
+    }
+  };
 
   const getBookingTypeText = (type: string | null) => {
+    if (isEventPayment) {
+      return 'Event Creation';
+    }
     switch (type) {
       case 'equipment-package':
         return 'Equipment Package';
@@ -52,6 +89,9 @@ const PaymentSuccessPage: React.FC = () => {
   };
 
   const getDashboardPath = (type: string | null) => {
+    if (isEventPayment) {
+      return '/dashboard/venue_owner/events';
+    }
     switch (type) {
       case 'equipment-package':
       case 'custom-equipment-package':
@@ -164,13 +204,36 @@ const PaymentSuccessPage: React.FC = () => {
             
             <h1 className="text-4xl font-bold text-gray-900 mb-4">Payment Successful!</h1>
             <p className="text-xl text-gray-600 mb-6">
-              Your {getBookingTypeText(type)} booking has been confirmed and payment processed successfully.
+              {isEventPayment 
+                ? (eventCreated 
+                  ? 'Your event has been created successfully and payment processed.'
+                  : verifying 
+                    ? 'Payment confirmed. Creating your event...'
+                    : 'Payment confirmed for event creation.')
+                : `Your ${getBookingTypeText(type)} booking has been confirmed and payment processed successfully.`
+              }
             </p>
+            
+            {verificationError && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-4">
+                <p className="font-medium">Error:</p>
+                <p className="text-sm">{verificationError}</p>
+              </div>
+            )}
             
             {bookingId && (
               <div className="bg-gradient-to-r from-[#391C71]/10 to-purple-100 rounded-2xl p-4 inline-block border border-[#391C71]/20">
-                <p className="text-sm font-medium text-gray-700 mb-1">Booking ID</p>
+                <p className="text-sm font-medium text-gray-700 mb-1">
+                  {isEventPayment ? 'Payment ID' : 'Booking ID'}
+                </p>
                 <p className="text-lg font-bold text-[#391C71] font-mono">{bookingId}</p>
+              </div>
+            )}
+
+            {eventId && (
+              <div className="bg-gradient-to-r from-green-100 to-emerald-100 rounded-2xl p-4 inline-block border border-green-200 mt-4">
+                <p className="text-sm font-medium text-gray-700 mb-1">Event ID</p>
+                <p className="text-lg font-bold text-green-700 font-mono">{eventId}</p>
               </div>
             )}
           </div>
@@ -239,35 +302,76 @@ const PaymentSuccessPage: React.FC = () => {
             </h3>
             
             <div className="space-y-4 mb-8">
-              <div className="flex items-start bg-white/50 rounded-xl p-4 border border-white/20">
-                <div className="bg-green-100 rounded-full p-2 mr-4 flex-shrink-0">
-                  <CheckCircle className="w-4 h-4 text-green-600" />
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900 mb-1">Booking Confirmed</p>
-                  <p className="text-sm text-gray-600">Your booking is now confirmed and the equipment provider has been notified.</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start bg-white/50 rounded-xl p-4 border border-white/20">
-                <div className="bg-blue-100 rounded-full p-2 mr-4 flex-shrink-0">
-                  <Package className="w-4 h-4 text-blue-600" />
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900 mb-1">Equipment Preparation</p>
-                  <p className="text-sm text-gray-600">The equipment provider will prepare your items for the scheduled delivery/pickup.</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start bg-white/50 rounded-xl p-4 border border-white/20">
-                <div className="bg-purple-100 rounded-full p-2 mr-4 flex-shrink-0">
-                  <CreditCard className="w-4 h-4 text-purple-600" />
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900 mb-1">Receipt & Invoice</p>
-                  <p className="text-sm text-gray-600">You'll receive a detailed receipt and invoice via email shortly.</p>
-                </div>
-              </div>
+              {isEventPayment ? (
+                <>
+                  <div className="flex items-start bg-white/50 rounded-xl p-4 border border-white/20">
+                    <div className="bg-green-100 rounded-full p-2 mr-4 flex-shrink-0">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900 mb-1">Event Created</p>
+                      <p className="text-sm text-gray-600">
+                        {eventCreated 
+                          ? 'Your event has been created successfully and is now live.'
+                          : 'Your event is being created after payment confirmation.'
+                        }
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start bg-white/50 rounded-xl p-4 border border-white/20">
+                    <div className="bg-blue-100 rounded-full p-2 mr-4 flex-shrink-0">
+                      <Calendar className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900 mb-1">Artists & Equipment Booked</p>
+                      <p className="text-sm text-gray-600">Artists and equipment providers have been notified about your event bookings.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start bg-white/50 rounded-xl p-4 border border-white/20">
+                    <div className="bg-purple-100 rounded-full p-2 mr-4 flex-shrink-0">
+                      <CreditCard className="w-4 h-4 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900 mb-1">Event Management</p>
+                      <p className="text-sm text-gray-600">You can now manage your event, ticket sales, and bookings from your dashboard.</p>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-start bg-white/50 rounded-xl p-4 border border-white/20">
+                    <div className="bg-green-100 rounded-full p-2 mr-4 flex-shrink-0">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900 mb-1">Booking Confirmed</p>
+                      <p className="text-sm text-gray-600">Your booking is now confirmed and the equipment provider has been notified.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start bg-white/50 rounded-xl p-4 border border-white/20">
+                    <div className="bg-blue-100 rounded-full p-2 mr-4 flex-shrink-0">
+                      <Package className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900 mb-1">Equipment Preparation</p>
+                      <p className="text-sm text-gray-600">The equipment provider will prepare your items for the scheduled delivery/pickup.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start bg-white/50 rounded-xl p-4 border border-white/20">
+                    <div className="bg-purple-100 rounded-full p-2 mr-4 flex-shrink-0">
+                      <CreditCard className="w-4 h-4 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900 mb-1">Receipt & Invoice</p>
+                      <p className="text-sm text-gray-600">You'll receive a detailed receipt and invoice via email shortly.</p>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
             
             {/* Action Buttons */}
@@ -276,17 +380,36 @@ const PaymentSuccessPage: React.FC = () => {
                 onClick={() => router.push(getDashboardPath(type))}
                 className="flex-1 bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white px-6 py-4 rounded-2xl hover:from-[#5B2C87] hover:to-[#391C71] hover:shadow-xl hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#391C71] focus:ring-offset-2 transition-all duration-300 shadow-lg font-semibold flex items-center justify-center gap-3"
               >
-                <Package className="w-5 h-5" />
-                View My Bookings
-                <ArrowRight className="w-5 h-5" />
+                {isEventPayment ? (
+                  <>
+                    <Calendar className="w-5 h-5" />
+                    Manage My Events
+                    <ArrowRight className="w-5 h-5" />
+                  </>
+                ) : (
+                  <>
+                    <Package className="w-5 h-5" />
+                    View My Bookings
+                    <ArrowRight className="w-5 h-5" />
+                  </>
+                )}
               </button>
               
               <button
-                onClick={() => router.push('/packages')}
+                onClick={() => router.push(isEventPayment ? '/dashboard/venue_owner/create-event' : '/packages')}
                 className="flex-1 bg-white/80 backdrop-blur-sm text-[#391C71] px-6 py-4 rounded-2xl hover:bg-white border border-[#391C71]/20 hover:shadow-xl hover:scale-105 transition-all duration-300 shadow-lg font-semibold flex items-center justify-center gap-3"
               >
-                <Home className="w-5 h-5" />
-                Browse More Packages
+                {isEventPayment ? (
+                  <>
+                    <Plus className="w-5 h-5" />
+                    Create Another Event
+                  </>
+                ) : (
+                  <>
+                    <Home className="w-5 h-5" />
+                    Browse More Packages
+                  </>
+                )}
               </button>
             </div>
           </div>

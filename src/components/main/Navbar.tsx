@@ -89,16 +89,32 @@ export function Navbar() {
       ]
     },
     { href: "/calendar", label: t('calendar') },
-    { href: "/coming-soon", label: t('bookTicket') },
     {
-      label: t('createEvent'),
+      label: t('bookTicket'),
       dropdown: [
         {
-          href: "/coming-soon",
-          label: t('createEvent'),
+          href: "/events/ticket",
+          label: t('bookTicket'),
           icon: Calendar,
-          description: t('createEventDesc')
+          description: t('bookTicketDesc')
         },
+        {
+          href: "/events/booth",
+          label: t('bookYourBooth'),
+          icon: Package,
+          description: t('bookYourBoothDesc')
+        },
+        {
+          href: "/events/table",
+          label: t('bookYourTable'),
+          icon: Users,
+          description: t('bookYourTableDesc')
+        }
+      ]
+    },
+    {
+      label: t('planEvent'),
+      dropdown: [
         {
           href: "/artist",
           label: t('bookArtist'),

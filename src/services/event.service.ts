@@ -115,6 +115,7 @@ export interface CreateEventRequest {
     isCustomArtist?: boolean;
     customArtistName?: string;
     customArtistPhoto?: string;
+    customArtistPhotoFile?: File;
     notes?: string;
   }>;
   equipment?: Array<{
@@ -303,8 +304,20 @@ export const eventService = {
    * Create event as admin
    */
   async createEventAsAdmin(eventData: CreateEventRequest, coverPhoto?: File, token?: string): Promise<Event> {
-    // If no file, send pure JSON to preserve object types and dates
-    if (!coverPhoto) {
+    // Extract custom artist photo files
+    const customArtistPhotoFiles: File[] = [];
+    if (eventData.artists) {
+      eventData.artists.forEach((artist, index) => {
+        if (artist.isCustomArtist && artist.customArtistPhotoFile) {
+          customArtistPhotoFiles[index] = artist.customArtistPhotoFile;
+          // Remove the file from the data before serialization
+          delete artist.customArtistPhotoFile;
+        }
+      });
+    }
+
+    // If no files at all, send pure JSON
+    if (!coverPhoto && customArtistPhotoFiles.length === 0) {
       return apiRequest(`${API_CONFIG.BASE_URL}/events/admin/create`, {
         method: 'POST',
         headers: {
@@ -315,11 +328,48 @@ export const eventService = {
       });
     }
 
-    // Multipart when a file is present
+    // Multipart when files are present
     const formData = new FormData();
-    const { equipment: _omitEquipment, ...rest } = eventData as any;
-    this.appendFormDataRecursively(formData, rest);
-    formData.append('coverPhoto', coverPhoto);
+
+    // Append primitives directly, JSON-stringify complex structures
+    formData.append('name', eventData.name);
+    formData.append('description', eventData.description);
+    formData.append('startDate', eventData.startDate.toISOString());
+    formData.append('endDate', eventData.endDate.toISOString());
+    formData.append('startTime', eventData.startTime);
+    formData.append('endTime', eventData.endTime);
+    formData.append('visibility', eventData.visibility);
+    formData.append('performanceType', eventData.performanceType);
+  if (eventData.seatLayoutId) formData.append('seatLayoutId', eventData.seatLayoutId);
+  if ((eventData as any).venueOwnerId) formData.append('venueOwnerId', String((eventData as any).venueOwnerId));
+
+    // Complex/optional fields
+    if (eventData.venue) formData.append('venue', JSON.stringify(eventData.venue));
+    if (eventData.artists) formData.append('artists', JSON.stringify(eventData.artists));
+    if (eventData.equipment) formData.append('equipment', JSON.stringify(eventData.equipment));
+    if (eventData.pricing) formData.append('pricing', JSON.stringify(eventData.pricing));
+    if (eventData.tags) formData.append('tags', JSON.stringify(eventData.tags));
+    if (eventData.genres) formData.append('genres', JSON.stringify(eventData.genres));
+    if (typeof eventData.allowBooking !== 'undefined') formData.append('allowBooking', String(!!eventData.allowBooking));
+    if (eventData.bookingStartDate) formData.append('bookingStartDate', eventData.bookingStartDate.toISOString());
+    if (eventData.bookingEndDate) formData.append('bookingEndDate', eventData.bookingEndDate.toISOString());
+    if (typeof eventData.maxTicketsPerUser !== 'undefined') formData.append('maxTicketsPerUser', String(eventData.maxTicketsPerUser));
+    if (eventData.contactEmail) formData.append('contactEmail', eventData.contactEmail);
+    if (eventData.contactPhone) formData.append('contactPhone', eventData.contactPhone);
+    if (eventData.contactPerson) formData.append('contactPerson', eventData.contactPerson);
+    if (eventData.termsAndConditions) formData.append('termsAndConditions', eventData.termsAndConditions);
+    if (eventData.cancellationPolicy) formData.append('cancellationPolicy', eventData.cancellationPolicy);
+
+    if (coverPhoto) {
+      formData.append('coverPhoto', coverPhoto);
+    }
+
+    // Add custom artist photos with indexed field names
+    customArtistPhotoFiles.forEach((file, index) => {
+      if (file) {
+        formData.append(`customArtistPhoto_${index}`, file);
+      }
+    });
 
     return apiRequest(`${API_CONFIG.BASE_URL}/events/admin/create`, {
       method: 'POST',
@@ -343,10 +393,35 @@ export const eventService = {
       });
     }
 
-    const formData = new FormData();
-    const { equipment: _omitEquipment, ...rest } = eventData as any;
-    this.appendFormDataRecursively(formData, rest);
-    formData.append('coverPhoto', coverPhoto);
+  const formData = new FormData();
+
+  // Append primitives directly, JSON-stringify complex structures
+  if (eventData.name) formData.append('name', eventData.name);
+  if (eventData.description) formData.append('description', eventData.description);
+  if (eventData.startDate) formData.append('startDate', (eventData.startDate as Date).toISOString());
+  if (eventData.endDate) formData.append('endDate', (eventData.endDate as Date).toISOString());
+  if (eventData.startTime) formData.append('startTime', eventData.startTime);
+  if (eventData.endTime) formData.append('endTime', eventData.endTime);
+  if (eventData.visibility) formData.append('visibility', eventData.visibility);
+  if (eventData.performanceType) formData.append('performanceType', eventData.performanceType);
+  if (eventData.seatLayoutId) formData.append('seatLayoutId', eventData.seatLayoutId);
+  if (eventData.venue) formData.append('venue', JSON.stringify(eventData.venue));
+  if (eventData.artists) formData.append('artists', JSON.stringify(eventData.artists));
+  if (eventData.equipment) formData.append('equipment', JSON.stringify(eventData.equipment));
+  if (eventData.pricing) formData.append('pricing', JSON.stringify(eventData.pricing));
+  if (eventData.tags) formData.append('tags', JSON.stringify(eventData.tags));
+  if (eventData.genres) formData.append('genres', JSON.stringify(eventData.genres));
+  if (typeof eventData.allowBooking !== 'undefined') formData.append('allowBooking', String(!!eventData.allowBooking));
+  if (eventData.bookingStartDate) formData.append('bookingStartDate', (eventData.bookingStartDate as Date).toISOString());
+  if (eventData.bookingEndDate) formData.append('bookingEndDate', (eventData.bookingEndDate as Date).toISOString());
+  if (typeof eventData.maxTicketsPerUser !== 'undefined') formData.append('maxTicketsPerUser', String(eventData.maxTicketsPerUser));
+  if (eventData.contactEmail) formData.append('contactEmail', eventData.contactEmail);
+  if (eventData.contactPhone) formData.append('contactPhone', eventData.contactPhone);
+  if (eventData.contactPerson) formData.append('contactPerson', eventData.contactPerson);
+  if (eventData.termsAndConditions) formData.append('termsAndConditions', eventData.termsAndConditions);
+  if (eventData.cancellationPolicy) formData.append('cancellationPolicy', eventData.cancellationPolicy);
+
+  formData.append('coverPhoto', coverPhoto);
 
     return apiRequest(`${API_CONFIG.BASE_URL}/events/admin/${eventId}`, {
       method: 'PATCH',
@@ -429,7 +504,20 @@ export const eventService = {
    * Create event as venue owner
    */
   async createEventAsVenueOwner(eventData: CreateEventRequest, coverPhoto?: File, token?: string): Promise<Event> {
-    if (!coverPhoto) {
+    // Extract custom artist photo files
+    const customArtistPhotoFiles: File[] = [];
+    if (eventData.artists) {
+      eventData.artists.forEach((artist, index) => {
+        if (artist.isCustomArtist && artist.customArtistPhotoFile) {
+          customArtistPhotoFiles[index] = artist.customArtistPhotoFile;
+          // Remove the file from the data before serialization
+          delete artist.customArtistPhotoFile;
+        }
+      });
+    }
+
+    // If no files at all, send pure JSON
+    if (!coverPhoto && customArtistPhotoFiles.length === 0) {
       return apiRequest(`${API_CONFIG.BASE_URL}/events/venue-owner/create`, {
         method: 'POST',
         headers: {
@@ -441,9 +529,44 @@ export const eventService = {
     }
 
     const formData = new FormData();
-    const { equipment: _omitEquipment, ...rest } = eventData as any;
-    this.appendFormDataRecursively(formData, rest);
-    formData.append('coverPhoto', coverPhoto);
+
+    // Append primitives directly, JSON-stringify complex structures
+    formData.append('name', eventData.name);
+    formData.append('description', eventData.description);
+    formData.append('startDate', eventData.startDate.toISOString());
+    formData.append('endDate', eventData.endDate.toISOString());
+    formData.append('startTime', eventData.startTime);
+    formData.append('endTime', eventData.endTime);
+    formData.append('visibility', eventData.visibility);
+    formData.append('performanceType', eventData.performanceType);
+  if (eventData.seatLayoutId) formData.append('seatLayoutId', eventData.seatLayoutId);
+  if ((eventData as any).venueOwnerId) formData.append('venueOwnerId', String((eventData as any).venueOwnerId));
+    if (eventData.venue) formData.append('venue', JSON.stringify(eventData.venue));
+    if (eventData.artists) formData.append('artists', JSON.stringify(eventData.artists));
+    if (eventData.equipment) formData.append('equipment', JSON.stringify(eventData.equipment));
+    if (eventData.pricing) formData.append('pricing', JSON.stringify(eventData.pricing));
+    if (eventData.tags) formData.append('tags', JSON.stringify(eventData.tags));
+    if (eventData.genres) formData.append('genres', JSON.stringify(eventData.genres));
+    if (typeof eventData.allowBooking !== 'undefined') formData.append('allowBooking', String(!!eventData.allowBooking));
+    if (eventData.bookingStartDate) formData.append('bookingStartDate', eventData.bookingStartDate.toISOString());
+    if (eventData.bookingEndDate) formData.append('bookingEndDate', eventData.bookingEndDate.toISOString());
+    if (typeof eventData.maxTicketsPerUser !== 'undefined') formData.append('maxTicketsPerUser', String(eventData.maxTicketsPerUser));
+    if (eventData.contactEmail) formData.append('contactEmail', eventData.contactEmail);
+    if (eventData.contactPhone) formData.append('contactPhone', eventData.contactPhone);
+    if (eventData.contactPerson) formData.append('contactPerson', eventData.contactPerson);
+    if (eventData.termsAndConditions) formData.append('termsAndConditions', eventData.termsAndConditions);
+    if (eventData.cancellationPolicy) formData.append('cancellationPolicy', eventData.cancellationPolicy);
+
+    if (coverPhoto) {
+      formData.append('coverPhoto', coverPhoto);
+    }
+
+    // Add custom artist photos with indexed field names
+    customArtistPhotoFiles.forEach((file, index) => {
+      if (file) {
+        formData.append(`customArtistPhoto_${index}`, file);
+      }
+    });
 
     return apiRequest(`${API_CONFIG.BASE_URL}/events/venue-owner/create`, {
       method: 'POST',
@@ -467,10 +590,36 @@ export const eventService = {
       });
     }
 
-    const formData = new FormData();
-    const { equipment: _omitEquipment, ...rest } = eventData as any;
-    this.appendFormDataRecursively(formData, rest);
-    formData.append('coverPhoto', coverPhoto);
+  const formData = new FormData();
+
+  // Append primitives directly, JSON-stringify complex structures
+  if (eventData.name) formData.append('name', eventData.name);
+  if (eventData.description) formData.append('description', eventData.description);
+  if (eventData.startDate) formData.append('startDate', (eventData.startDate as Date).toISOString());
+  if (eventData.endDate) formData.append('endDate', (eventData.endDate as Date).toISOString());
+  if (eventData.startTime) formData.append('startTime', eventData.startTime);
+  if (eventData.endTime) formData.append('endTime', eventData.endTime);
+  if (eventData.visibility) formData.append('visibility', eventData.visibility);
+  if (eventData.performanceType) formData.append('performanceType', eventData.performanceType);
+  if (eventData.seatLayoutId) formData.append('seatLayoutId', eventData.seatLayoutId);
+  if ((eventData as any).venueOwnerId) formData.append('venueOwnerId', String((eventData as any).venueOwnerId));
+  if (eventData.venue) formData.append('venue', JSON.stringify(eventData.venue));
+  if (eventData.artists) formData.append('artists', JSON.stringify(eventData.artists));
+  if (eventData.equipment) formData.append('equipment', JSON.stringify(eventData.equipment));
+  if (eventData.pricing) formData.append('pricing', JSON.stringify(eventData.pricing));
+  if (eventData.tags) formData.append('tags', JSON.stringify(eventData.tags));
+  if (eventData.genres) formData.append('genres', JSON.stringify(eventData.genres));
+  if (typeof eventData.allowBooking !== 'undefined') formData.append('allowBooking', String(!!eventData.allowBooking));
+  if (eventData.bookingStartDate) formData.append('bookingStartDate', (eventData.bookingStartDate as Date).toISOString());
+  if (eventData.bookingEndDate) formData.append('bookingEndDate', (eventData.bookingEndDate as Date).toISOString());
+  if (typeof eventData.maxTicketsPerUser !== 'undefined') formData.append('maxTicketsPerUser', String(eventData.maxTicketsPerUser));
+  if (eventData.contactEmail) formData.append('contactEmail', eventData.contactEmail);
+  if (eventData.contactPhone) formData.append('contactPhone', eventData.contactPhone);
+  if (eventData.contactPerson) formData.append('contactPerson', eventData.contactPerson);
+  if (eventData.termsAndConditions) formData.append('termsAndConditions', eventData.termsAndConditions);
+  if (eventData.cancellationPolicy) formData.append('cancellationPolicy', eventData.cancellationPolicy);
+
+  formData.append('coverPhoto', coverPhoto);
 
     return apiRequest(`${API_CONFIG.BASE_URL}/events/venue-owner/${eventId}`, {
       method: 'PATCH',
