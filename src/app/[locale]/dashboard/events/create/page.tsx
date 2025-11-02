@@ -21,7 +21,7 @@ export default function CreateEventPage() {
     );
   }
 
-  const userRole = user.role.toUpperCase();
+  const userRole = user.role.toUpperCase() as 'admin' | 'venue_owner';
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -29,7 +29,7 @@ export default function CreateEventPage() {
         <h1 className="text-3xl font-bold text-gray-900">Create New Event</h1>
         <p className="text-gray-600 mt-2">Fill in the details below to create a new event.</p>
       </div>
-      <EventManagement userRole={userRole} showCreateForm={true} />
+      <EventManagement userRole={userRole} />
     </div>
   );
 }
