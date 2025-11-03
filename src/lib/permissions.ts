@@ -145,14 +145,6 @@ export const getSidebarItems = (): SidebarItem[] => [
     roles: ['super_admin', 'admin'],
     children: [
       {
-        id: 'system-settings',
-        label: 'System Settings',
-        labelAr: 'إعدادات النظام',
-        icon: 'Cog',
-        href: '/dashboard/admin/system',
-        roles: ['super_admin'],
-      },
-      {
         id: 'carousel-management',
         label: 'Carousel Management',
         labelAr: 'إدارة شريط التمرير',
@@ -186,14 +178,6 @@ export const getSidebarItems = (): SidebarItem[] => [
         icon: 'Users',
         href: '/dashboard/admin/users',
         roles: ['super_admin', 'admin'],
-      },
-      {
-        id: 'user-roles',
-        label: 'Roles & Permissions',
-        labelAr: 'الأدوار والصلاحيات',
-        icon: 'Shield',
-        href: '/dashboard/admin/roles',
-        roles: ['super_admin'],
       },
     ],
   },
@@ -350,31 +334,7 @@ export const getSidebarItems = (): SidebarItem[] => [
     icon: 'MapPin',
     roles: ['super_admin', 'admin', 'venue_owner'],
     children: [
-      // Venue Owner specific
-      {
-        id: 'my-venues',
-        label: 'My Venues',
-        labelAr: 'أماكني',
-        icon: 'Building',
-        href: '/dashboard/venues',
-        roles: ['venue_owner'],
-      },
-      {
-        id: 'add-venue',
-        label: 'Add Venue',
-        labelAr: 'إضافة مكان',
-        icon: 'Plus',
-        href: '/dashboard/venues/add',
-        roles: ['venue_owner'],
-      },
-      {
-        id: 'venue-bookings',
-        label: 'Venue Bookings',
-        labelAr: 'حجوزات الأماكن',
-        icon: 'Calendar',
-        href: '/dashboard/venues/bookings',
-        roles: ['venue_owner'],
-      },
+      // Venue Owner specific (only existing routes)
       
       // Admin Venue Layouts
       {
@@ -484,40 +444,7 @@ export const getSidebarItems = (): SidebarItem[] => [
     ],
   },
 
-  // Analytics
-  {
-    id: 'analytics',
-    label: 'Analytics',
-    labelAr: 'التحليلات',
-    icon: 'BarChart3',
-    roles: ['super_admin', 'admin', 'venue_owner', 'equipment_provider', 'artist'],
-    children: [
-      {
-        id: 'overview-analytics',
-        label: 'Overview',
-        labelAr: 'نظرة عامة',
-        icon: 'TrendingUp',
-        href: '/dashboard/analytics',
-        roles: ['super_admin', 'admin', 'venue_owner', 'equipment_provider', 'artist'],
-      },
-      {
-        id: 'revenue-analytics',
-        label: 'Revenue',
-        labelAr: 'الإيرادات',
-        icon: 'DollarSign',
-        href: '/dashboard/analytics/revenue',
-        roles: ['super_admin', 'admin', 'venue_owner', 'equipment_provider'],
-      },
-      {
-        id: 'booking-analytics',
-        label: 'Booking Trends',
-        labelAr: 'اتجاهات الحجز',
-        icon: 'LineChart',
-        href: '/dashboard/analytics/bookings',
-        roles: ['super_admin', 'admin'],
-      },
-    ],
-  },
+  
 
   // Payments
   {
@@ -527,15 +454,6 @@ export const getSidebarItems = (): SidebarItem[] => [
     icon: 'CreditCard',
     roles: ['super_admin', 'admin', 'venue_owner', 'equipment_provider', 'artist', 'user'],
     children: [
-      
-      {
-        id: 'payment-methods',
-        label: 'Payment Methods',
-        labelAr: 'طرق الدفع',
-        icon: 'Wallet',
-        href: '/dashboard/payments/methods',
-        roles: ['venue_owner', 'equipment_provider', 'artist', 'user'],
-      },
       
       {
         id: 'artist-payments',
@@ -548,15 +466,6 @@ export const getSidebarItems = (): SidebarItem[] => [
     ],
   },
 
-  // Notifications
-  {
-    id: 'notifications',
-    label: 'Notifications',
-    labelAr: 'الإشعارات',
-    icon: 'Bell',
-    href: '/dashboard/notifications',
-    roles: ['super_admin', 'admin', 'venue_owner', 'equipment_provider', 'artist', 'user'],
-  },
 
   // Settings
   {
