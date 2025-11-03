@@ -18,6 +18,8 @@ import { EventPaymentService } from '@/services/event-payment.service';
 import { Navbar } from '@/components/main/Navbar';
 import { Footer } from '@/components/main/Footer';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { seatBookingService, EventTicketBookingResponse } from '@/services/seat-booking.service';
+import { EventTicketBookingCard } from '@/components/booking/EventTicketBookingCard';
 
 const PaymentSuccessPage: React.FC = () => {
   const router = useRouter();
@@ -30,6 +32,7 @@ const PaymentSuccessPage: React.FC = () => {
   const [eventCreated, setEventCreated] = useState(false);
   const [eventId, setEventId] = useState<string | null>(null);
   const [isEventPayment, setIsEventPayment] = useState(false);
+  const [ticketBooking, setTicketBooking] = useState<EventTicketBookingResponse['booking'] | null>(null);
 
   const bookingId = searchParams.get('bookingId');
   const type = searchParams.get('type');
@@ -47,6 +50,21 @@ const PaymentSuccessPage: React.FC = () => {
       setIsEventPayment(true);
       handleEventCreation(bookingId, trackId || '');
     }
+
+    // Handle event ticket bookings: fetch booking details to render ticket info
+    const initTicket = async () => {
+      try {
+        if (type === 'ticket' && bookingId) {
+          const token = localStorage.getItem('authToken') || '';
+          if (!token) return;
+          const booking = await seatBookingService.getEventTicketBooking(bookingId, token);
+          setTicketBooking(booking);
+        }
+      } catch (e) {
+        console.error('Failed to load ticket booking', e);
+      }
+    };
+    initTicket();
   }, [bookingId, type, trackId]);
 
   const handleEventCreation = async (comboBookingId: string, trackId: string) => {
@@ -96,6 +114,8 @@ const PaymentSuccessPage: React.FC = () => {
       case 'equipment-package':
       case 'custom-equipment-package':
       case 'equipment':
+        return '/dashboard/user/bookings';
+      case 'ticket':
         return '/dashboard/user/bookings';
       default:
         return '/dashboard/user';
@@ -285,6 +305,22 @@ const PaymentSuccessPage: React.FC = () => {
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Ticket Details (Event Tickets) */}
+        {type === 'ticket' && ticketBooking && (
+          <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-8 mb-8 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-emerald-200/40 to-transparent rounded-br-full"></div>
+            <div className="relative z-10">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                <div className="bg-gradient-to-br from-emerald-600 to-teal-600 rounded-full p-3 mr-4">
+                  <CheckCircle className="w-6 h-6 text-white" />
+                </div>
+                Your Tickets
+              </h3>
+              <EventTicketBookingCard booking={ticketBooking} />
             </div>
           </div>
         )}

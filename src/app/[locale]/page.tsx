@@ -217,7 +217,7 @@ export default function HomePage() {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/20" />
         <div className="max-w-7xl mx-auto px-6 text-center relative z-10">
-          <h2 className="text-5xl font-bold text-white mb-6 leading-tight">
+          <h2 className="text-5xl font-bold text.white mb-6 leading-tight">
             {t('home.ctaTitle')}
           </h2>
           <p className="text-white/90 text-xl mb-12 max-w-3xl mx-auto leading-relaxed">
@@ -225,11 +225,11 @@ export default function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <Link
-              href="/create-event"
+              href="/artists"
               className="group px-10 py-4 bg-white text-[#391C71] rounded-full font-medium hover:bg-yellow-300 transition-all duration-500 shadow-2xl hover:scale-105 relative z-20"
             >
               <span className="group-hover:tracking-wider transition-all duration-300">
-                {t('nav.createEvent')}
+                {t('nav.planEvent')}
               </span>
             </Link>
             <Link

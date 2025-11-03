@@ -15,13 +15,15 @@ import {
   Search, Filter, Calendar, TrendingUp, Clock, CheckCircle, 
   XCircle, DollarSign, RefreshCw, Plus, BarChart3, Package, User,
   SlidersHorizontal, ArrowUpDown, Grid3X3, List, Eye, Settings,
-  Star, Zap, Activity, Award, Target, Sparkles, Heart, Layers
+  Star, Zap, Activity, Award, Target, Sparkles, Heart, Layers, Ticket
 } from 'lucide-react';
 import { format, isAfter, isBefore, parseISO } from 'date-fns';
+import { seatBookingService, EventTicketBookingResponse } from '@/services/seat-booking.service';
+import { EventTicketBookingCard } from './EventTicketBookingCard';
 
 type UnifiedBooking = {
-  type: 'artist' | 'equipment-package' | 'equipment';
-  data: Booking | EquipmentPackageBooking | EquipmentBooking;
+  type: 'artist' | 'equipment-package' | 'equipment' | 'ticket';
+  data: Booking | EquipmentPackageBooking | EquipmentBooking | EventTicketBookingResponse['booking'];
   eventDate: Date;
   status: string;
   totalPrice: number;
@@ -35,6 +37,7 @@ export function EnhancedUnifiedUserBookingsDashboard() {
   const [artistBookings, setArtistBookings] = useState<Booking[]>([]);
   const [equipmentPackageBookings, setEquipmentPackageBookings] = useState<EquipmentPackageBooking[]>([]);
   const [equipmentBookings, setEquipmentBookings] = useState<EquipmentBooking[]>([]);
+  const [ticketBookings, setTicketBookings] = useState<EventTicketBookingResponse['booking'][]>([]);
   const [unifiedBookings, setUnifiedBookings] = useState<UnifiedBooking[]>([]);
   const [filteredBookings, setFilteredBookings] = useState<UnifiedBooking[]>([]);
   const [filters, setFilters] = useState<BookingFilters>({
@@ -55,7 +58,7 @@ export function EnhancedUnifiedUserBookingsDashboard() {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [sortBy, setSortBy] = useState<SortOption>('date');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  const [selectedBookingTypes, setSelectedBookingTypes] = useState<string[]>(['artist', 'equipment-package', 'equipment']);
+  const [selectedBookingTypes, setSelectedBookingTypes] = useState<string[]>(['artist', 'equipment-package', 'equipment', 'ticket']);
 
   useEffect(() => {
     fetchAllBookings();
@@ -63,7 +66,7 @@ export function EnhancedUnifiedUserBookingsDashboard() {
 
   useEffect(() => {
     combineAndSortBookings();
-  }, [artistBookings, equipmentPackageBookings, equipmentBookings, sortBy]);
+  }, [artistBookings, equipmentPackageBookings, equipmentBookings, ticketBookings, sortBy]);
 
   useEffect(() => {
     applyFilters();
@@ -95,9 +98,19 @@ export function EnhancedUnifiedUserBookingsDashboard() {
         _id: booking._id
       }));
       
-      const [equipmentPackageData, standaloneEquipmentData] = await Promise.all([
+      const [equipmentPackageData, standaloneEquipmentData, myTicketBookings] = await Promise.all([
         equipmentPackageBookingService.getMyBookings().then(res => res.bookings).catch(() => []),
-        EquipmentBookingService.getMyEquipmentBookings().then(res => res.bookings).catch(() => [])
+        EquipmentBookingService.getMyEquipmentBookings().then(res => res.bookings).catch(() => []),
+        (async () => {
+          try {
+            const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') || '' : '';
+            if (!token) return [] as EventTicketBookingResponse['booking'][];
+            const res = await seatBookingService.getUserEventBookings(token).catch(() => ({ bookings: [] }));
+            return res.bookings || [];
+          } catch {
+            return [] as EventTicketBookingResponse['booking'][];
+          }
+        })()
       ]);
       
       const combinedEquipmentIds = new Set();
@@ -116,10 +129,11 @@ export function EnhancedUnifiedUserBookingsDashboard() {
 
      ;
 
-      setArtistBookings(artistData || []);
-      setEquipmentPackageBookings(equipmentPackageData || []);
-      setEquipmentBookings(allEquipmentBookings || []);
-      calculateEnhancedSummary(artistData || [], equipmentPackageData || [], allEquipmentBookings || []);
+  setArtistBookings(artistData || []);
+  setEquipmentPackageBookings(equipmentPackageData || []);
+  setEquipmentBookings(allEquipmentBookings || []);
+  setTicketBookings(myTicketBookings || []);
+  calculateEnhancedSummary(artistData || [], equipmentPackageData || [], allEquipmentBookings || []);
     } catch (error) {
       console.error('Error fetching bookings:', error);
       setError('Failed to load bookings. Please try again.');
@@ -174,6 +188,19 @@ export function EnhancedUnifiedUserBookingsDashboard() {
         eventDate,
         status: booking.status,
         totalPrice: booking.totalPrice
+      });
+    });
+
+    // Add event ticket bookings
+    ticketBookings.forEach(booking => {
+      const eventDate = new Date(booking.createdAt);
+      const total = booking.paymentInfo?.total ?? 0;
+      unified.push({
+        type: 'ticket',
+        data: booking,
+        eventDate,
+        status: booking.status,
+        totalPrice: total,
       });
     });
 
@@ -235,14 +262,24 @@ export function EnhancedUnifiedUserBookingsDashboard() {
       totalSpent: standaloneEquipmentBookings.reduce((sum, b) => sum + b.totalPrice, 0)
     };
 
+    const ticketStats = {
+      total: ticketBookings.length,
+      upcoming: ticketBookings.filter(b => isAfter(new Date(b.createdAt), now)).length,
+      pending: ticketBookings.filter(b => b.status === 'pending').length,
+      confirmed: ticketBookings.filter(b => b.status === 'confirmed').length,
+      completed: ticketBookings.filter(b => (b as any).status === 'completed').length, // may not exist, keep for consistency
+      cancelled: ticketBookings.filter(b => b.status === 'cancelled').length,
+      totalSpent: ticketBookings.reduce((sum, b) => sum + (b.paymentInfo?.total ?? 0), 0)
+    };
+
     setSummary({
-      total: artistStats.total + equipmentPackageStats.total + standaloneEquipmentStats.total,
-      upcomingBookings: artistStats.upcoming + equipmentPackageStats.upcoming + standaloneEquipmentStats.upcoming,
-      pending: artistStats.pending + equipmentPackageStats.pending + standaloneEquipmentStats.pending,
-      totalSpent: artistStats.totalSpent + equipmentPackageStats.totalSpent + standaloneEquipmentStats.totalSpent,
-      confirmed: artistStats.confirmed + equipmentPackageStats.confirmed + standaloneEquipmentStats.confirmed,
-      completed: artistStats.completed + equipmentPackageStats.completed + standaloneEquipmentStats.completed,
-      cancelled: artistStats.cancelled + equipmentPackageStats.cancelled + standaloneEquipmentStats.cancelled
+      total: artistStats.total + equipmentPackageStats.total + standaloneEquipmentStats.total + ticketStats.total,
+      upcomingBookings: artistStats.upcoming + equipmentPackageStats.upcoming + standaloneEquipmentStats.upcoming + ticketStats.upcoming,
+      pending: artistStats.pending + equipmentPackageStats.pending + standaloneEquipmentStats.pending + ticketStats.pending,
+      totalSpent: artistStats.totalSpent + equipmentPackageStats.totalSpent + standaloneEquipmentStats.totalSpent + ticketStats.totalSpent,
+      confirmed: artistStats.confirmed + equipmentPackageStats.confirmed + standaloneEquipmentStats.confirmed + ticketStats.confirmed,
+      completed: artistStats.completed + equipmentPackageStats.completed + standaloneEquipmentStats.completed + ticketStats.completed,
+      cancelled: artistStats.cancelled + equipmentPackageStats.cancelled + standaloneEquipmentStats.cancelled + ticketStats.cancelled
     });
   };
 
@@ -538,6 +575,17 @@ export function EnhancedUnifiedUserBookingsDashboard() {
                   <Layers className="h-4 w-4" />
                   <span className="hidden sm:inline">Equipment</span>
                 </button>
+                <button
+                  onClick={() => toggleBookingType('ticket')}
+                  className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    selectedBookingTypes.includes('ticket')
+                      ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
+                      : 'bg-gray-100 text-gray-600 border border-gray-300 hover:bg-gray-200'
+                  }`}
+                >
+                  <Ticket className="h-4 w-4" />
+                  <span className="hidden sm:inline">Tickets</span>
+                </button>
               </div>
             </div>
 
@@ -624,7 +672,9 @@ export function EnhancedUnifiedUserBookingsDashboard() {
                       ? 'bg-purple-100/95 text-purple-700 border-purple-200'
                       : booking.type === 'equipment-package'
                       ? 'bg-blue-100/95 text-blue-700 border-blue-200'
-                      : 'bg-orange-100/95 text-orange-700 border-orange-200'
+                      : booking.type === 'equipment'
+                      ? 'bg-orange-100/95 text-orange-700 border-orange-200'
+                      : 'bg-emerald-100/95 text-emerald-700 border-emerald-200'
                   }`}>
                     {booking.type === 'artist' ? (
                       <>
@@ -636,10 +686,15 @@ export function EnhancedUnifiedUserBookingsDashboard() {
                         <Package className="h-3 w-3 mr-1" />
                         Package
                       </>
-                    ) : (
+                    ) : booking.type === 'equipment' ? (
                       <>
                         <Layers className="h-3 w-3 mr-1" />
                         Equipment
+                      </>
+                    ) : (
+                      <>
+                        <Ticket className="h-3 w-3 mr-1" />
+                        Ticket
                       </>
                     )}
                   </span>
@@ -661,11 +716,16 @@ export function EnhancedUnifiedUserBookingsDashboard() {
                       onCancel={handleCancelEquipmentBooking}
                       className="h-full"
                     />
-                  ) : (
+                  ) : booking.type === 'equipment' ? (
                     <EnhancedEquipmentPackageBookingCard
                       booking={booking.data as any}
                       onViewDetails={handleViewEquipmentDetails}
                       onCancel={handleCancelEquipmentBooking}
+                      className="h-full"
+                    />
+                  ) : (
+                    <EventTicketBookingCard
+                      booking={booking.data as EventTicketBookingResponse['booking']}
                       className="h-full"
                     />
                   )}

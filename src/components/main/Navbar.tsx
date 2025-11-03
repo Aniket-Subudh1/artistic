@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useTranslations, useLocale } from 'next-intl'
 import { Link, useRouter, usePathname } from '@/i18n/routing'
 import Image from "next/image"
@@ -18,36 +18,39 @@ export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState<number | null>(null)
   const [isVisible, setIsVisible] = useState(true)
-  const [lastScrollY, setLastScrollY] = useState(0)
+  const lastScrollYRef = useRef(0)
   const [showUserDropdown, setShowUserDropdown] = useState(false)
   
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY
-      
+
       // Determine if scrolled enough to change appearance
-      setIsScrolled(currentScrollY > 50)
-      
+      if (currentScrollY > 50 !== isScrolled) {
+        setIsScrolled(currentScrollY > 50)
+      }
+
       // Determine visibility based on scroll direction
+      const lastScrollY = lastScrollYRef.current
       if (currentScrollY < lastScrollY || currentScrollY < 100) {
         // Scrolling up or near top - show navbar
-        setIsVisible(true)
+        if (!isVisible) setIsVisible(true)
       } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
         // Scrolling down and not near top - hide navbar
-        setIsVisible(false)
+        if (isVisible) setIsVisible(false)
         // Close mobile menu if open
-        setIsMobileMenuOpen(false)
+        if (isMobileMenuOpen) setIsMobileMenuOpen(false)
         // Close dropdowns
-        setActiveDropdown(null)
-        setShowUserDropdown(false)
+        if (activeDropdown !== null) setActiveDropdown(null)
+        if (showUserDropdown) setShowUserDropdown(false)
       }
-      
-      setLastScrollY(currentScrollY)
+
+      lastScrollYRef.current = currentScrollY
     }
 
     window.addEventListener("scroll", handleScroll, { passive: true })
     return () => window.removeEventListener("scroll", handleScroll)
-  }, [lastScrollY])
+  }, [isScrolled, isVisible, isMobileMenuOpen, activeDropdown, showUserDropdown])
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -109,7 +112,13 @@ export function Navbar() {
           label: t('bookYourTable'),
           icon: Users,
           description: t('bookYourTableDesc')
-        }
+          },
+          {
+            href: "/events/workshop",
+            label: t('bookYourWorkshop'),
+            icon: Calendar,
+            description: t('bookYourWorkshopDesc')
+          }
       ]
     },
     {
@@ -129,7 +138,13 @@ export function Navbar() {
         }
       ]
     },
-    { href: "/join-us", label: t('joinUs') },
+    {
+      label: t('joinUs'),
+      dropdown: [
+        { href: "/join-us", label: t('joinAsArtist'), icon: Users, description: t('joinAsArtistDesc') },
+        { href: "/join-us/venue", label: t('joinAsVenueProvider'), icon: Calendar, description: t('joinAsVenueProviderDesc') }
+      ]
+    },
   ]
 
   const handleMouseEnter = (idx: number) => {

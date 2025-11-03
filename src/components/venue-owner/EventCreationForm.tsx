@@ -183,7 +183,7 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
       });
       setCoverPhotoPreview(initialEvent.coverPhoto || '');
       setSelectedArtists((initialEvent.artists || []).map(a => ({
-        artistId: a.isCustomArtist ? '' : a.artistId,
+        artistId: a.isCustomArtist ? '' : (typeof a.artistId === 'string' ? a.artistId : (a.artistId as any)?._id || String(a.artistId || '')),
         artistName: a.isCustomArtist ? (a.customArtistName || '') : a.artistName,
         customArtistName: a.isCustomArtist ? (a.customArtistName || '') : undefined,
         artistPhoto: a.isCustomArtist ? a.customArtistPhoto : a.artistPhoto,
@@ -191,7 +191,7 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
         fee: a.fee,
       })) as any);
       setSelectedEquipment((initialEvent.equipment || []).map(e => ({
-        equipmentId: e.equipmentId,
+        equipmentId: typeof e.equipmentId === 'string' ? e.equipmentId : (e.equipmentId as any)?._id || String(e.equipmentId || ''),
         equipmentName: e.equipmentName,
         quantity: e.quantity,
         pricePerUnit: e.pricePerUnit,
@@ -397,9 +397,16 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
               return artist.customArtistName && artist.customArtistName.trim() !== '';
             }
             // For regular artists: must have artistId
-            return artist.artistId && artist.artistId.trim() !== '';
+            const artistId = typeof artist.artistId === 'string' 
+              ? artist.artistId 
+              : (artist.artistId as any)?._id || String(artist.artistId || '');
+            return artistId && artistId.trim() !== '';
           }).map(artist => ({
-            artistId: artist.isCustomArtist ? undefined : artist.artistId,
+            artistId: artist.isCustomArtist ? undefined : (
+              typeof artist.artistId === 'string' 
+                ? artist.artistId 
+                : (artist.artistId as any)?._id || String(artist.artistId || '')
+            ),
             fee: artist.fee,
             isCustomArtist: artist.isCustomArtist,
             customArtistName: artist.isCustomArtist ? artist.customArtistName : undefined,
@@ -416,9 +423,16 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
         })(),
         equipment: (() => {
           const validEquipment = selectedEquipment
-            .filter(equipment => equipment.equipmentId && equipment.equipmentId.trim() !== '')
+            .filter(equipment => {
+              const equipmentId = typeof equipment.equipmentId === 'string' 
+                ? equipment.equipmentId 
+                : (equipment.equipmentId as any)?._id || String(equipment.equipmentId || '');
+              return equipmentId && equipmentId.trim() !== '';
+            })
             .map(e => ({
-              equipmentId: e.equipmentId,
+              equipmentId: typeof e.equipmentId === 'string' 
+                ? e.equipmentId 
+                : (e.equipmentId as any)?._id || String(e.equipmentId || ''),
               quantity: e.quantity,
               notes: e.notes,
             }));

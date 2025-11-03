@@ -1,4 +1,4 @@
-import { API_CONFIG, apiRequest } from '@/lib/api-config';
+import { API_CONFIG, apiRequest, publicApiRequest } from '@/lib/api-config';
 
 export interface EventTicketBookingRequest {
   eventId: string;
@@ -130,28 +130,18 @@ export interface EventLayoutDetails {
   };
 }
 
-// Legacy interfaces for backward compatibility
+// Updated booking request to match backend SeatBookDto
 export interface BookingRequest {
-  seatIds: string[];
   eventId: string;
-  userInfo?: {
-    name: string;
-    email: string;
-    phone?: string;
-  };
+  seatIds: string[];
 }
 
 export interface BookingResponse {
+  paymentLink: string;
+  trackId: string;
+  bookingType: string;
   bookingId: string;
-  status: 'pending' | 'confirmed' | 'failed';
-  totalAmount: number;
-  seats: Array<{
-    seatId: string;
-    seatNumber?: string;
-    categoryName: string;
-    price: number;
-  }>;
-  expiresAt: string;
+  message: string;
 }
 
 export interface UserBooking {
@@ -170,22 +160,86 @@ export const seatBookingService = {
   /**
    * Book event tickets with seats, tables, and booths
    */
-  async bookEventTickets(bookingData: EventTicketBookingRequest, token: string): Promise<EventTicketBookingResponse> {
-    return apiRequest(`${API_CONFIG.BASE_URL}/events/book-tickets`, {
+  async bookEventTickets(bookingData: EventTicketBookingRequest, token: string): Promise<{ paymentLink: string }> {
+    // Route to new separate booking schemas and use batch payment if mixed
+    const hasSeats = (bookingData.seats?.length || 0) > 0;
+    const hasTables = (bookingData.tables?.length || 0) > 0;
+    const hasBooths = (bookingData.booths?.length || 0) > 0;
+
+    // Helper to compute totals client-side (server also validates/prices)
+    const seatsTotal = (bookingData.seats || []).reduce((s, x) => s + (x.price || 0), 0);
+    const tablesTotal = (bookingData.tables || []).reduce((s, x) => s + (x.price || 0), 0);
+    const boothsTotal = (bookingData.booths || []).reduce((s, x) => s + (x.price || 0), 0);
+
+    // Single type shortcut
+    if (hasSeats && !hasTables && !hasBooths) {
+      const resp = await apiRequest(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SEAT_BOOKING.BOOK}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId: bookingData.eventId, seatIds: bookingData.seats!.map(s => s.seatId) }),
+      }) as unknown as BookingResponse;
+      return { paymentLink: resp.paymentLink };
+    }
+    if (!hasSeats && hasTables && !hasBooths) {
+      const resp = await apiRequest(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SEAT_BOOKING.BOOK_TABLE}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId: bookingData.eventId, tableIds: bookingData.tables!.map(t => t.tableId) }),
+      }) as unknown as BookingResponse;
+      return { paymentLink: resp.paymentLink };
+    }
+    if (!hasSeats && !hasTables && hasBooths) {
+      const resp = await apiRequest(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SEAT_BOOKING.BOOK_BOOTH}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId: bookingData.eventId, boothIds: bookingData.booths!.map(b => b.boothId) }),
+      }) as unknown as BookingResponse;
+      return { paymentLink: resp.paymentLink };
+    }
+
+    // Mixed selection: create bookings per type, then initiate batch payment
+    const items: Array<{ bookingId: string; type: string; amount: number }> = [];
+
+    if (hasSeats) {
+      const seatRes = await apiRequest(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SEAT_BOOKING.BOOK}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId: bookingData.eventId, seatIds: bookingData.seats!.map(s => s.seatId) }),
+      }) as unknown as BookingResponse;
+      items.push({ bookingId: String(seatRes.bookingId), type: 'ticket', amount: seatsTotal });
+    }
+    if (hasTables) {
+      const tableRes = await apiRequest(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SEAT_BOOKING.BOOK_TABLE}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId: bookingData.eventId, tableIds: bookingData.tables!.map(t => t.tableId) }),
+      }) as unknown as BookingResponse;
+      items.push({ bookingId: String(tableRes.bookingId), type: 'table', amount: tablesTotal });
+    }
+    if (hasBooths) {
+      const boothRes = await apiRequest(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SEAT_BOOKING.BOOK_BOOTH}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId: bookingData.eventId, boothIds: bookingData.booths!.map(b => b.boothId) }),
+      }) as unknown as BookingResponse;
+      items.push({ bookingId: String(boothRes.bookingId), type: 'booth', amount: boothsTotal });
+    }
+
+    // Call batch initiate
+    const batch = await apiRequest(`${API_CONFIG.BASE_URL}/payment/initiate-batch`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(bookingData),
-    });
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items }),
+    }) as unknown as { paymentLink: string };
+    return { paymentLink: batch.paymentLink };
   },
 
   /**
    * Get event layout details for booking interface
    */
   async getEventLayoutDetails(eventId: string): Promise<EventLayoutDetails> {
-    return apiRequest(`${API_CONFIG.BASE_URL}/events/public/${eventId}/layout`);
+    // Public endpoint: avoid sending auth headers that could trigger role guards on some backends
+    return publicApiRequest(`${API_CONFIG.BASE_URL}/events/public/${eventId}/layout`);
   },
 
   /**
@@ -196,25 +250,52 @@ export const seatBookingService = {
     canvasH: number;
     items: Array<{ id: string; type: string; x: number; y: number; w: number; h: number; label?: string }>;
   }> {
-    return apiRequest(`${API_CONFIG.BASE_URL}/events/public/${eventId}/decor`);
+    // Public endpoint
+    return publicApiRequest(`${API_CONFIG.BASE_URL}/events/public/${eventId}/decor`);
   },
 
   /**
-   * Get event ticket booking details
+   * Get event ticket booking details - Updated to use new separate schemas
    */
   async getEventTicketBooking(bookingId: string, token: string): Promise<EventTicketBookingResponse['booking']> {
-    return apiRequest(`${API_CONFIG.BASE_URL}/events/bookings/${bookingId}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
+    // First try to get from seat bookings
+    try {
+      return apiRequest(`${API_CONFIG.BASE_URL}/seat-book/details/${bookingId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+    } catch (error: any) {
+      // If not found, try table bookings
+      if (error.status === 404) {
+        try {
+          return apiRequest(`${API_CONFIG.BASE_URL}/seat-book/table-details/${bookingId}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+        } catch (tableError: any) {
+          // If not found, try booth bookings
+          if (tableError.status === 404) {
+            return apiRequest(`${API_CONFIG.BASE_URL}/seat-book/booth-details/${bookingId}`, {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+              },
+            });
+          }
+          throw tableError;
+        }
+      }
+      throw error;
+    }
   },
 
   /**
    * Cancel event ticket booking
    */
   async cancelEventTicketBooking(bookingId: string, token: string, reason?: string): Promise<{ message: string }> {
-    return apiRequest(`${API_CONFIG.BASE_URL}/events/bookings/${bookingId}/cancel`, {
+    // Updated to unified cancel endpoint under /seat-book
+    return apiRequest(`${API_CONFIG.BASE_URL}/seat-book/cancel/${bookingId}`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -241,19 +322,30 @@ export const seatBookingService = {
       pages: number;
     };
   }> {
+    // Prefer new unified seat-book endpoint if available
     const queryParams = new URLSearchParams();
     if (filters?.status) queryParams.append('status', filters.status);
     if (filters?.eventId) queryParams.append('eventId', filters.eventId);
     if (filters?.page) queryParams.append('page', filters.page.toString());
     if (filters?.limit) queryParams.append('limit', filters.limit.toString());
 
-    const url = `${API_CONFIG.BASE_URL}/events/bookings/my-bookings${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    
-    return apiRequest(url, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
+    const url = `${API_CONFIG.BASE_URL}/seat-book/user-bookings${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    try {
+      return await apiRequest(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+    } catch (e: any) {
+      // Fallback to empty structure if endpoint not present yet
+      if (e?.status === 404) {
+        return {
+          bookings: [],
+          pagination: { page: filters?.page || 1, limit: filters?.limit || 10, total: 0, pages: 0 },
+        } as any;
+      }
+      throw e;
+    }
   },
 
   /**
@@ -272,7 +364,8 @@ export const seatBookingService = {
     };
     message?: string;
   }> {
-    return apiRequest(`${API_CONFIG.BASE_URL}/events/${eventId}/check-availability`, {
+    // Public endpoint: users check availability pre-auth
+    return publicApiRequest(`${API_CONFIG.BASE_URL}/events/${eventId}/check-availability`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -313,14 +406,38 @@ export const seatBookingService = {
     }>;
     lastUpdated: string;
   }> {
-    return apiRequest(`${API_CONFIG.BASE_URL}/events/${eventId}/seat-map`);
+    // Public endpoint for real-time seat map
+    return publicApiRequest(`${API_CONFIG.BASE_URL}/events/${eventId}/seat-map`);
   },
 
   async bookSeats(bookingData: BookingRequest, token: string): Promise<BookingResponse> {
-    return apiRequest(API_CONFIG.ENDPOINTS.SEAT_BOOKING.BOOK, {
+    return apiRequest(`${API_CONFIG.BASE_URL}/seat-book/ticket`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(bookingData),
+    });
+  },
+
+  async bookTables(bookingData: { eventId: string; tableIds: string[] }, token: string): Promise<BookingResponse> {
+    return apiRequest(`${API_CONFIG.BASE_URL}/seat-book/table`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(bookingData),
+    });
+  },
+
+  async bookBooths(bookingData: { eventId: string; boothIds: string[] }, token: string): Promise<BookingResponse> {
+    return apiRequest(`${API_CONFIG.BASE_URL}/seat-book/booth`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(bookingData),
     });

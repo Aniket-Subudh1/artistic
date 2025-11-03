@@ -402,6 +402,14 @@ export const getSidebarItems = (): SidebarItem[] => [
         href: '/dashboard/admin/venue-providers',
         roles: ['super_admin', 'admin'],
       },
+      {
+        id: 'venue-applications',
+        label: 'Venue Applications',
+        labelAr: 'طلبات الأماكن',
+        icon: 'FileText',
+        href: '/dashboard/admin/venue-applications',
+        roles: ['super_admin', 'admin'],
+      },
     ],
   },
 

@@ -13,6 +13,8 @@
   "bookYourBoothDesc": "تصفح الفعاليات التي توفر أجنحة",
   "bookYourTable": "احجز طاولتك",
   "bookYourTableDesc": "تصفح الفعاليات التي توفر طاولات",
+  "bookYourWorkshop": "احجز ورشتك",
+  "bookYourWorkshopDesc": "تصفح الفعاليات المصنفة كورش عمل",
   "createEvent": "إنشاء حدث",
   "planEvent": "خطط لحدث",
     "createEventDesc": "تنظيم وإدارة الفعاليات",
@@ -23,7 +25,11 @@
     "bookEquipmentPackages": "احجز حزم المعدات",
     "bookEquipmentPackagesDesc": "استئجار حزم المعدات المنسقة",
     "signIn": "تسجيل الدخول",
-    "joinUs": "انضم إلينا"
+    "joinUs": "انضم إلينا",
+    "joinAsArtist": "انضم كفنان",
+    "joinAsArtistDesc": "قدّم طلبًا لتصبح فنانًا",
+    "joinAsVenueProvider": "انضم كمزوّد قاعة",
+    "joinAsVenueProviderDesc": "قدّم لعرض قاعتك"
   },
   "auth": {
     "signIn": {

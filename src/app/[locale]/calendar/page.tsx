@@ -16,6 +16,7 @@ import {
 import { Navbar } from '@/components/main/Navbar';
 import { Footer } from '@/components/main/Footer';
 import { CalendarService, LikedArtist } from '@/services/calendar.service';
+import { eventService, Event as EventType } from '@/services/event.service';
 import { useAuthLogic } from '@/hooks/useAuth';
 import { Link } from '@/i18n/routing';
 import Image from 'next/image';
@@ -28,6 +29,9 @@ export default function CalendarPage() {
   const [likedArtists, setLikedArtists] = useState<LikedArtist[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [monthEvents, setMonthEvents] = useState<EventType[]>([]);
+  const [eventsByDate, setEventsByDate] = useState<Record<string, EventType[]>>({});
+  const [eventsLoading, setEventsLoading] = useState(false);
 
   // Calendar navigation
   const navigateMonth = (direction: 'prev' | 'next') => {
@@ -81,6 +85,65 @@ export default function CalendarPage() {
   useEffect(() => {
     fetchLikedArtists();
   }, [isAuthenticated]);
+
+  // Helper to build a local date key YYYY-MM-DD
+  const toDateKey = (d: Date) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  // Fetch events for current month where liked artists are performing (public or workshop)
+  useEffect(() => {
+    const loadMonthEvents = async () => {
+      // Only attempt when user is authenticated; if no liked artists, no need to fetch
+      if (!isAuthenticated || likedArtists.length === 0) {
+        setMonthEvents([]);
+        setEventsByDate({});
+        return;
+      }
+
+      try {
+        setEventsLoading(true);
+        const firstDay = CalendarService.getFirstDayOfMonth(currentDate);
+        const lastDay = CalendarService.getLastDayOfMonth(currentDate);
+
+        const resp = await eventService.getPublicEvents({
+          startDate: firstDay.toISOString(),
+          endDate: lastDay.toISOString(),
+          limit: 200,
+          page: 1,
+        });
+
+        const likedIds = new Set(likedArtists.map(a => a._id));
+        const relevant = resp.events.filter(ev => {
+          const isVisible = ev.visibility === 'public' || ev.visibility === 'workshop';
+          if (!isVisible) return false;
+          // Any non-custom artist matching liked list
+          const hasLiked = (ev.artists || []).some(a => !a.isCustomArtist && a.artistId && likedIds.has(a.artistId));
+          return hasLiked;
+        });
+
+        const byDate: Record<string, EventType[]> = {};
+        for (const ev of relevant) {
+          const d = new Date(ev.startDate);
+          const key = toDateKey(d);
+          if (!byDate[key]) byDate[key] = [];
+          byDate[key].push(ev);
+        }
+
+        setMonthEvents(relevant);
+        setEventsByDate(byDate);
+      } catch (e) {
+        console.error('Failed to load month events:', e);
+      } finally {
+        setEventsLoading(false);
+      }
+    };
+
+    loadMonthEvents();
+  }, [isAuthenticated, likedArtists, currentDate]);
 
   // Get calendar data
   const calendarDays = CalendarService.getCalendarDays(currentDate);
@@ -215,6 +278,9 @@ export default function CalendarPage() {
                       className += " opacity-50";
                     }
 
+                    const dateKey = toDateKey(day);
+                    const hasEvents = Boolean(eventsByDate[dateKey]?.length);
+
                     return (
                       <button
                         key={`${day.getFullYear()}-${day.getMonth()}-${day.getDate()}`}
@@ -226,9 +292,9 @@ export default function CalendarPage() {
                           {day.getDate()}
                         </span>
                         
-                        {/* Event indicator dot (you can add logic for actual events here) */}
-                        {isCurrentMonth && !isPast && Math.random() > 0.8 && (
-                          <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full" style={{backgroundColor: 'rgb(57, 28, 113)'}}></div>
+                        {/* Event indicator dot when liked artists perform */}
+                        {isCurrentMonth && hasEvents && (
+                          <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 rounded-full" style={{backgroundColor: 'rgb(57, 28, 113)'}}></div>
                         )}
                       </button>
                     );
@@ -241,19 +307,74 @@ export default function CalendarPage() {
                     <h3 className="text-lg font-semibold mb-2" style={{color: 'rgb(57, 28, 113)'}}>
                       {CalendarService.formatCalendarDate(selectedDate)}
                     </h3>
-                    <p className="text-gray-600">
-                      No events scheduled for this date. Book an artist to get started!
-                    </p>
-                    <div className="mt-4">
-                      <Link
-                        href="/artists"
-                        className="inline-flex items-center px-4 py-2 text-white rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105"
-                        style={{backgroundColor: 'rgb(57, 28, 113)'}}
-                      >
-                        <Music className="w-4 h-4 mr-2" />
-                        Browse Artists
-                      </Link>
-                    </div>
+                    {(() => {
+                      const key = toDateKey(selectedDate);
+                      const list = eventsByDate[key] || [];
+                      if (eventsLoading) {
+                        return (
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#391C71]"></div>
+                            Loading events...
+                          </div>
+                        );
+                      }
+                      if (list.length === 0) {
+                        return (
+                          <>
+                            <p className="text-gray-600">
+                              No liked-artist performances on this date. Book an artist to get started!
+                            </p>
+                            <div className="mt-4">
+                              <Link
+                                href="/artists"
+                                className="inline-flex items-center px-4 py-2 text-white rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105"
+                                style={{backgroundColor: 'rgb(57, 28, 113)'}}
+                              >
+                                <Music className="w-4 h-4 mr-2" />
+                                Browse Artists
+                              </Link>
+                            </div>
+                          </>
+                        );
+                      }
+
+                      return (
+                        <div className="space-y-3">
+                          {list.map(ev => {
+                            const d = new Date(ev.startDate);
+                            const time = `${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                            const likedIds = new Set(likedArtists.map(a => a._id));
+                            const matched = (ev.artists || [])
+                              .filter(a => !a.isCustomArtist && a.artistId && likedIds.has(a.artistId))
+                              .map(a => a.artistName)
+                              .filter(Boolean);
+                            return (
+                              <div key={ev._id} className="bg-white rounded-xl border border-purple-100 p-4 flex items-center justify-between">
+                                <div>
+                                  <div className="font-semibold text-gray-900">{ev.name}</div>
+                                  <div className="text-sm text-gray-600 flex flex-wrap gap-3 mt-1">
+                                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{time}</span>
+                                    {ev.venue?.name && (
+                                      <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{ev.venue.name}</span>
+                                    )}
+                                    {matched.length > 0 && (
+                                      <span className="flex items-center gap-1"><Heart className="w-3 h-3 text-red-500" />{matched.join(', ')}</span>
+                                    )}
+                                  </div>
+                                </div>
+                                <Link
+                                  href={`/events/${ev._id}`}
+                                  className="px-3 py-1.5 text-sm rounded-lg text-white"
+                                  style={{backgroundColor: 'rgb(57, 28, 113)'}}
+                                >
+                                  View
+                                </Link>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
               </div>

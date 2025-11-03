@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Calendar, MapPin, Clock, Users, CreditCard, Lock, AlertCircle } from 'lucide-react';
 import { seatBookingService, EventLayoutDetails, EventTicketBookingRequest } from '@/services/seat-booking.service';
+import { APIError } from '@/lib/api-config';
 import { Event } from '@/services/event.service';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -214,6 +215,57 @@ export default function SeatBookingInterface({
         return;
       }
 
+      // Re-validate current selection against latest availability to avoid stale UI
+      try {
+        const latest = await seatBookingService.getEventLayoutDetails(eventId);
+        setLayoutDetails(latest);
+
+        // Build quick lookup maps for availability
+        const seatAvail = new Map<string, 'available' | 'booked' | 'locked' | 'blocked'>();
+        (latest.layout.seats || []).forEach((s: any) => seatAvail.set(s.seatId, s.bookingStatus));
+
+        const tableAvail = new Map<string, 'available' | 'booked' | 'locked' | 'blocked'>();
+        const boothAvail = new Map<string, 'available' | 'booked' | 'locked' | 'blocked'>();
+        (latest.layout.items || []).forEach((it: any) => {
+          const ref = it?.refId || {};
+          if (it?.modelType === 'Table' && ref?.table_id) {
+            tableAvail.set(ref.table_id, ref.bookingStatus);
+          }
+          if (it?.modelType === 'Booth' && ref?.booth_id) {
+            boothAvail.set(ref.booth_id, ref.bookingStatus);
+          }
+        });
+
+        const unavailable: SelectedItem[] = [];
+        const stillAvailable = selectedItems.filter((item) => {
+          if (item.type === 'seat') {
+            return seatAvail.get(item.id) === 'available';
+          }
+          if (item.type === 'table') {
+            return tableAvail.get(item.id) === 'available';
+          }
+          if (item.type === 'booth') {
+            return boothAvail.get(item.id) === 'available';
+          }
+          return false;
+        });
+        if (stillAvailable.length !== selectedItems.length) {
+          // Collect which ones dropped
+          const removed = selectedItems.filter(si => !stillAvailable.includes(si));
+          removed.forEach(r => unavailable.push(r));
+          setSelectedItems(stillAvailable);
+          setError(
+            unavailable.length === 1
+              ? `${unavailable[0].type === 'seat' ? 'Seat' : unavailable[0].type === 'table' ? 'Table' : 'Booth'} ${unavailable[0].label || unavailable[0].name || unavailable[0].id} was just taken. We refreshed the map—please reselect.`
+              : `Some items were just taken (${unavailable.length}). We refreshed the map—please reselect.`,
+          );
+          return; // abort submit; user must reselect
+        }
+      } catch (prefetchErr) {
+        // If revalidation fails for any reason, proceed to submission and let server validate
+        console.warn('Pre-submit availability check failed, proceeding to book:', prefetchErr);
+      }
+
       // Prepare booking data
       const bookingData: EventTicketBookingRequest = {
         eventId,
@@ -252,7 +304,43 @@ export default function SeatBookingInterface({
       }
     } catch (err: any) {
       console.error('Booking failed:', err);
-      setError(err.message || 'Booking failed. Please try again.');
+      // Handle known conflict gracefully by refreshing and pruning selection
+      if (err instanceof APIError && err.status === 409) {
+        try {
+          const latest = await seatBookingService.getEventLayoutDetails(eventId);
+          setLayoutDetails(latest);
+
+          const seatAvail = new Map<string, 'available' | 'booked' | 'locked' | 'blocked'>();
+          (latest.layout.seats || []).forEach((s: any) => seatAvail.set(s.seatId, s.bookingStatus));
+          const tableAvail = new Map<string, 'available' | 'booked' | 'locked' | 'blocked'>();
+          const boothAvail = new Map<string, 'available' | 'booked' | 'locked' | 'blocked'>();
+          (latest.layout.items || []).forEach((it: any) => {
+            const ref = it?.refId || {};
+            if (it?.modelType === 'Table' && ref?.table_id) tableAvail.set(ref.table_id, ref.bookingStatus);
+            if (it?.modelType === 'Booth' && ref?.booth_id) boothAvail.set(ref.booth_id, ref.bookingStatus);
+          });
+          const updated = selectedItems.filter((item) => {
+            if (item.type === 'seat') return seatAvail.get(item.id) === 'available';
+            if (item.type === 'table') return tableAvail.get(item.id) === 'available';
+            if (item.type === 'booth') return boothAvail.get(item.id) === 'available';
+            return false;
+          });
+          const removedCount = selectedItems.length - updated.length;
+          setSelectedItems(updated);
+          setError(
+            err?.message ||
+              (removedCount > 0
+                ? `Some seats are no longer available (${removedCount}). We've refreshed the seat map—please reselect.`
+                : 'Some seats are no longer available. We refreshed the seat map—please reselect.'),
+          );
+        } catch (refreshErr) {
+          console.warn('Failed to refresh seat map after conflict:', refreshErr);
+          setError(err?.message || 'Some seats are no longer available. Please reselect and try again.');
+        }
+        return;
+      }
+
+      setError(err?.message || 'Booking failed. Please try again.');
     } finally {
       setBookingLoading(false);
     }

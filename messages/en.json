@@ -13,6 +13,8 @@
   "bookYourBoothDesc": "Browse events that offer booths",
   "bookYourTable": "Book Your Table",
   "bookYourTableDesc": "Browse events that offer tables",
+  "bookYourWorkshop": "Book Your Workshop",
+  "bookYourWorkshopDesc": "Browse events tagged as workshops",
     "createEvent": "Create Event",
   "planEvent": "Plan Event",
     "createEventDesc": "Organize and manage events",
@@ -23,7 +25,11 @@
     "bookEquipmentPackages": "Book Equipment Packages",
     "bookEquipmentPackagesDesc": "Rent curated equipment packages",
     "signIn": "Sign In",
-    "joinUs": "Join Us"
+    "joinUs": "Join Us",
+    "joinAsArtist": "Join as Artist",
+    "joinAsArtistDesc": "Apply to become an artist",
+    "joinAsVenueProvider": "Join as Venue Provider",
+    "joinAsVenueProviderDesc": "Apply to list your venue"
   },
   "auth": {
     "signIn": {

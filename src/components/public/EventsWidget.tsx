@@ -203,24 +203,7 @@ export default function EventsWidget({
                   <span className="capitalize">{event.performanceType}</span>
                 </div>
 
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center">
-                    <Users className="h-3 w-3 text-purple-600" />
-                  </div>
-                  <span>
-                    {event.availableTickets} / {event.totalCapacity} available
-                  </span>
-                </div>
-              </div>
-
-              {/* Progress bar for ticket availability */}
-              <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-                <div 
-                  className="bg-gradient-to-r from-[#391C71] to-[#5B2C87] h-2 rounded-full transition-all duration-300"
-                  style={{ 
-                    width: `${((event.totalCapacity - event.availableTickets) / event.totalCapacity) * 100}%` 
-                  }}
-                ></div>
+                
               </div>
 
               {/* Tags */}

@@ -194,7 +194,12 @@ export const API_CONFIG = {
       DELETE: (id: string) => `/notifications/${id}`,
     },
     SEAT_BOOKING: {
-      BOOK: '/seat-book/book',
+      BOOK: '/seat-book/ticket',
+      BOOK_TABLE: '/seat-book/table', 
+      BOOK_BOOTH: '/seat-book/booth',
+      DETAILS: (id: string) => `/seat-book/details/${id}`,
+      TABLE_DETAILS: (id: string) => `/seat-book/table-details/${id}`,
+      BOOTH_DETAILS: (id: string) => `/seat-book/booth-details/${id}`,
       CANCEL: (id: string) => `/seat-book/cancel/${id}`,
       USER_BOOKINGS: '/seat-book/user-bookings',
       BOOKING_DETAILS: (id: string) => `/seat-book/booking/${id}`,
