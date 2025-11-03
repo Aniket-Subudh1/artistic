@@ -19,7 +19,9 @@ import {
   Building,
   Wrench,
   Activity,
-  Box
+  Box,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import { AdminService } from '@/services/admin.service';
 
@@ -155,6 +157,7 @@ const AdminEquipmentBookingManagement = () => {
 
   // View modes
   const [viewMode, setViewMode] = useState<'list' | 'packages' | 'analytics'>('list');
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   const fetchBookings = async () => {
     try {
@@ -215,6 +218,16 @@ const AdminEquipmentBookingManagement = () => {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+  };
+
+  const toggleRowExpansion = (bookingId: string) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(bookingId)) {
+      newExpanded.delete(bookingId);
+    } else {
+      newExpanded.add(bookingId);
+    }
+    setExpandedRows(newExpanded);
   };
 
   const getStatusIcon = (status: string) => {
@@ -353,52 +366,52 @@ const AdminEquipmentBookingManagement = () => {
     if (!metrics) return null;
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+        <div className="bg-white rounded-lg shadow p-3">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-              <p className="text-3xl font-bold text-gray-900">
+              <p className="text-xs font-medium text-gray-600">Total Revenue</p>
+              <p className="text-sm md:text-lg font-bold text-gray-900">
                 {formatCurrency(metrics.totalRevenue)}
               </p>
             </div>
-            <DollarSign className="h-8 w-8 text-green-600" />
+            <DollarSign className="h-5 w-5 md:h-6 md:w-6 text-green-600" />
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-lg shadow p-3">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Package Revenue</p>
-              <p className="text-3xl font-bold text-gray-900">
+              <p className="text-xs font-medium text-gray-600">Package Revenue</p>
+              <p className="text-sm md:text-lg font-bold text-gray-900">
                 {formatCurrency(metrics.packageRevenue)}
               </p>
             </div>
-            <Package className="h-8 w-8 text-blue-600" />
+            <Package className="h-5 w-5 md:h-6 md:w-6 text-blue-600" />
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-lg shadow p-3">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Avg Duration</p>
-              <p className="text-3xl font-bold text-gray-900">
+              <p className="text-xs font-medium text-gray-600">Avg Duration</p>
+              <p className="text-sm md:text-lg font-bold text-gray-900">
                 {metrics.utilizationStats.avgDuration.toFixed(1)} days
               </p>
             </div>
-            <Calendar className="h-8 w-8 text-purple-600" />
+            <Calendar className="h-5 w-5 md:h-6 md:w-6 text-purple-600" />
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-lg shadow p-3">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Active Providers</p>
-              <p className="text-3xl font-bold text-gray-900">
+              <p className="text-xs font-medium text-gray-600">Providers</p>
+              <p className="text-sm md:text-lg font-bold text-gray-900">
                 {metrics.providerPerformance.length}
               </p>
             </div>
-            <Building className="h-8 w-8 text-orange-600" />
+            <Building className="h-5 w-5 md:h-6 md:w-6 text-orange-600" />
           </div>
         </div>
       </div>
@@ -409,24 +422,24 @@ const AdminEquipmentBookingManagement = () => {
     if (!metrics) return null;
 
     return (
-      <div className="space-y-8">
+      <div className="space-y-4">
         {renderMetricsCards()}
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Equipment Type Breakdown */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Equipment Type Performance</h3>
-            <div className="space-y-3">
+          <div className="bg-white rounded-lg shadow p-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Equipment Type Performance</h3>
+            <div className="space-y-2">
               {metrics.equipmentTypeBreakdown.map((item) => (
                 <div key={item._id} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Wrench className="w-4 h-4 text-gray-600" />
-                    <span className="capitalize text-sm font-medium text-gray-700">
+                  <div className="flex items-center space-x-2">
+                    <Wrench className="w-3 h-3 text-gray-600" />
+                    <span className="capitalize text-xs font-medium text-gray-700">
                       {item._id || 'Unknown'}
                     </span>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-semibold text-gray-900">{item.bookings} bookings</p>
+                    <p className="text-xs font-semibold text-gray-900">{item.bookings} bookings</p>
                     <p className="text-xs text-gray-600">{formatCurrency(item.revenue)}</p>
                   </div>
                 </div>
@@ -435,21 +448,21 @@ const AdminEquipmentBookingManagement = () => {
           </div>
 
           {/* Top Equipment Providers */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Equipment Providers</h3>
-            <div className="space-y-3">
+          <div className="bg-white rounded-lg shadow p-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Top Equipment Providers</h3>
+            <div className="space-y-2">
               {metrics.providerPerformance.slice(0, 5).map((provider, index) => (
                 <div key={provider._id} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full text-xs font-bold text-blue-600">
+                  <div className="flex items-center space-x-2">
+                    <div className="flex items-center justify-center w-5 h-5 bg-blue-100 rounded-full text-xs font-bold text-blue-600">
                       {index + 1}
                     </div>
-                    <span className="text-sm font-medium text-gray-700">
+                    <span className="text-xs font-medium text-gray-700 truncate max-w-[8rem]">
                       {provider.providerName || 'Unknown Provider'}
                     </span>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-semibold text-gray-900">
+                    <p className="text-xs font-semibold text-gray-900">
                       {formatCurrency(provider.totalRevenue)}
                     </p>
                     <p className="text-xs text-gray-600">{provider.totalBookings} bookings</p>
@@ -460,19 +473,19 @@ const AdminEquipmentBookingManagement = () => {
           </div>
 
           {/* Monthly Revenue Trends */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Monthly Revenue Trend</h3>
-            <div className="space-y-3">
+          <div className="bg-white rounded-lg shadow p-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Monthly Revenue Trend</h3>
+            <div className="space-y-2">
               {metrics.monthlyTrends.map((month) => (
                 <div key={`${month._id.year}-${month._id.month}`} className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-xs font-medium text-gray-700">
                     {new Date(month._id.year, month._id.month - 1).toLocaleDateString('en-US', {
                       month: 'short',
                       year: 'numeric'
                     })}
                   </span>
                   <div className="text-right">
-                    <p className="text-sm font-semibold text-gray-900">
+                    <p className="text-xs font-semibold text-gray-900">
                       {formatCurrency(month.revenue)}
                     </p>
                     <p className="text-xs text-gray-600">{month.bookings} bookings</p>
@@ -483,23 +496,23 @@ const AdminEquipmentBookingManagement = () => {
           </div>
 
           {/* Utilization Statistics */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Utilization Statistics</h3>
-            <div className="space-y-4">
+          <div className="bg-white rounded-lg shadow p-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Utilization Statistics</h3>
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Average Booking Duration</span>
-                <span className="text-sm font-semibold text-gray-900">
+                <span className="text-xs font-medium text-gray-700">Average Booking Duration</span>
+                <span className="text-xs font-semibold text-gray-900">
                   {metrics.utilizationStats.avgDuration.toFixed(1)} days
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Total Booking Days</span>
-                <span className="text-sm font-semibold text-gray-900">
+                <span className="text-xs font-medium text-gray-700">Total Booking Days</span>
+                <span className="text-xs font-semibold text-gray-900">
                   {metrics.utilizationStats.totalBookingDays} days
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Revenue Split</span>
+                <span className="text-xs font-medium text-gray-700">Revenue Split</span>
                 <div className="text-right">
                   <p className="text-xs text-gray-600">
                     Packages: {formatCurrency(metrics.packageRevenue)}
@@ -527,33 +540,33 @@ const AdminEquipmentBookingManagement = () => {
 
     return (
       <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Equipment Package Bookings</h3>
-          <p className="text-sm text-gray-600 mt-1">
+        <div className="p-3 border-b border-gray-200">
+          <h3 className="text-sm font-semibold text-gray-900">Equipment Package Bookings</h3>
+          <p className="text-xs text-gray-600 mt-1">
             Showing {packageBookings.length} package bookings (standalone and combined)
           </p>
         </div>
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="p-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {packageBookings.map((booking) => {
               const packageInfo = getPackageInfo(booking);
               return (
-                <div key={booking._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-start justify-between mb-3">
+                <div key={booking._id} className="border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow">
+                  <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
-                      <h4 className="text-sm font-semibold text-gray-900 mb-1">
+                      <h4 className="text-xs font-semibold text-gray-900 mb-1">
                         {packageInfo.name}
                       </h4>
-                      <p className="text-xs text-gray-600 mb-2">
-                        {booking.packageId?.description?.substring(0, 100) ||
-                         booking.equipmentBookingId?.packages?.[0]?.description?.substring(0, 100) ||
+                      <p className="text-xs text-gray-600 mb-1">
+                        {booking.packageId?.description?.substring(0, 50) ||
+                         booking.equipmentBookingId?.packages?.[0]?.description?.substring(0, 50) ||
                          'Equipment package booking'}
-                        {((booking.packageId?.description && booking.packageId.description.length > 100) ||
+                        {((booking.packageId?.description && booking.packageId.description.length > 50) ||
                           (booking.equipmentBookingId?.packages?.[0]?.description && 
-                           booking.equipmentBookingId.packages[0].description.length > 100)) ? '...' : ''}
+                           booking.equipmentBookingId.packages[0].description.length > 50)) ? '...' : ''}
                       </p>
                       <div className="text-xs text-blue-600 font-medium">
-                        {booking.bookingSource === 'combined' ? 'Combined Booking' : 'Package Booking'}
+                        {booking.bookingSource === 'combined' ? 'Combined' : 'Package'}
                       </div>
                     </div>
                     <span className={getStatusBadge(booking.status)}>
@@ -565,49 +578,40 @@ const AdminEquipmentBookingManagement = () => {
                     <img
                       src={packageInfo.coverImage}
                       alt={packageInfo.name}
-                      className="w-full h-32 object-cover rounded-md mb-3"
+                      className="w-full h-20 object-cover rounded-md mb-2"
                     />
                   )}
                   
-                  <div className="space-y-2 text-xs text-gray-600">
+                  <div className="space-y-1 text-xs text-gray-600">
                     <div className="flex items-center justify-between">
                       <span>Customer:</span>
-                      <span className="font-medium">
+                      <span className="font-medium truncate max-w-[6rem]">
                         {booking.userDetails?.name || `${booking.bookedBy.firstName} ${booking.bookedBy.lastName}`}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span>Duration:</span>
                       <span className="font-medium">
-                        {booking.numberOfDays ? `${booking.numberOfDays} days` : 'N/A'}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Date Range:</span>
-                      <span className="font-medium">
-                        {booking.startDate ? 
-                          `${formatDate(booking.startDate)} - ${formatDate(booking.endDate || booking.startDate)}` :
-                          formatDate(booking.displayDate || booking.date || '')
-                        }
+                        {booking.numberOfDays ? `${booking.numberOfDays}d` : 'N/A'}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span>Provider:</span>
-                      <span className="font-medium">
+                      <span className="font-medium truncate max-w-[6rem]">
                         {packageInfo.provider}
                       </span>
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-200">
-                    <span className="text-lg font-bold text-gray-900">
+                  <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-200">
+                    <span className="text-sm font-bold text-gray-900">
                       {formatCurrency(booking.totalPrice)}
                     </span>
                     <button
                       onClick={() => setSelectedBooking(booking)}
-                      className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                      className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
                     >
-                      <Eye className="h-4 w-4" />
+                      <Eye className="h-3 w-3" />
                     </button>
                   </div>
                 </div>
@@ -615,10 +619,10 @@ const AdminEquipmentBookingManagement = () => {
             })}
           </div>
           {packageBookings.length === 0 && (
-            <div className="text-center py-12">
-              <Package className="mx-auto h-12 w-12 text-gray-400" />
+            <div className="text-center py-8">
+              <Package className="mx-auto h-8 w-8 text-gray-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">No package bookings found</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-xs text-gray-500">
                 Try adjusting your search filters or date range.
               </p>
             </div>
@@ -630,132 +634,247 @@ const AdminEquipmentBookingManagement = () => {
 
   const renderListView = () => {
     return (
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Equipment Bookings</h3>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Equipment/Package
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Customer
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Provider
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date Range
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Duration
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Booking Type
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-gray-200">
-              {bookings.map((booking) => {
-                const packageInfo = getPackageInfo(booking);
-                return (
-                  <tr key={booking._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10">
-                          {packageInfo.coverImage ? (
-                            <img
-                              className="h-10 w-10 rounded object-cover"
-                              src={packageInfo.coverImage}
-                              alt={packageInfo.name}
-                            />
-                          ) : (
-                            <div className="h-10 w-10 rounded bg-gray-300 flex items-center justify-center">
-                              <Package className="h-6 w-6 text-gray-600" />
-                            </div>
-                          )}
+      <>
+        {/* Mobile Card Layout */}
+        <div className="lg:hidden">
+          <div className="space-y-2">
+            {bookings.map((booking) => {
+              const packageInfo = getPackageInfo(booking);
+              return (
+                <div key={booking._id} className="border border-gray-200 rounded-lg p-3 space-y-2">
+                  {/* Header Row */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <div className="flex-shrink-0">
+                        {packageInfo.coverImage ? (
+                          <img
+                            className="h-8 w-8 rounded object-cover"
+                            src={packageInfo.coverImage}
+                            alt={packageInfo.name}
+                          />
+                        ) : (
+                          <div className="h-8 w-8 rounded bg-gray-300 flex items-center justify-center">
+                            <Package className="h-4 w-4 text-gray-600" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {packageInfo.name}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {booking.bookingSource === 'combined' ? 'Custom' : 
+                           booking.packageId ? 'Package' : 'Equipment'}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => toggleRowExpansion(booking._id)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      {expandedRows.has(booking._id) ? 
+                        <ChevronDown className="w-4 h-4" /> : 
+                        <ChevronRight className="w-4 h-4" />
+                      }
+                    </button>
+                  </div>
+
+                  {/* Summary Row */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div>
+                        <p className="text-xs text-gray-500">Amount</p>
+                        <p className="text-sm font-medium">{formatCurrency(booking.totalPrice).replace('KWD', '').trim()}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Duration</p>
+                        <p className="text-sm font-medium">{booking.numberOfDays ? `${booking.numberOfDays}d` : '1d'}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <span className={getStatusBadge(booking.status)}>
+                        {booking.status}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Expanded Details */}
+                  {expandedRows.has(booking._id) && (
+                    <div className="border-t border-gray-100 pt-2 space-y-2">
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <p className="text-gray-500">Customer</p>
+                          <p className="font-medium">{booking.userDetails?.name || `${booking.bookedBy.firstName} ${booking.bookedBy.lastName}`}</p>
                         </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {packageInfo.name}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {booking.bookingSource === 'combined' ? 'Custom Package' : 
-                             booking.packageId ? 'Standard Package' : 'Individual Equipment'} • {booking.bookingType || 'equipment'}
-                          </div>
+                        <div>
+                          <p className="text-gray-500">Provider</p>
+                          <p className="font-medium">{packageInfo.provider}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500">Start Date</p>
+                          <p className="font-medium">
+                            {booking.startDate ? 
+                              formatDate(booking.startDate) :
+                              formatDate(booking.displayDate || booking.date || '')
+                            }
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500">End Date</p>
+                          <p className="font-medium">
+                            {booking.endDate ? 
+                              formatDate(booking.endDate) :
+                              formatDate(booking.startDate || booking.displayDate || booking.date || '')
+                            }
+                          </p>
                         </div>
                       </div>
-                    </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {booking.userDetails?.name || 
-                       (booking.bookedBy?.firstName && booking.bookedBy?.lastName 
-                        ? `${booking.bookedBy.firstName} ${booking.bookedBy.lastName}` 
-                        : 'Customer Details Pending')}
+
+                      <div className="flex space-x-2 pt-1">
+                        <button
+                          onClick={() => setSelectedBooking(booking)}
+                          className="flex-1 text-blue-600 hover:text-blue-900 inline-flex items-center justify-center py-1.5 text-sm border border-blue-200 rounded-md"
+                        >
+                          <Eye className="w-3 h-3 mr-1" />
+                          View Details
+                        </button>
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-500">
-                      {booking.userDetails?.email || booking.bookedBy?.email || 'Email pending'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {packageInfo.provider}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {booking.startDate ? 
-                        `${formatDate(booking.startDate)} - ${formatDate(booking.endDate || booking.startDate)}` :
-                        formatDate(booking.displayDate || booking.date || '')
-                      }
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {booking.numberOfDays ? `${booking.numberOfDays} days` : '1 day'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {booking.bookingSource === 'combined' ? 'Custom Package' : 
-                       booking.packageId ? 'Standard Package' : 'Individual Equipment'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={getStatusBadge(booking.status)}>
-                      {booking.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button
-                      onClick={() => setSelectedBooking(booking)}
-                      className="text-blue-600 hover:text-blue-900 mr-3"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </button>
-                  </td>
-                </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
-      </div>
+
+        {/* Desktop Table Layout */}
+        <div className="hidden lg:block bg-white shadow rounded-lg overflow-hidden">
+          <div className="px-4 py-3 border-b border-gray-200">
+            <h3 className="text-sm font-semibold text-gray-900">Equipment Bookings</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 text-xs">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
+                    Equipment/Package
+                  </th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                    Customer
+                  </th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                    Provider
+                  </th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                    Date Range
+                  </th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                    Duration
+                  </th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                    Type
+                  </th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                    Status
+                  </th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {bookings.map((booking) => {
+                  const packageInfo = getPackageInfo(booking);
+                  return (
+                    <tr key={booking._id} className="hover:bg-gray-50">
+                      <td className="px-2 py-2 whitespace-nowrap w-40">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-6 w-6">
+                            {packageInfo.coverImage ? (
+                              <img
+                                className="h-6 w-6 rounded object-cover"
+                                src={packageInfo.coverImage}
+                                alt={packageInfo.name}
+                              />
+                            ) : (
+                              <div className="h-6 w-6 rounded bg-gray-300 flex items-center justify-center">
+                                <Package className="h-4 w-4 text-gray-600" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="ml-2">
+                            <div className="text-xs font-medium text-gray-900 truncate max-w-[8rem]">
+                              {packageInfo.name}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {booking.bookingType || 'equipment'}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-2 py-2 whitespace-nowrap w-32">
+                        <div className="text-xs text-gray-900 truncate max-w-[6rem]">
+                          {booking.userDetails?.name || 
+                           (booking.bookedBy?.firstName && booking.bookedBy?.lastName 
+                            ? `${booking.bookedBy.firstName} ${booking.bookedBy.lastName}` 
+                            : 'Customer')}
+                        </div>
+                        <div className="text-xs text-gray-500 truncate max-w-[6rem]">
+                          {booking.userDetails?.email || booking.bookedBy?.email || 'Email pending'}
+                        </div>
+                      </td>
+                      <td className="px-2 py-2 whitespace-nowrap w-32">
+                        <div className="text-xs text-gray-900 truncate max-w-[6rem]">
+                          {packageInfo.provider}
+                        </div>
+                      </td>
+                      <td className="px-2 py-2 whitespace-nowrap w-24">
+                        <div className="text-xs text-gray-900">
+                          {booking.startDate ? 
+                            `${formatDate(booking.startDate)} - ${formatDate(booking.endDate || booking.startDate)}` :
+                            formatDate(booking.displayDate || booking.date || '')
+                          }
+                        </div>
+                      </td>
+                      <td className="px-2 py-2 whitespace-nowrap w-16">
+                        <div className="text-xs text-gray-900">
+                          {booking.numberOfDays ? `${booking.numberOfDays}d` : '1d'}
+                        </div>
+                      </td>
+                      <td className="px-2 py-2 whitespace-nowrap w-20">
+                        <div className="text-xs font-medium text-gray-900">
+                          {booking.bookingSource === 'combined' ? 'Custom' : 
+                           booking.packageId ? 'Package' : 'Equipment'}
+                        </div>
+                      </td>
+                      <td className="px-2 py-2 whitespace-nowrap w-20">
+                        <span className={getStatusBadge(booking.status)}>
+                          {booking.status}
+                        </span>
+                      </td>
+                      <td className="px-2 py-2 whitespace-nowrap text-center w-16">
+                        <button
+                          onClick={() => setSelectedBooking(booking)}
+                          className="text-blue-600 hover:text-blue-900"
+                          title="View Details"
+                        >
+                          <Eye className="h-3 w-3" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </>
     );
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-96">
+      <div className="flex items-center justify-center min-h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
@@ -776,31 +895,29 @@ const AdminEquipmentBookingManagement = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 p-3 md:p-6">
       {/* Header */}
-      <div className="sm:flex sm:items-center sm:justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Equipment Booking Management</h1>
-          <p className="mt-2 text-sm text-gray-700">
+          <h1 className="text-xl font-bold text-gray-900">Equipment Booking Management</h1>
+          <p className="mt-1 text-sm text-gray-700">
             Manage and monitor all equipment bookings including packages and individual equipment rentals.
           </p>
         </div>
-        <div className="mt-4 sm:mt-0 flex space-x-3">
-          <button
-            onClick={exportBookings}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </button>
-        </div>
+        <button
+          onClick={exportBookings}
+          className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 self-start sm:self-auto"
+        >
+          <Download className="h-4 w-4 mr-2" />
+          Export
+        </button>
       </div>
 
       {/* View Toggle */}
-      <div className="flex space-x-4 border-b border-gray-200">
+      <div className="flex space-x-4 border-b border-gray-200 overflow-x-auto">
         <button
           onClick={() => setViewMode('list')}
-          className={`py-2 px-4 border-b-2 font-medium text-sm ${
+          className={`py-2 px-3 border-b-2 font-medium text-sm whitespace-nowrap ${
             viewMode === 'list'
               ? 'border-blue-500 text-blue-600'
               : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -810,7 +927,7 @@ const AdminEquipmentBookingManagement = () => {
         </button>
         <button
           onClick={() => setViewMode('packages')}
-          className={`py-2 px-4 border-b-2 font-medium text-sm ${
+          className={`py-2 px-3 border-b-2 font-medium text-sm whitespace-nowrap ${
             viewMode === 'packages'
               ? 'border-blue-500 text-blue-600'
               : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -820,7 +937,7 @@ const AdminEquipmentBookingManagement = () => {
         </button>
         <button
           onClick={() => setViewMode('analytics')}
-          className={`py-2 px-4 border-b-2 font-medium text-sm ${
+          className={`py-2 px-3 border-b-2 font-medium text-sm whitespace-nowrap ${
             viewMode === 'analytics'
               ? 'border-blue-500 text-blue-600'
               : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -831,63 +948,65 @@ const AdminEquipmentBookingManagement = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white p-6 rounded-lg shadow">
-        <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Search
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search bookings..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+      <div className="bg-white p-3 rounded-lg shadow">
+        <form onSubmit={handleSearch} className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Search
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search bookings..."
+                  className="w-full pl-8 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <Search className="absolute left-2 top-2.5 h-3 w-3 text-gray-400" />
+              </div>
             </div>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Status
-            </label>
-            <select
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Start Date
-            </label>
-            <input
-              type="date"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              End Date
-            </label>
-            <input
-              type="date"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-            />
+            
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Status
+              </label>
+              <select
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Start Date
+              </label>
+              <input
+                type="date"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                End Date
+              </label>
+              <input
+                type="date"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </div>
           </div>
         </form>
       </div>
@@ -977,7 +1096,7 @@ const AdminEquipmentBookingManagement = () => {
       {selectedBooking && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[80vh] overflow-y-auto">
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900">Equipment Booking Details</h3>
               <button
                 onClick={() => setSelectedBooking(null)}
@@ -986,7 +1105,7 @@ const AdminEquipmentBookingManagement = () => {
                 <XCircle className="h-6 w-6" />
               </button>
             </div>
-            <div className="p-6 space-y-6">
+            <div className="p-4 space-y-4">
               {detailLoading && (
                 <div className="flex items-center justify-center py-4">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -995,7 +1114,7 @@ const AdminEquipmentBookingManagement = () => {
               {!detailLoading && detail && (
                 <div>
                   <h4 className="text-md font-semibold text-gray-900 mb-3">Cost Breakdown</h4>
-                  <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg border mb-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg border mb-4">
                     <div>
                       <p className="text-sm text-gray-600">Equipment Cost</p>
                       <p className="text-sm font-semibold">{formatCurrency(detail.breakdown?.equipmentCost || 0)}</p>
@@ -1017,7 +1136,7 @@ const AdminEquipmentBookingManagement = () => {
                 {(() => {
                   const packageInfo = getPackageInfo(selectedBooking);
                   return (
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <p className="text-sm font-medium text-gray-700">Name</p>
                         <p className="text-sm text-gray-900">
@@ -1030,7 +1149,7 @@ const AdminEquipmentBookingManagement = () => {
                           {selectedBooking.bookingSource || 'package'}
                         </p>
                       </div>
-                      <div className="col-span-2">
+                      <div className="sm:col-span-2">
                         <p className="text-sm font-medium text-gray-700">Description</p>
                         <p className="text-sm text-gray-900">
                           {selectedBooking.packageId?.description || 
@@ -1051,7 +1170,7 @@ const AdminEquipmentBookingManagement = () => {
                     const provider = selectedBooking.packageId?.createdBy || 
                                    selectedBooking.equipmentBookingId?.packages?.[0]?.createdBy;
                     return provider ? (
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <p className="text-sm font-medium text-gray-700">Company</p>
                           <p className="text-sm text-gray-900">
@@ -1072,7 +1191,7 @@ const AdminEquipmentBookingManagement = () => {
                           </p>
                         </div>
                         {provider.roleProfile?.businessDescription && (
-                          <div>
+                          <div className="sm:col-span-2">
                             <p className="text-sm font-medium text-gray-700">Business Description</p>
                             <p className="text-sm text-gray-900">
                               {provider.roleProfile.businessDescription}
@@ -1088,7 +1207,7 @@ const AdminEquipmentBookingManagement = () => {
               {/* Customer Information */}
               <div>
                 <h4 className="text-md font-semibold text-gray-900 mb-3">Customer Information</h4>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm font-medium text-gray-700">Name</p>
                     <p className="text-sm text-gray-900">
@@ -1116,7 +1235,7 @@ const AdminEquipmentBookingManagement = () => {
               {/* Booking Details */}
               <div>
                 <h4 className="text-md font-semibold text-gray-900 mb-3">Booking Details</h4>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm font-medium text-gray-700">Start Date</p>
                     <p className="text-sm text-gray-900">
@@ -1141,7 +1260,7 @@ const AdminEquipmentBookingManagement = () => {
                       {selectedBooking.status}
                     </span>
                   </div>
-                  <div>
+                  <div className="sm:col-span-2">
                     <p className="text-sm font-medium text-gray-700">Booking Type</p>
                     <p className="text-sm text-gray-900 font-semibold">
                       {selectedBooking.bookingSource === 'combined' ? 'Custom Package' : 
@@ -1162,7 +1281,7 @@ const AdminEquipmentBookingManagement = () => {
                         {selectedBooking.venueDetails.address || 'Address to be confirmed'}
                       </p>
                     </div>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div>
                         <p className="text-sm font-medium text-gray-700">City</p>
                         <p className="text-sm text-gray-900">
@@ -1188,55 +1307,6 @@ const AdminEquipmentBookingManagement = () => {
 
               {/* Equipment/Package Items */}
               {(() => {
-                console.log('=== BOOKING DEBUG INFO ===');
-                console.log('Selected Booking Structure:', JSON.stringify(selectedBooking, null, 2));
-                console.log('Booking Source:', selectedBooking.bookingSource);
-                console.log('Package Items:', selectedBooking.packageId?.items);
-                console.log('Equipment Booking Items:', selectedBooking.equipmentBookingId?.equipments);
-                console.log('Combined Package Items:', selectedBooking.equipmentBookingId?.packages);
-                
-                // Check what's in equipmentBookingId for custom packages
-                if (selectedBooking.bookingSource === 'combined' && selectedBooking.equipmentBookingId) {
-                  console.log('CUSTOM PACKAGE DEBUG:');
-                  console.log('- equipmentBookingId.equipments:', selectedBooking.equipmentBookingId.equipments);
-                  console.log('- equipmentBookingId.packages:', selectedBooking.equipmentBookingId.packages);
-                  console.log('- equipmentBookingId.customPackages:', (selectedBooking.equipmentBookingId as any).customPackages);
-                  
-                  if (selectedBooking.equipmentBookingId.equipments) {
-                    selectedBooking.equipmentBookingId.equipments.forEach((item: any, i: number) => {
-                      console.log(`Equipment ${i}:`, item);
-                      console.log(`Equipment ${i} equipmentId:`, item.equipmentId);
-                      console.log(`Equipment ${i} name:`, item.equipmentId?.name);
-                    });
-                  }
-                  
-                  if ((selectedBooking.equipmentBookingId as any).customPackages) {
-                    (selectedBooking.equipmentBookingId as any).customPackages.forEach((pkg: any, i: number) => {
-                      console.log(`Custom Package ${i}:`, pkg);
-                      console.log(`Custom Package ${i} items:`, pkg.items);
-                      if (pkg.items) {
-                        pkg.items.forEach((item: any, j: number) => {
-                          console.log(`Custom Package ${i} Item ${j}:`, item);
-                          console.log(`Custom Package ${i} Item ${j} equipmentId:`, item.equipmentId);
-                        });
-                      }
-                    });
-                  }
-                }
-                
-                if (selectedBooking.equipmentBookingId?.packages) {
-                  selectedBooking.equipmentBookingId.packages.forEach((pkg: any, i: number) => {
-                    console.log(`Package ${i} items:`, pkg.items);
-                    if (pkg.items) {
-                      pkg.items.forEach((item: any, j: number) => {
-                        console.log(`Item ${j}:`, item);
-                        console.log(`Item ${j} equipmentId:`, item.equipmentId);
-                      });
-                    }
-                  });
-                }
-                console.log('========================');
-                
                 // Check for standard package items first
                 if (selectedBooking.packageId?.items && selectedBooking.packageId.items.length > 0) {
                   return (
@@ -1300,14 +1370,11 @@ const AdminEquipmentBookingManagement = () => {
                 
                 // Check for custom package items in combined bookings (customPackages array)
                 if (selectedBooking.bookingSource === 'combined' && (selectedBooking.equipmentBookingId as any)?.customPackages && (selectedBooking.equipmentBookingId as any).customPackages.length > 0) {
-                  console.log('Processing customPackages:', (selectedBooking.equipmentBookingId as any).customPackages);
-                  
                   // Check if customPackages are properly populated (objects) or just IDs (strings)
                   const customPackages = (selectedBooking.equipmentBookingId as any).customPackages;
                   const firstPackage = customPackages[0];
                   
                   if (typeof firstPackage === 'string') {
-                    console.log('Custom packages are not populated - showing fallback message');
                     return (
                       <div className="text-sm text-gray-600">
                         <p>Custom Package (ID: {firstPackage})</p>

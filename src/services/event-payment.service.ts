@@ -218,7 +218,7 @@ export class EventPaymentService {
       }
 
       const result = await response.json();
-      return result._id;
+      return result.eventId || result._id;
     } catch (error) {
       console.error('Event creation after payment failed:', error);
       throw new Error('Payment successful but event creation failed. Please contact support.');

@@ -60,7 +60,9 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     'view_venue_analytics',
     'approve_venue_bookings',
     'update_profile_picture',
-    'change_own_password'
+    'change_own_password',
+    'view_payments',
+    'manage_payments'
   ],
   equipment_provider: [
     'manage_own_equipment',
@@ -457,11 +459,19 @@ export const getSidebarItems = (): SidebarItem[] => [
       
       {
         id: 'artist-payments',
-        label: 'All Payments',
-        labelAr: 'مدفوعات الفنانين',
+        label: 'Artists & Providers',
+        labelAr: 'مدفوعات الفنانين والمعدات',
         icon: 'Users',
         href: '/dashboard/admin/payments/artists',
-        roles: ['super_admin', 'admin'],
+        roles: ['super_admin', 'admin', 'venue_owner'],
+      },
+      {
+        id: 'payouts',
+        label: 'Recorded Payouts',
+        labelAr: 'المدفوعات المسجلة',
+        icon: 'CreditCard',
+        href: '/dashboard/admin/payments/payouts',
+        roles: ['super_admin', 'admin', 'venue_owner'],
       },
     ],
   },

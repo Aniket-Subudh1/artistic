@@ -292,4 +292,50 @@ export class AdminService {
     const url = `${API_CONFIG.BASE_URL}/admin/bookings/equipment-package/${id}`;
     return apiRequest(url, { method: 'GET' });
   }
+
+  // Finance: Commission Settings
+  static async getCommissionSetting(scope: 'artist' | 'equipment' | 'global' = 'global') {
+    const url = `${API_CONFIG.BASE_URL}/admin/payments/settings/commission?scope=${scope}`;
+    return apiRequest(url, { method: 'GET' });
+  }
+
+  static async updateCommissionSetting(payload: { scope: 'artist' | 'equipment' | 'global'; percentage: number }) {
+    const url = `${API_CONFIG.BASE_URL}/admin/payments/settings/commission`;
+    return apiRequest(url, { method: 'POST', body: JSON.stringify(payload) });
+  }
+
+  // Finance: Payouts and Audit
+  static async recordPayout(payload: {
+    recipientType: 'artist' | 'equipment';
+    recipientId: string;
+    bookingId?: string;
+    grossAmount: number;
+    commissionPercentage?: number;
+    method?: 'manual' | 'bank_transfer' | 'cash' | 'other';
+    reference?: string;
+    notes?: string;
+    currency?: string;
+  }) {
+    const url = `${API_CONFIG.BASE_URL}/admin/payments/payouts`;
+    return apiRequest(url, { method: 'POST', body: JSON.stringify(payload) });
+  }
+
+  static async listPayouts(filters?: { recipientType?: 'artist' | 'equipment'; recipientId?: string; page?: number; limit?: number; }) {
+    const params = new URLSearchParams();
+    if (filters?.recipientType) params.append('recipientType', filters.recipientType);
+    if (filters?.recipientId) params.append('recipientId', filters.recipientId);
+    if (filters?.page) params.append('page', String(filters.page));
+    if (filters?.limit) params.append('limit', String(filters.limit));
+    const url = `${API_CONFIG.BASE_URL}/admin/payments/payouts?${params.toString()}`;
+    return apiRequest(url, { method: 'GET' });
+  }
+
+  static async listPaymentAudits(filters?: { action?: string; page?: number; limit?: number }) {
+    const params = new URLSearchParams();
+    if (filters?.action) params.append('action', filters.action);
+    if (filters?.page) params.append('page', String(filters.page));
+    if (filters?.limit) params.append('limit', String(filters.limit));
+    const url = `${API_CONFIG.BASE_URL}/admin/payments/audit?${params.toString()}`;
+    return apiRequest(url, { method: 'GET' });
+  }
 }

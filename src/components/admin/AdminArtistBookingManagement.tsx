@@ -18,7 +18,9 @@ import {
   BarChart3,
   Users,
   Star,
-  Activity
+  Activity,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import { AdminService } from '@/services/admin.service';
 
@@ -118,6 +120,7 @@ const AdminArtistBookingManagement = () => {
 
   // View modes
   const [viewMode, setViewMode] = useState<'list' | 'schedule' | 'analytics'>('list');
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   const fetchBookings = async () => {
     try {
@@ -173,6 +176,16 @@ const AdminArtistBookingManagement = () => {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+  };
+
+  const toggleRowExpansion = (bookingId: string) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(bookingId)) {
+      newExpanded.delete(bookingId);
+    } else {
+      newExpanded.add(bookingId);
+    }
+    setExpandedRows(newExpanded);
   };
 
   const getStatusIcon = (status: string) => {
@@ -259,50 +272,50 @@ const AdminArtistBookingManagement = () => {
     if (!metrics) return null;
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+        <div className="bg-white rounded-lg shadow p-3">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-              <p className="text-3xl font-bold text-gray-900">
+              <p className="text-xs font-medium text-gray-600">Total Revenue</p>
+              <p className="text-sm md:text-lg font-bold text-gray-900">
                 {formatCurrency(metrics.totalRevenue)}
               </p>
             </div>
-            <DollarSign className="h-8 w-8 text-green-600" />
+            <DollarSign className="h-5 w-5 md:h-6 md:w-6 text-green-600" />
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-lg shadow p-3">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Avg Booking Value</p>
-              <p className="text-3xl font-bold text-gray-900">
+              <p className="text-xs font-medium text-gray-600">Avg Booking</p>
+              <p className="text-sm md:text-lg font-bold text-gray-900">
                 {formatCurrency(metrics.avgBookingValue)}
               </p>
             </div>
-            <TrendingUp className="h-8 w-8 text-blue-600" />
+            <TrendingUp className="h-5 w-5 md:h-6 md:w-6 text-blue-600" />
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-lg shadow p-3">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Active Artists</p>
-              <p className="text-3xl font-bold text-gray-900">
+              <p className="text-xs font-medium text-gray-600">Active Artists</p>
+              <p className="text-sm md:text-lg font-bold text-gray-900">
                 {metrics.topArtists.length}
               </p>
             </div>
-            <Users className="h-8 w-8 text-purple-600" />
+            <Users className="h-5 w-5 md:h-6 md:w-6 text-purple-600" />
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-lg shadow p-3">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Bookings</p>
-              <p className="text-3xl font-bold text-gray-900">{totalCount}</p>
+              <p className="text-xs font-medium text-gray-600">Total Bookings</p>
+              <p className="text-sm md:text-lg font-bold text-gray-900">{totalCount}</p>
             </div>
-            <Activity className="h-8 w-8 text-orange-600" />
+            <Activity className="h-5 w-5 md:h-6 md:w-6 text-orange-600" />
           </div>
         </div>
       </div>
@@ -313,24 +326,24 @@ const AdminArtistBookingManagement = () => {
     if (!metrics) return null;
 
     return (
-      <div className="space-y-8">
+      <div className="space-y-4">
         {renderMetricsCards()}
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Status Breakdown */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Booking Status Breakdown</h3>
-            <div className="space-y-3">
+          <div className="bg-white rounded-lg shadow p-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Booking Status Breakdown</h3>
+            <div className="space-y-2">
               {metrics.statusBreakdown.map((item) => (
                 <div key={item._id} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-2">
                     {getStatusIcon(item._id)}
-                    <span className="capitalize text-sm font-medium text-gray-700">
+                    <span className="capitalize text-xs font-medium text-gray-700">
                       {item._id}
                     </span>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-semibold text-gray-900">{item.count} bookings</p>
+                    <p className="text-xs font-semibold text-gray-900">{item.count} bookings</p>
                     <p className="text-xs text-gray-600">{formatCurrency(item.revenue)}</p>
                   </div>
                 </div>
@@ -339,16 +352,16 @@ const AdminArtistBookingManagement = () => {
           </div>
 
           {/* Artist Type Breakdown */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Artist Type Performance</h3>
-            <div className="space-y-3">
+          <div className="bg-white rounded-lg shadow p-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Artist Type Performance</h3>
+            <div className="space-y-2">
               {metrics.artistTypeBreakdown.map((item) => (
                 <div key={item._id} className="flex items-center justify-between">
-                  <span className="capitalize text-sm font-medium text-gray-700">
+                  <span className="capitalize text-xs font-medium text-gray-700">
                     {item._id || 'Unknown'}
                   </span>
                   <div className="text-right">
-                    <p className="text-sm font-semibold text-gray-900">{item.count} bookings</p>
+                    <p className="text-xs font-semibold text-gray-900">{item.count} bookings</p>
                     <p className="text-xs text-gray-600">{formatCurrency(item.revenue)}</p>
                   </div>
                 </div>
@@ -357,21 +370,21 @@ const AdminArtistBookingManagement = () => {
           </div>
 
           {/* Top Artists */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Performing Artists</h3>
-            <div className="space-y-3">
+          <div className="bg-white rounded-lg shadow p-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Top Performing Artists</h3>
+            <div className="space-y-2">
               {metrics.topArtists.slice(0, 5).map((artist, index) => (
                 <div key={artist._id} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full text-xs font-bold text-blue-600">
+                  <div className="flex items-center space-x-2">
+                    <div className="flex items-center justify-center w-5 h-5 bg-blue-100 rounded-full text-xs font-bold text-blue-600">
                       {index + 1}
                     </div>
-                    <span className="text-sm font-medium text-gray-700">
+                    <span className="text-xs font-medium text-gray-700 truncate max-w-[8rem]">
                       {artist.artistName}
                     </span>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-semibold text-gray-900">
+                    <p className="text-xs font-semibold text-gray-900">
                       {formatCurrency(artist.totalRevenue)}
                     </p>
                     <p className="text-xs text-gray-600">{artist.totalBookings} bookings</p>
@@ -382,19 +395,19 @@ const AdminArtistBookingManagement = () => {
           </div>
 
           {/* Monthly Revenue Trend */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Monthly Revenue Trend</h3>
-            <div className="space-y-3">
+          <div className="bg-white rounded-lg shadow p-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Monthly Revenue Trend</h3>
+            <div className="space-y-2">
               {metrics.monthlyRevenue.map((month) => (
                 <div key={`${month._id.year}-${month._id.month}`} className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-xs font-medium text-gray-700">
                     {new Date(month._id.year, month._id.month - 1).toLocaleDateString('en-US', {
                       month: 'short',
                       year: 'numeric'
                     })}
                   </span>
                   <div className="text-right">
-                    <p className="text-sm font-semibold text-gray-900">
+                    <p className="text-xs font-semibold text-gray-900">
                       {formatCurrency(month.revenue)}
                     </p>
                     <p className="text-xs text-gray-600">{month.bookings} bookings</p>
@@ -421,24 +434,24 @@ const AdminArtistBookingManagement = () => {
 
     return (
       <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Artist Schedule View</h3>
+        <div className="p-3 border-b border-gray-200">
+          <h3 className="text-sm font-semibold text-gray-900">Artist Schedule View</h3>
         </div>
-        <div className="p-6">
+        <div className="p-3">
           {Object.entries(groupedBookings).map(([date, dateBookings]) => (
-            <div key={date} className="mb-8">
-              <h4 className="text-md font-semibold text-gray-800 mb-4">
+            <div key={date} className="mb-4">
+              <h4 className="text-sm font-semibold text-gray-800 mb-3">
                 {formatDate(date)} ({dateBookings.length} bookings)
               </h4>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {dateBookings
                   .sort((a, b) => a.startTime.localeCompare(b.startTime))
                   .map((booking) => (
-                  <div key={booking._id} className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg">
+                  <div key={booking._id} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg">
                     <div className="flex-shrink-0">
                       {booking.artistBookingId?.artistId?.roleProfile?.profileImage ? (
                         <img
-                          className="h-12 w-12 rounded-full object-cover"
+                          className="h-8 w-8 rounded-full object-cover"
                           src={booking.artistBookingId.artistId.roleProfile.profileImage}
                           alt={booking.artistBookingId.artistId.roleProfile.stageName || 'Artist'}
                           onError={(e) => {
@@ -447,18 +460,18 @@ const AdminArtistBookingManagement = () => {
                           }}
                         />
                       ) : null}
-                      <div className={`h-12 w-12 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold ${booking.artistBookingId?.artistId?.roleProfile?.profileImage ? 'hidden' : ''}`}>
+                      <div className={`h-8 w-8 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold ${booking.artistBookingId?.artistId?.roleProfile?.profileImage ? 'hidden' : ''}`}>
                         {booking.artistBookingId?.artistId?.roleProfile?.stageName 
                           ? booking.artistBookingId.artistId.roleProfile.stageName.charAt(0).toUpperCase()
                           : booking.artistBookingId?.artistId?.firstName 
                             ? booking.artistBookingId.artistId.firstName.charAt(0).toUpperCase()
-                            : <User className="h-6 w-6" />
+                            : <User className="h-4 w-4" />
                         }
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-3">
-                        <p className="text-sm font-medium text-gray-900 truncate">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <p className="text-xs font-medium text-gray-900 truncate">
                           {booking.artistBookingId?.artistId?.roleProfile?.stageName || 
                            (booking.artistBookingId?.artistId?.firstName && booking.artistBookingId?.artistId?.lastName
                             ? `${booking.artistBookingId.artistId.firstName} ${booking.artistBookingId.artistId.lastName}`
@@ -468,32 +481,32 @@ const AdminArtistBookingManagement = () => {
                           {booking.status}
                         </span>
                       </div>
-                      <div className="flex items-center space-x-4 mt-1">
-                        <span className="text-sm text-gray-600 flex items-center">
-                          <Clock className="w-4 h-4 mr-1" />
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-600">
+                        <span className="flex items-center">
+                          <Clock className="w-3 h-3 mr-1" />
                           {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
                         </span>
-                        <span className="text-sm text-gray-600 flex items-center">
-                          <MapPin className="w-4 h-4 mr-1" />
-                          {booking.venueDetails?.city || 'N/A'}, {booking.venueDetails?.state || 'N/A'}
+                        <span className="flex items-center">
+                          <MapPin className="w-3 h-3 mr-1" />
+                          {booking.venueDetails?.city || 'N/A'}
                         </span>
-                        <span className="text-sm text-gray-600 flex items-center">
-                          <DollarSign className="w-4 h-4 mr-1" />
+                        <span className="flex items-center">
+                          <DollarSign className="w-3 h-3 mr-1" />
                           {formatCurrency(booking.totalPrice)}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Customer: {booking.userDetails?.name || 
+                      <p className="text-xs text-gray-600 mt-1">
+                        {booking.userDetails?.name || 
                          (booking.bookedBy?.firstName && booking.bookedBy?.lastName 
                           ? `${booking.bookedBy.firstName} ${booking.bookedBy.lastName}` 
-                          : 'N/A')} • {booking.userDetails?.email || booking.bookedBy?.email || 'N/A'}
+                          : 'N/A')}
                       </p>
                     </div>
                     <button
                       onClick={() => setSelectedBooking(booking)}
-                      className="flex-shrink-0 p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                      className="flex-shrink-0 p-1 text-gray-400 hover:text-blue-600 transition-colors"
                     >
-                      <Eye className="h-5 w-5" />
+                      <Eye className="h-4 w-4" />
                     </button>
                   </div>
                 ))}
@@ -507,138 +520,256 @@ const AdminArtistBookingManagement = () => {
 
   const renderListView = () => {
     return (
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Artist Bookings</h3>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Artist & Event
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Customer
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date & Time
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Venue
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Service Type
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {bookings.map((booking) => (
-                <tr key={booking._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10">
-                        {booking.artistBookingId?.artistId?.roleProfile?.profileImage ? (
-                          <img
-                            className="h-10 w-10 rounded-full object-cover"
-                            src={booking.artistBookingId.artistId.roleProfile.profileImage}
-                            alt={booking.artistBookingId.artistId.roleProfile.stageName || 'Artist'}
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                              e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                            }}
-                          />
-                        ) : null}
-                        <div className={`h-10 w-10 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold text-sm ${booking.artistBookingId?.artistId?.roleProfile?.profileImage ? 'hidden' : ''}`}>
-                          {booking.artistBookingId?.artistId?.roleProfile?.stageName 
-                            ? booking.artistBookingId.artistId.roleProfile.stageName.charAt(0).toUpperCase()
-                            : booking.artistBookingId?.artistId?.firstName 
-                              ? booking.artistBookingId.artistId.firstName.charAt(0).toUpperCase()
-                              : <User className="h-6 w-6" />
-                          }
-                        </div>
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">
-                          {booking.artistBookingId?.artistId?.roleProfile?.stageName || 
-                           (booking.artistBookingId?.artistId?.firstName && booking.artistBookingId?.artistId?.lastName
-                            ? `${booking.artistBookingId.artistId.firstName} ${booking.artistBookingId.artistId.lastName}`
-                            : 'Artist Details Pending')}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {booking.artistBookingId?.artistType ? 
-                            (booking.artistBookingId.artistType === 'private' ? 'Private Event' : 'Public Performance') : 
-                            'Service Type TBD'} • {booking.bookingType}
-                        </div>
+      <>
+        {/* Mobile Card Layout */}
+        <div className="lg:hidden">
+          <div className="space-y-2">
+            {bookings.map((booking) => (
+              <div key={booking._id} className="border border-gray-200 rounded-lg p-3 space-y-2">
+                {/* Header Row */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="flex-shrink-0">
+                      {booking.artistBookingId?.artistId?.roleProfile?.profileImage ? (
+                        <img
+                          className="h-8 w-8 rounded-full object-cover"
+                          src={booking.artistBookingId.artistId.roleProfile.profileImage}
+                          alt={booking.artistBookingId.artistId.roleProfile.stageName || 'Artist'}
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                      ) : null}
+                      <div className={`h-8 w-8 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold text-xs ${booking.artistBookingId?.artistId?.roleProfile?.profileImage ? 'hidden' : ''}`}>
+                        {booking.artistBookingId?.artistId?.roleProfile?.stageName 
+                          ? booking.artistBookingId.artistId.roleProfile.stageName.charAt(0).toUpperCase()
+                          : booking.artistBookingId?.artistId?.firstName 
+                            ? booking.artistBookingId.artistId.firstName.charAt(0).toUpperCase()
+                            : <User className="h-4 w-4" />
+                        }
                       </div>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {booking.userDetails?.name || 
-                       (booking.bookedBy?.firstName && booking.bookedBy?.lastName 
-                        ? `${booking.bookedBy.firstName} ${booking.bookedBy.lastName}` 
-                        : 'Customer Details Pending')}
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {booking.artistBookingId?.artistId?.roleProfile?.stageName || 
+                         (booking.artistBookingId?.artistId?.firstName && booking.artistBookingId?.artistId?.lastName
+                          ? `${booking.artistBookingId.artistId.firstName} ${booking.artistBookingId.artistId.lastName}`
+                          : 'Artist Pending')}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {booking.artistBookingId?.artistType ? 
+                          (booking.artistBookingId.artistType === 'private' ? 'Private' : 'Public') : 
+                          'Service TBD'}
+                      </p>
                     </div>
-                    <div className="text-sm text-gray-500">
-                      {booking.userDetails?.email || booking.bookedBy?.email || 'Email pending'}
+                  </div>
+                  <button
+                    onClick={() => toggleRowExpansion(booking._id)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    {expandedRows.has(booking._id) ? 
+                      <ChevronDown className="w-4 h-4" /> : 
+                      <ChevronRight className="w-4 h-4" />
+                    }
+                  </button>
+                </div>
+
+                {/* Summary Row */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div>
+                      <p className="text-xs text-gray-500">Date</p>
+                      <p className="text-sm font-medium">{formatDate(booking.date)}</p>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{formatDate(booking.date)}</div>
-                    <div className="text-sm text-gray-500">
-                      {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
+                    <div>
+                      <p className="text-xs text-gray-500">Amount</p>
+                      <p className="text-sm font-medium">{formatCurrency(booking.totalPrice).replace('KWD', '').trim()}</p>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {booking.venueDetails?.city || 'Not specified'}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {booking.venueDetails?.state ? `${booking.venueDetails.state}, ` : ''}{booking.venueDetails?.country || 'Location TBD'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {booking.artistBookingId?.artistType ? 
-                        (booking.artistBookingId.artistType === 'private' ? 'Private Event' : 'Public Performance') : 
-                        'Artist Service'}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {booking.artistBookingId?.artistId?.roleProfile?.artistType || 'Entertainment'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  </div>
+                  <div>
                     <span className={getStatusBadge(booking.status)}>
                       {booking.status}
                     </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button
-                      onClick={() => setSelectedBooking(booking)}
-                      className="text-blue-600 hover:text-blue-900 mr-3"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                </div>
+
+                {/* Expanded Details */}
+                {expandedRows.has(booking._id) && (
+                  <div className="border-t border-gray-100 pt-2 space-y-2">
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div>
+                        <p className="text-gray-500">Customer</p>
+                        <p className="font-medium">{booking.userDetails?.name || 
+                         (booking.bookedBy?.firstName && booking.bookedBy?.lastName 
+                          ? `${booking.bookedBy.firstName} ${booking.bookedBy.lastName}` 
+                          : 'Pending')}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Time</p>
+                        <p className="font-medium">{formatTime(booking.startTime)} - {formatTime(booking.endTime)}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Venue</p>
+                        <p className="font-medium">{booking.venueDetails?.city || 'TBD'}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Service Type</p>
+                        <p className="font-medium">{booking.artistBookingId?.artistType || 'TBD'}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex space-x-2 pt-1">
+                      <button
+                        onClick={() => setSelectedBooking(booking)}
+                        className="flex-1 text-blue-600 hover:text-blue-900 inline-flex items-center justify-center py-1.5 text-sm border border-blue-200 rounded-md"
+                      >
+                        <Eye className="w-3 h-3 mr-1" />
+                        View Details
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+
+        {/* Desktop Table Layout */}
+        <div className="hidden lg:block bg-white shadow rounded-lg overflow-hidden">
+          <div className="px-4 py-3 border-b border-gray-200">
+            <h3 className="text-sm font-semibold text-gray-900">Artist Bookings</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 text-xs">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
+                    Artist & Event
+                  </th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                    Customer
+                  </th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                    Date & Time
+                  </th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                    Venue
+                  </th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                    Service Type
+                  </th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                    Status
+                  </th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {bookings.map((booking) => (
+                  <tr key={booking._id} className="hover:bg-gray-50">
+                    <td className="px-2 py-2 whitespace-nowrap w-40">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-6 w-6">
+                          {booking.artistBookingId?.artistId?.roleProfile?.profileImage ? (
+                            <img
+                              className="h-6 w-6 rounded-full object-cover"
+                              src={booking.artistBookingId.artistId.roleProfile.profileImage}
+                              alt={booking.artistBookingId.artistId.roleProfile.stageName || 'Artist'}
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                              }}
+                            />
+                          ) : null}
+                          <div className={`h-6 w-6 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold text-xs ${booking.artistBookingId?.artistId?.roleProfile?.profileImage ? 'hidden' : ''}`}>
+                            {booking.artistBookingId?.artistId?.roleProfile?.stageName 
+                              ? booking.artistBookingId.artistId.roleProfile.stageName.charAt(0).toUpperCase()
+                              : booking.artistBookingId?.artistId?.firstName 
+                                ? booking.artistBookingId.artistId.firstName.charAt(0).toUpperCase()
+                                : <User className="h-4 w-4" />
+                            }
+                          </div>
+                        </div>
+                        <div className="ml-2">
+                          <div className="text-xs font-medium text-gray-900 truncate max-w-[8rem]">
+                            {booking.artistBookingId?.artistId?.roleProfile?.stageName || 
+                             (booking.artistBookingId?.artistId?.firstName && booking.artistBookingId?.artistId?.lastName
+                              ? `${booking.artistBookingId.artistId.firstName} ${booking.artistBookingId.artistId.lastName}`
+                              : 'Artist Pending')}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {booking.artistBookingId?.artistType ? 
+                              (booking.artistBookingId.artistType === 'private' ? 'Private' : 'Public') : 
+                              'TBD'} • {booking.bookingType}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-2 py-2 whitespace-nowrap w-32">
+                      <div className="text-xs text-gray-900 truncate max-w-[6rem]">
+                        {booking.userDetails?.name || 
+                         (booking.bookedBy?.firstName && booking.bookedBy?.lastName 
+                          ? `${booking.bookedBy.firstName} ${booking.bookedBy.lastName}` 
+                          : 'Pending')}
+                      </div>
+                      <div className="text-xs text-gray-500 truncate max-w-[6rem]">
+                        {booking.userDetails?.email || booking.bookedBy?.email || 'Email pending'}
+                      </div>
+                    </td>
+                    <td className="px-2 py-2 whitespace-nowrap w-24">
+                      <div className="text-xs text-gray-900">{formatDate(booking.date)}</div>
+                      <div className="text-xs text-gray-500">
+                        {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
+                      </div>
+                    </td>
+                    <td className="px-2 py-2 whitespace-nowrap w-24">
+                      <div className="text-xs text-gray-900 truncate max-w-[5rem]">
+                        {booking.venueDetails?.city || 'TBD'}
+                      </div>
+                      <div className="text-xs text-gray-500 truncate max-w-[5rem]">
+                        {booking.venueDetails?.state || 'Location TBD'}
+                      </div>
+                    </td>
+                    <td className="px-2 py-2 whitespace-nowrap w-20">
+                      <div className="text-xs font-medium text-gray-900">
+                        {booking.artistBookingId?.artistType ? 
+                          (booking.artistBookingId.artistType === 'private' ? 'Private' : 'Public') : 
+                          'Service'}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {booking.artistBookingId?.artistId?.roleProfile?.artistType || 'Entertainment'}
+                      </div>
+                    </td>
+                    <td className="px-2 py-2 whitespace-nowrap w-20">
+                      <span className={getStatusBadge(booking.status)}>
+                        {booking.status}
+                      </span>
+                    </td>
+                    <td className="px-2 py-2 whitespace-nowrap text-center w-16">
+                      <button
+                        onClick={() => setSelectedBooking(booking)}
+                        className="text-blue-600 hover:text-blue-900"
+                        title="View Details"
+                      >
+                        <Eye className="h-3 w-3" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </>
     );
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-96">
+      <div className="flex items-center justify-center min-h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
@@ -659,31 +790,29 @@ const AdminArtistBookingManagement = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 p-3 md:p-6">
       {/* Header */}
-      <div className="sm:flex sm:items-center sm:justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Artist Booking Management</h1>
-          <p className="mt-2 text-sm text-gray-700">
+          <h1 className="text-xl font-bold text-gray-900">Artist Booking Management</h1>
+          <p className="mt-1 text-sm text-gray-700">
             Manage and monitor all artist bookings with detailed analytics and schedule views.
           </p>
         </div>
-        <div className="mt-4 sm:mt-0 flex space-x-3">
-          <button
-            onClick={exportBookings}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </button>
-        </div>
+        <button
+          onClick={exportBookings}
+          className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 self-start sm:self-auto"
+        >
+          <Download className="h-4 w-4 mr-2" />
+          Export
+        </button>
       </div>
 
       {/* View Toggle */}
-      <div className="flex space-x-4 border-b border-gray-200">
+      <div className="flex space-x-4 border-b border-gray-200 overflow-x-auto">
         <button
           onClick={() => setViewMode('list')}
-          className={`py-2 px-4 border-b-2 font-medium text-sm ${
+          className={`py-2 px-3 border-b-2 font-medium text-sm whitespace-nowrap ${
             viewMode === 'list'
               ? 'border-blue-500 text-blue-600'
               : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -693,7 +822,7 @@ const AdminArtistBookingManagement = () => {
         </button>
         <button
           onClick={() => setViewMode('schedule')}
-          className={`py-2 px-4 border-b-2 font-medium text-sm ${
+          className={`py-2 px-3 border-b-2 font-medium text-sm whitespace-nowrap ${
             viewMode === 'schedule'
               ? 'border-blue-500 text-blue-600'
               : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -703,7 +832,7 @@ const AdminArtistBookingManagement = () => {
         </button>
         <button
           onClick={() => setViewMode('analytics')}
-          className={`py-2 px-4 border-b-2 font-medium text-sm ${
+          className={`py-2 px-3 border-b-2 font-medium text-sm whitespace-nowrap ${
             viewMode === 'analytics'
               ? 'border-blue-500 text-blue-600'
               : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -714,62 +843,64 @@ const AdminArtistBookingManagement = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white p-6 rounded-lg shadow">
-        <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Search
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search bookings..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+      <div className="bg-white p-3 rounded-lg shadow">
+        <form onSubmit={handleSearch} className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Search
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search bookings..."
+                  className="w-full pl-8 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <Search className="absolute left-2 top-2.5 h-3 w-3 text-gray-400" />
+              </div>
             </div>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Status
-            </label>
-            <select
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Start Date
-            </label>
-            <input
-              type="date"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              End Date
-            </label>
-            <input
-              type="date"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-            />
+            
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Status
+              </label>
+              <select
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Start Date
+              </label>
+              <input
+                type="date"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                End Date
+              </label>
+              <input
+                type="date"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </div>
           </div>
         </form>
       </div>
@@ -859,7 +990,7 @@ const AdminArtistBookingManagement = () => {
       {selectedBooking && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg max-w-3xl w-full max-h-[80vh] overflow-y-auto">
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900">Booking Details</h3>
               <button
                 onClick={() => setSelectedBooking(null)}
@@ -868,7 +999,7 @@ const AdminArtistBookingManagement = () => {
                 <XCircle className="h-6 w-6" />
               </button>
             </div>
-            <div className="p-6 space-y-6">
+            <div className="p-4 space-y-4">
               {detailLoading && (
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -879,7 +1010,7 @@ const AdminArtistBookingManagement = () => {
                   {/* Cost Breakdown */}
                   <div>
                     <h4 className="text-md font-semibold text-gray-900 mb-3">Cost Breakdown</h4>
-                    <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg border">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg border">
                       <div>
                         <p className="text-sm text-gray-600">Artist Cost</p>
                         <p className="text-sm font-semibold">{formatCurrency(detail.breakdown.artistCost || 0)}</p>
@@ -928,7 +1059,7 @@ const AdminArtistBookingManagement = () => {
               {/* Artist Information */}
               <div>
                 <h4 className="text-md font-semibold text-gray-900 mb-3">Artist Information</h4>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm font-medium text-gray-700">Stage Name</p>
                     <p className="text-sm text-gray-900">
@@ -960,7 +1091,7 @@ const AdminArtistBookingManagement = () => {
               <div>
                 <h4 className="text-md font-semibold text-gray-900 mb-3">Customer Information</h4>
                 <div className="bg-blue-50 p-4 rounded-lg border">
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                       <p className="text-sm font-medium text-gray-700">Name</p>
                       <p className="text-sm text-gray-900 font-medium">
@@ -989,7 +1120,7 @@ const AdminArtistBookingManagement = () => {
               {/* Booking Details */}
               <div>
                 <h4 className="text-md font-semibold text-gray-900 mb-3">Booking Details</h4>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm font-medium text-gray-700">Date</p>
                     <p className="text-sm text-gray-900">{formatDate(selectedBooking.date)}</p>
@@ -1027,7 +1158,7 @@ const AdminArtistBookingManagement = () => {
                       {selectedBooking.venueDetails?.address || 'Address to be confirmed'}
                     </p>
                   </div>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                       <p className="text-sm font-medium text-gray-700">City</p>
                       <p className="text-sm text-gray-900">
@@ -1083,7 +1214,7 @@ const AdminArtistBookingManagement = () => {
                       </div>
                     )}
                     
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {selectedBooking.artistBookingId.artistId.roleProfile?.yearsOfExperience && (
                         <div>
                           <p className="text-sm font-medium text-gray-700">Experience</p>

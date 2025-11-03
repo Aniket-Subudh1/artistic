@@ -70,7 +70,7 @@ const PaymentSuccessPage: React.FC = () => {
   const handleEventCreation = async (comboBookingId: string, trackId: string) => {
     setVerifying(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       if (!token) {
         throw new Error('Authentication token not found');
       }
