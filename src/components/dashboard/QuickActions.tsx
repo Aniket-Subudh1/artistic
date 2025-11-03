@@ -19,12 +19,12 @@ interface QuickActionsProps {
 
 export function QuickActions({ actions, title = 'Quick Actions' }: QuickActionsProps) {
   const colorClasses = {
-    green: 'hover:border-green-300 hover:bg-green-50',
-    blue: 'hover:border-blue-300 hover:bg-blue-50',
-    purple: 'hover:border-purple-300 hover:bg-purple-50',
-    orange: 'hover:border-orange-300 hover:bg-orange-50',
-    red: 'hover:border-red-300 hover:bg-red-50',
-    yellow: 'hover:border-yellow-300 hover:bg-yellow-50'
+    green: 'hover:border-green-300 hover:bg-green-50 hover:ring-green-200',
+    blue: 'hover:border-blue-300 hover:bg-blue-50 hover:ring-blue-200',
+    purple: 'hover:border-purple-300 hover:bg-purple-50 hover:ring-purple-200',
+    orange: 'hover:border-orange-300 hover:bg-orange-50 hover:ring-orange-200',
+    red: 'hover:border-red-300 hover:bg-red-50 hover:ring-red-200',
+    yellow: 'hover:border-yellow-300 hover:bg-yellow-50 hover:ring-yellow-200'
   };
 
   const iconClasses = {
@@ -47,9 +47,13 @@ export function QuickActions({ actions, title = 'Quick Actions' }: QuickActionsP
             <Link
               key={action.title}
               href={action.href}
-              className={`p-4 border border-gray-200 rounded-lg ${colorClasses[action.color]} transition-colors text-left block`}
+              className={`p-4 border border-gray-200 rounded-lg ${colorClasses[action.color]} 
+              ring-1 ring-gray-100 hover:ring-2 shadow-sm hover:shadow-md 
+              transform hover:-translate-y-0.5 transition-all text-left block`}
             >
-              <Icon className={`w-8 h-8 ${iconClasses[action.color]} mb-2`} />
+              <div className="p-2 rounded-lg bg-gray-50 inline-flex mb-2">
+                <Icon className={`w-7 h-7 ${iconClasses[action.color]}`} />
+              </div>
               <h4 className="font-medium text-gray-900">{action.title}</h4>
               <p className="text-sm text-gray-500">{action.description}</p>
             </Link>

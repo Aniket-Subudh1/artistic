@@ -23,6 +23,8 @@ export interface DashboardStats {
   completedBookings?: number;
   totalEarnings?: number;
   monthlyEarnings?: number;
+  totalSpent?: number;
+  upcomingBookings?: number;
 }
 
 interface ApiResponse<T = any> {
@@ -255,6 +257,8 @@ export class DashboardService {
           return this.getArtistRecentActivity(token);
         case 'equipment_provider':
           return this.getEquipmentProviderRecentActivity(token);
+        case 'user':
+          return this.getUserRecentActivity();
         default:
           return [];
       }
@@ -368,10 +372,113 @@ export class DashboardService {
   }
 
   /**
+   * Get user-specific dashboard stats
+   */
+  static async getUserStats(): Promise<DashboardStats> {
+    try {
+      const token = localStorage.getItem('authToken');
+      
+      if (!token) {
+        return {};
+      }
+
+      const [userBookings, userProfile] = await Promise.all([
+        apiRequest<any[]>(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.BOOKINGS.MY_BOOKINGS}`, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${token}` },
+        }).catch(() => []),
+        apiRequest<any>(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.USER.PROFILE_ME}`, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${token}` },
+        }).catch(() => ({})),
+      ]);
+
+      const bookings = Array.isArray(userBookings) ? userBookings : [];
+      
+      return {
+        totalBookings: bookings.length,
+        activeBookings: bookings.filter((booking: any) => 
+          booking.status === 'confirmed' || booking.status === 'active' || booking.status === 'CONFIRMED'
+        ).length,
+        completedBookings: bookings.filter((booking: any) => 
+          booking.status === 'completed' || booking.status === 'COMPLETED'
+        ).length,
+        totalSpent: bookings.reduce((sum: number, booking: any) => 
+          sum + (booking.totalPrice || booking.totalAmount || booking.amount || 0), 0
+        ),
+        upcomingBookings: bookings.filter((booking: any) => {
+          if (!booking.eventDate && !booking.eventDates) return false;
+          const eventDate = booking.eventDate || (booking.eventDates && booking.eventDates[0]?.date);
+          return eventDate && new Date(eventDate) > new Date();
+        }).length,
+      };
+    } catch (error) {
+      console.error('Error fetching user stats:', error);
+      return {};
+    }
+  }
+
+  /**
+   * Get user recent activity
+   */
+  static async getUserRecentActivity(): Promise<DashboardActivity[]> {
+    try {
+      const token = localStorage.getItem('authToken');
+      
+      if (!token) {
+        return [];
+      }
+
+      const userBookings = await apiRequest<any[]>(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.BOOKINGS.MY_BOOKINGS}`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` },
+      }).catch(() => []);
+
+      const bookings = Array.isArray(userBookings) ? userBookings : [];
+      const activities: DashboardActivity[] = [];
+
+      // Convert recent bookings to activities
+      const recentBookings = bookings
+        .sort((a: any, b: any) => new Date(b.createdAt || b.bookingDate || '').getTime() - new Date(a.createdAt || a.bookingDate || '').getTime())
+        .slice(0, 5);
+
+      recentBookings.forEach((booking: any) => {
+        activities.push({
+          id: booking._id || booking.id,
+          type: 'booking',
+          title: 'Booking Created',
+          description: `Booked ${booking.artist?.stageName || booking.artistId || 'an artist'} for ${booking.eventType || 'event'}`,
+          date: booking.createdAt || booking.bookingDate || new Date().toISOString(),
+          status: booking.status?.toLowerCase() === 'confirmed' ? 'completed' : 
+                  booking.status?.toLowerCase() === 'pending' ? 'pending' : 'completed',
+          amount: booking.totalPrice || booking.totalAmount || booking.amount,
+          user: {
+            name: booking.userDetails?.name || 'You',
+          },
+        });
+      });
+
+      return activities;
+    } catch (error) {
+      console.error('Error fetching user recent activity:', error);
+      return [];
+    }
+  }
+
+  /**
    * Get role-specific quick actions
    */
   static getQuickActions(role: UserRole): QuickAction[] {
     const allActions: QuickAction[] = [
+      {
+        id: 'explore-events',
+        title: 'Explore Events',
+        description: 'Discover upcoming events',
+        icon: 'Calendar',
+        href: '/events',
+        color: 'bg-rose-500',
+        roles: ['admin', 'super_admin', 'artist', 'equipment_provider', 'venue_owner', 'user'],
+      },
       {
         id: 'create-event',
         title: 'Create New Event',
@@ -443,6 +550,42 @@ export class DashboardService {
         href: '/dashboard/earnings',
         color: 'bg-green-600',
         roles: ['equipment_provider'],
+      },
+      {
+        id: 'my-bookings',
+        title: 'My Bookings',
+        description: 'View your event bookings',
+        icon: 'Calendar',
+        href: '/dashboard/user/bookings',
+        color: 'bg-blue-500',
+        roles: ['user'],
+      },
+      {
+        id: 'browse-artists',
+        title: 'Browse Artists',
+        description: 'Find and book artists',
+        icon: 'Users',
+        href: '/artists',
+        color: 'bg-purple-500',
+        roles: ['user'],
+      },
+      {
+        id: 'equipment-packages',
+        title: 'Equipment Packages',
+        description: 'Browse equipment packages',
+        icon: 'Package',
+        href: '/equipment-packages',
+        color: 'bg-orange-500',
+        roles: ['user'],
+      },
+      {
+        id: 'profile-settings',
+        title: 'Profile Settings',
+        description: 'Update your profile',
+        icon: 'Settings',
+        href: '/dashboard/user/profile',
+        color: 'bg-gray-500',
+        roles: ['user'],
       },
     ];
 

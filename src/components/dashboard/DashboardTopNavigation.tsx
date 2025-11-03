@@ -8,6 +8,7 @@ import {
   Home, 
   Mic, 
   Package, 
+  Calendar,
   ArrowLeft,
   ExternalLink
 } from 'lucide-react';
@@ -24,6 +25,12 @@ export function DashboardTopNavigation() {
       label: isRTL ? 'الصفحة الرئيسية' : 'Home',
       icon: Home,
       description: isRTL ? 'العودة إلى الصفحة الرئيسية' : 'Go to main homepage'
+    },
+    {
+      href: '/events',
+      label: isRTL ? 'استكشاف الأحداث' : 'Explore Events',
+      icon: Calendar,
+      description: isRTL ? 'تصفح الأحداث المتاحة' : 'Browse available events'
     },
     {
       href: '/artists',
@@ -67,7 +74,7 @@ export function DashboardTopNavigation() {
       </div>
 
       {/* Navigation Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {navigationItems.map((item) => {
           const IconComponent = item.icon;
           return (
@@ -75,28 +82,31 @@ export function DashboardTopNavigation() {
               key={item.href}
               href={item.href}
               className="
-                group p-4 bg-white border border-gray-200 rounded-lg 
-                hover:border-blue-300 hover:shadow-md transition-all duration-200
-                hover:bg-blue-50/50
+                group relative overflow-hidden rounded-xl p-4 bg-white/80 
+                border border-transparent shadow-sm ring-1 ring-slate-200
+                hover:shadow-lg hover:ring-2 hover:ring-indigo-300 
+                hover:bg-gradient-to-br from-indigo-50/80 to-purple-50/60
+                transform hover:-translate-y-0.5 transition-all duration-200
               "
             >
               <div className="flex items-start">
                 <div className="
-                  p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 
-                  transition-colors duration-200
+                  p-3 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500
+                  group-hover:from-indigo-600 group-hover:to-purple-600
+                  transition-colors duration-200 shadow-sm
                 ">
-                  <IconComponent className="w-5 h-5 text-blue-600" />
+                  <IconComponent className="w-5 h-5 text-white" />
                 </div>
                 <div className="ml-3 rtl:ml-0 rtl:mr-3 flex-1">
-                  <h4 className="font-medium text-gray-900 group-hover:text-blue-700">
+                  <h4 className="font-medium text-slate-900 group-hover:text-indigo-700">
                     {item.label}
                   </h4>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-slate-600 mt-1">
                     {item.description}
                   </p>
                 </div>
                 <ExternalLink className="
-                  w-4 h-4 text-gray-400 group-hover:text-blue-500 
+                  w-4 h-4 text-slate-400 group-hover:text-indigo-500 
                   transition-colors duration-200 mt-1
                 " />
               </div>

@@ -117,6 +117,9 @@ export function UnifiedDashboard({ user }: UnifiedDashboardProps) {
         case 'equipment_provider':
           dashboardStats = await DashboardService.getEquipmentProviderStats();
           break;
+        case 'user':
+          dashboardStats = await DashboardService.getUserStats();
+          break;
         default:
           dashboardStats = {};
       }
@@ -170,6 +173,13 @@ export function UnifiedDashboard({ user }: UnifiedDashboardProps) {
         { key: 'totalBookings', title: 'Total Bookings', icon: Users, color: 'bg-green-500', bgColor: 'bg-green-50' },
         { key: 'totalRevenue', title: 'Total Revenue', icon: DollarSign, color: 'bg-emerald-500', bgColor: 'bg-emerald-50' },
       ],
+      user: [
+        { key: 'totalBookings', title: 'My Bookings', icon: Calendar, color: 'bg-blue-500', bgColor: 'bg-blue-50' },
+        { key: 'activeBookings', title: 'Active Bookings', icon: Activity, color: 'bg-green-500', bgColor: 'bg-green-50' },
+        { key: 'completedBookings', title: 'Completed Bookings', icon: UserCheck, color: 'bg-purple-500', bgColor: 'bg-purple-50' },
+        { key: 'totalSpent', title: 'Total Spent', icon: DollarSign, color: 'bg-emerald-500', bgColor: 'bg-emerald-50' },
+        { key: 'upcomingBookings', title: 'Upcoming Events', icon: Clock, color: 'bg-orange-500', bgColor: 'bg-orange-50' },
+      ],
     };
 
     const configKey = role === 'super_admin' ? 'admin' : role;
@@ -180,7 +190,7 @@ export function UnifiedDashboard({ user }: UnifiedDashboardProps) {
       if (value !== undefined) {
         cards.push({
           title: locale === 'ar' ? getArabicTitle(config.title) : config.title,
-          value: config.key === 'totalEarnings' || config.key === 'totalRevenue' 
+          value: config.key === 'totalEarnings' || config.key === 'totalRevenue' || config.key === 'totalSpent'
             ? `$${Number(value).toLocaleString()}` 
             : value,
           icon: config.icon,
@@ -209,6 +219,13 @@ export function UnifiedDashboard({ user }: UnifiedDashboardProps) {
       'Total Revenue': 'إجمالي الإيرادات',
       'Total Venues': 'إجمالي الأماكن',
       'Total Events': 'إجمالي الأحداث',
+      'Explore Events': 'استكشاف الأحداث',
+      'Discover upcoming events': 'اكتشف الأحداث القادمة',
+      'Browse available events': 'تصفح الأحداث المتاحة',
+      'My Bookings': 'حجوزاتي',
+      'Completed Bookings': 'الحجوزات المكتملة',
+      'Total Spent': 'إجمالي المنفق',
+      'Upcoming Events': 'الأحداث القادمة',
     };
     return arabicTitles[englishTitle] || englishTitle;
   };
@@ -372,10 +389,15 @@ export function UnifiedDashboard({ user }: UnifiedDashboardProps) {
                   <Link
                     key={action.id}
                     href={action.href}
-                    className="w-full flex items-center space-x-3 rtl:space-x-reverse p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors text-left rtl:text-right"
+                    className="w-full flex items-center space-x-3 rtl:space-x-reverse p-3 rounded-xl 
+                    bg-white/80 ring-1 ring-slate-200 border border-transparent shadow-sm
+                    hover:bg-gradient-to-r from-indigo-50/80 to-purple-50/60
+                    hover:ring-2 hover:ring-indigo-300 hover:shadow-lg transform hover:-translate-y-0.5
+                    transition-all text-left rtl:text-right"
                   >
-                    <div className={`${action.color} w-8 h-8 rounded-lg flex items-center justify-center`}>
-                      <IconComponent className="w-4 h-4 text-white" />
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center shadow-sm 
+                      ${action.color} bg-gradient-to-r from-white/10 to-white/20`}>
+                      <IconComponent className="w-5 h-5 text-white" />
                     </div>
                     <div className="flex-1">
                       <span className="text-sm font-medium text-slate-900 block">
@@ -385,7 +407,7 @@ export function UnifiedDashboard({ user }: UnifiedDashboardProps) {
                         {locale === 'ar' ? getArabicTitle(action.description) : action.description}
                       </span>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-slate-400" />
+                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-indigo-500 transition-colors" />
                   </Link>
                 );
               })}
