@@ -164,41 +164,54 @@ export function MyBookings() {
     }).format(amount);
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status?: string) => {
+    const normalized = (status ?? '').toString().trim().toLowerCase();
     const statusConfig = {
       pending: { color: 'bg-yellow-100 text-yellow-800', icon: AlertCircle },
       confirmed: { color: 'bg-green-100 text-green-800', icon: CheckCircle },
       cancelled: { color: 'bg-red-100 text-red-800', icon: XCircle },
       completed: { color: 'bg-blue-100 text-blue-800', icon: CheckCircle },
-      failed: { color: 'bg-red-100 text-red-800', icon: XCircle }
-    };
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+      failed: { color: 'bg-red-100 text-red-800', icon: XCircle },
+      unknown: { color: 'bg-gray-100 text-gray-800', icon: AlertCircle },
+    } as const;
+    const key = (normalized in statusConfig ? normalized : 'unknown') as keyof typeof statusConfig;
+    const config = statusConfig[key];
     const Icon = config.icon;
+    const label = normalized ? normalized.charAt(0).toUpperCase() + normalized.slice(1) : 'Unknown';
 
     return (
       <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
         <Icon className="w-3 h-3 mr-1" />
-        {status.charAt(0).toUpperCase() + status.slice(1)}
+        {label}
       </span>
     );
   };
 
-  const getPaymentStatusBadge = (status: string) => {
+  const getPaymentStatusBadge = (status?: string) => {
+    const raw = (status ?? '').toString().trim();
+    const normalized = raw.toLowerCase();
+    // Map various backend variants to canonical payment states for coloring
+    const canonical = normalized === 'confirmed' ? 'paid'
+                    : normalized === 'cancel' ? 'failed'
+                    : normalized;
+
     const statusConfig = {
       pending: { color: 'bg-yellow-100 text-yellow-800' },
       paid: { color: 'bg-green-100 text-green-800' },
       failed: { color: 'bg-red-100 text-red-800' },
       refunded: { color: 'bg-gray-100 text-gray-800' },
-      PENDING: { color: 'bg-yellow-100 text-yellow-800' },
-      CONFIRMED: { color: 'bg-green-100 text-green-800' },
-      CANCEL: { color: 'bg-red-100 text-red-800' }
-    };
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+      unknown: { color: 'bg-gray-100 text-gray-800' },
+    } as const;
+
+    const key = (canonical in statusConfig ? canonical : 'unknown') as keyof typeof statusConfig;
+    const config = statusConfig[key];
+
+    const label = raw ? (raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase()) : 'Unknown';
 
     return (
       <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
         <CreditCard className="w-3 h-3 mr-1" />
-        {status.charAt(0).toUpperCase() + status.slice(1)}
+        {label}
       </span>
     );
   };

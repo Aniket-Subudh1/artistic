@@ -47,7 +47,7 @@ interface ArtistPayment {
   };
   date: string;
   totalPrice: number;
-  status: string;
+  status?: string;
   userDetails: {
     name: string;
     email: string;
@@ -144,21 +144,28 @@ export default function AdminArtistPaymentManagement() {
     setPagination(prev => ({ ...prev, current: page }));
   };
 
-  const getPaymentStatusBadge = (status: string) => {
+  const getPaymentStatusBadge = (status?: string) => {
     const configs = {
       paid: { icon: CheckCircle, color: 'text-green-700', bg: 'bg-green-50 border-green-200' },
       pending: { icon: Clock, color: 'text-yellow-700', bg: 'bg-yellow-50 border-yellow-200' },
       failed: { icon: XCircle, color: 'text-red-700', bg: 'bg-red-50 border-red-200' },
       refunded: { icon: AlertCircle, color: 'text-blue-700', bg: 'bg-blue-50 border-blue-200' },
+      unknown: { icon: AlertCircle, color: 'text-gray-700', bg: 'bg-gray-50 border-gray-200' },
     };
 
-    const config = configs[status as keyof typeof configs] || configs.pending;
+    const normalized = (status ?? '').toString().trim().toLowerCase();
+    const isKnown = normalized === 'paid' || normalized === 'pending' || normalized === 'failed' || normalized === 'refunded';
+    const key = (isKnown ? normalized : 'unknown') as keyof typeof configs;
+    const config = configs[key];
     const Icon = config.icon;
+    const label = isKnown
+      ? normalized.charAt(0).toUpperCase() + normalized.slice(1)
+      : 'Unknown';
 
     return (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${config.bg} ${config.color}`}>
         <Icon className="w-3 h-3 mr-1" />
-        {status.charAt(0).toUpperCase() + status.slice(1)}
+        {label}
       </span>
     );
   };

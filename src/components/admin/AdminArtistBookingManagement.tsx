@@ -109,6 +109,8 @@ const AdminArtistBookingManagement = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [selectedBooking, setSelectedBooking] = useState<ArtistBooking | null>(null);
+  const [detail, setDetail] = useState<any | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
   
   // Pagination
   const [totalPages, setTotalPages] = useState(1);
@@ -145,6 +147,23 @@ const AdminArtistBookingManagement = () => {
   useEffect(() => {
     fetchBookings();
   }, [currentPage, pageSize, statusFilter, searchTerm, startDate, endDate]);
+
+  // Fetch detailed info when a booking is selected
+  useEffect(() => {
+    const loadDetails = async () => {
+      if (!selectedBooking) { setDetail(null); return; }
+      try {
+        setDetailLoading(true);
+        const res = await AdminService.getCombinedBookingDetails(selectedBooking._id);
+        setDetail(res);
+      } catch (e) {
+        console.error('Failed to load booking details', e);
+      } finally {
+        setDetailLoading(false);
+      }
+    };
+    loadDetails();
+  }, [selectedBooking]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -839,7 +858,7 @@ const AdminArtistBookingManagement = () => {
       {/* Booking Detail Modal */}
       {selectedBooking && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-96 overflow-y-auto">
+          <div className="bg-white rounded-lg max-w-3xl w-full max-h-[80vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900">Booking Details</h3>
               <button
@@ -850,6 +869,62 @@ const AdminArtistBookingManagement = () => {
               </button>
             </div>
             <div className="p-6 space-y-6">
+              {detailLoading && (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+              )}
+              {!detailLoading && detail && (
+                <>
+                  {/* Cost Breakdown */}
+                  <div>
+                    <h4 className="text-md font-semibold text-gray-900 mb-3">Cost Breakdown</h4>
+                    <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg border">
+                      <div>
+                        <p className="text-sm text-gray-600">Artist Cost</p>
+                        <p className="text-sm font-semibold">{formatCurrency(detail.breakdown.artistCost || 0)}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Equipment Cost</p>
+                        <p className="text-sm font-semibold">{formatCurrency(detail.breakdown.equipmentCost || 0)}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Platform Fee</p>
+                        <p className="text-sm font-semibold">{formatCurrency(detail.breakdown.platformFee || 0)}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Total</p>
+                        <p className="text-sm font-semibold">{formatCurrency(detail.breakdown.total || 0)}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Equipment Summary (if any) */}
+                  {detail.assignments?.equipment && (detail.assignments.equipment.equipments?.length > 0 || detail.assignments.equipment.packages?.length > 0 || detail.assignments.equipment.customPackages?.length > 0) && (
+                    <div>
+                      <h4 className="text-md font-semibold text-gray-900 mb-3">Equipment Summary</h4>
+                      <div className="space-y-2">
+                        {detail.assignments.equipment.equipments?.map((eq:any, idx:number) => (
+                          <div key={idx} className="text-sm text-gray-800 flex items-center justify-between">
+                            <span>{eq.equipmentId?.name || 'Equipment'} ({eq.quantity}x)</span>
+                            <span className="text-gray-600">{eq.equipmentId?.category || ''}</span>
+                          </div>
+                        ))}
+                        {detail.assignments.equipment.packages?.map((pkg:any) => (
+                          <div key={pkg._id} className="text-sm text-gray-800">
+                            Package: <span className="font-medium">{pkg.name}</span> — {formatCurrency(pkg.totalPrice || 0)}
+                          </div>
+                        ))}
+                        {detail.assignments.equipment.customPackages?.map((pkg:any) => (
+                          <div key={pkg._id} className="text-sm text-gray-800">
+                            Custom Package: <span className="font-medium">{pkg.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
               {/* Artist Information */}
               <div>
                 <h4 className="text-md font-semibold text-gray-900 mb-3">Artist Information</h4>

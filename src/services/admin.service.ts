@@ -281,4 +281,15 @@ export class AdminService {
     const url = `${API_CONFIG.BASE_URL}/admin/payments/equipment-providers?${params}`;
     return apiRequest(url, { method: 'GET' });
   }
+
+  // Detailed booking retrieval
+  static async getCombinedBookingDetails(id: string): Promise<any> {
+    const url = `${API_CONFIG.BASE_URL}/admin/bookings/combined/${id}`;
+    return apiRequest(url, { method: 'GET' });
+  }
+
+  static async getEquipmentPackageBookingDetails(id: string): Promise<any> {
+    const url = `${API_CONFIG.BASE_URL}/admin/bookings/equipment-package/${id}`;
+    return apiRequest(url, { method: 'GET' });
+  }
 }

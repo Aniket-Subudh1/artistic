@@ -146,6 +146,8 @@ const AdminEquipmentBookingManagement = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [selectedBooking, setSelectedBooking] = useState<EquipmentBooking | null>(null);
+  const [detail, setDetail] = useState<any | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
   
   // Pagination
   const [totalPages, setTotalPages] = useState(1);
@@ -182,6 +184,28 @@ const AdminEquipmentBookingManagement = () => {
   useEffect(() => {
     fetchBookings();
   }, [currentPage, pageSize, statusFilter, searchTerm, startDate, endDate]);
+
+  // Load detailed info when a booking is selected
+  useEffect(() => {
+    const loadDetails = async () => {
+      if (!selectedBooking) { setDetail(null); return; }
+      try {
+        setDetailLoading(true);
+        if (selectedBooking.bookingSource === 'combined') {
+          const res = await AdminService.getCombinedBookingDetails(selectedBooking._id);
+          setDetail(res);
+        } else {
+          const res = await AdminService.getEquipmentPackageBookingDetails(selectedBooking._id);
+          setDetail(res);
+        }
+      } catch (e) {
+        console.error('Failed to load equipment booking details', e);
+      } finally {
+        setDetailLoading(false);
+      }
+    };
+    loadDetails();
+  }, [selectedBooking]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -952,7 +976,7 @@ const AdminEquipmentBookingManagement = () => {
       {/* Booking Detail Modal */}
       {selectedBooking && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-96 overflow-y-auto">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[80vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900">Equipment Booking Details</h3>
               <button
@@ -963,6 +987,30 @@ const AdminEquipmentBookingManagement = () => {
               </button>
             </div>
             <div className="p-6 space-y-6">
+              {detailLoading && (
+                <div className="flex items-center justify-center py-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+              )}
+              {!detailLoading && detail && (
+                <div>
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">Cost Breakdown</h4>
+                  <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg border mb-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Equipment Cost</p>
+                      <p className="text-sm font-semibold">{formatCurrency(detail.breakdown?.equipmentCost || 0)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Platform Fee</p>
+                      <p className="text-sm font-semibold">{formatCurrency(detail.breakdown?.platformFee || 0)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Total</p>
+                      <p className="text-sm font-semibold">{formatCurrency(detail.breakdown?.total || 0)}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
               {/* Package/Equipment Information */}
               <div>
                 <h4 className="text-md font-semibold text-gray-900 mb-3">Equipment/Package Information</h4>
