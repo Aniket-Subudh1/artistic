@@ -281,13 +281,10 @@
     "discover": "اكتشف",
     "events": "الأحداث",
     "artists": "الفنانين",
-    "equipment": "المعدات",
-    "workshops": "ورش العمل",
+    "equipment": "حزم المعدات",
+    "calendar": "التقويم",
     "company": "الشركة",
-    "aboutUs": "معلومات عنا",
-    "careers": "الوظائف",
-    "blog": "المدونة",
-    "contact": "اتصل",
+    "joinUs": "انضم إلينا",
     "subscribe": "اشترك",
     "subscribeDesc": "ابق على اطلاع بأحدث الأحداث والعروض.",
     "emailPlaceholder": "بريدك الإلكتروني",
@@ -628,5 +625,17 @@
     "bookNow": "احجز الآن",
     "yearsExp": "سنة خبرة",
     "moreSkills": "+{count} مهارة أخرى"
+  },
+  "terms": {
+    "pageTitle": "الشروط والأحكام",
+    "pageDescription": "شروط وأحكام استخدام منصة Artistic"
+  },
+  "privacy": {
+    "pageTitle": "سياسة الخصوصية",
+    "pageDescription": "سياسة الخصوصية لـ Artistic - كيفية جمع واستخدام وحماية معلوماتك الشخصية"
+  },
+  "cookies": {
+    "pageTitle": "سياسة ملفات تعريف الارتباط",
+    "pageDescription": "سياسة ملفات تعريف الارتباط لـ Artistic - كيفية استخدام ملفات تعريف الارتباط والتقنيات المشابهة على منصتنا"
   }
 }

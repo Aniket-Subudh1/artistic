@@ -281,13 +281,10 @@
     "discover": "Discover",
     "events": "Events",
     "artists": "Artists",
-    "equipment": "Equipment",
-    "workshops": "Workshops",
+    "equipment": "Equipment Packages",
+    "calendar": "Calendar",
     "company": "Company",
-    "aboutUs": "About Us",
-    "careers": "Careers",
-    "blog": "Blog",
-    "contact": "Contact",
+    "joinUs": "Join Us",
     "subscribe": "Subscribe",
     "subscribeDesc": "Stay updated with the latest events and offers.",
     "emailPlaceholder": "Your email",
@@ -628,5 +625,17 @@
     "bookNow": "Book Now",
     "yearsExp": "years exp.",
     "moreSkills": "+{count} more"
+  },
+  "terms": {
+    "pageTitle": "Terms and Conditions",
+    "pageDescription": "Terms and Conditions for using the Artistic platform"
+  },
+  "privacy": {
+    "pageTitle": "Privacy Policy",
+    "pageDescription": "Privacy Policy for Artistic - How we collect, use, and protect your personal information"
+  },
+  "cookies": {
+    "pageTitle": "Cookie Policy",
+    "pageDescription": "Cookie Policy for Artistic - How we use cookies and similar technologies on our platform"
   }
 }

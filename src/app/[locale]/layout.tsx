@@ -5,7 +5,7 @@ import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import ArtisticPreloader from '@/components/ArtisticPreloader';
-import { CartProvider } from '@/contexts/CartContext';
+import { ClientProviders } from '@/components/ClientProviders';
 import "../globals.css";
 
 const geistSans = Geist({
@@ -175,9 +175,9 @@ export default async function RootLayout({
       >
         <ArtisticPreloader />
         <NextIntlClientProvider messages={messages}>
-          <CartProvider>
+          <ClientProviders>
             {children}
-          </CartProvider>
+          </ClientProviders>
         </NextIntlClientProvider>
       </body>
     </html>
