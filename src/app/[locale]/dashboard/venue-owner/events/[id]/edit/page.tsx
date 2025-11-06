@@ -2,7 +2,7 @@
 
 import React, { use, useEffect, useState } from 'react';
 import EventCreationForm from '@/components/venue-owner/EventCreationForm';
-import { eventService, Event as AdminEvent } from '@/services/event.service';
+import { eventService, Event as VenueEvent } from '@/services/event.service';
 import { Loader2, AlertCircle, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -15,10 +15,10 @@ interface PageProps {
   }>;
 }
 
-export default function AdminEventEditPage({ params }: PageProps) {
+export default function VenueOwnerEventEditPage({ params }: PageProps) {
   const resolvedParams = use(params);
   const router = useRouter();
-  const [eventData, setEventData] = useState<AdminEvent | null>(null);
+  const [eventData, setEventData] = useState<VenueEvent | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showErrorModal, setShowErrorModal] = useState(false);
@@ -30,7 +30,7 @@ export default function AdminEventEditPage({ params }: PageProps) {
         setError(null);
         setShowErrorModal(false);
         const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') || undefined : undefined;
-        const data = await eventService.getEventByIdAsAdmin(resolvedParams.id, token);
+        const data = await eventService.getEventByIdAsVenueOwner(resolvedParams.id, token);
         setEventData(data);
       } catch (err: any) {
         const errorMessage = err.message || 'Failed to load event';
@@ -58,7 +58,7 @@ export default function AdminEventEditPage({ params }: PageProps) {
     <>
       {eventData ? (
         <EventCreationForm
-          userRole="admin"
+          userRole="venue_owner"
           mode="edit"
           initialEventId={eventData._id}
           initialEvent={eventData}
@@ -89,7 +89,7 @@ export default function AdminEventEditPage({ params }: PageProps) {
               variant="outline"
               onClick={() => {
                 setShowErrorModal(false);
-                router.push('/dashboard/admin/events');
+                router.push('/dashboard/venue_owner/events');
               }}
             >
               Go Back to Events
@@ -108,5 +108,3 @@ export default function AdminEventEditPage({ params }: PageProps) {
     </>
   );
 }
-
-

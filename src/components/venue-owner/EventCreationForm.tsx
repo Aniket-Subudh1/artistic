@@ -142,6 +142,7 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
   // UI state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showErrorModal, setShowErrorModal] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [showPreview, setShowPreview] = useState(false);
   const [showArtistBooking, setShowArtistBooking] = useState(false);
@@ -150,6 +151,22 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
   // Prefill when editing
   useEffect(() => {
     if (mode === 'edit' && initialEvent) {
+      console.log('========== EDIT MODE: Prefilling event data ==========');
+      console.log('Full initialEvent:', initialEvent);
+      
+      // Extract seatLayoutId properly
+      let extractedSeatLayoutId = '';
+      if (initialEvent.seatLayoutId) {
+        if (typeof initialEvent.seatLayoutId === 'string') {
+          extractedSeatLayoutId = initialEvent.seatLayoutId;
+        } else if (typeof initialEvent.seatLayoutId === 'object') {
+          extractedSeatLayoutId = (initialEvent.seatLayoutId as any)?._id || '';
+        }
+      }
+      console.log('Extracted seatLayoutId:', extractedSeatLayoutId);
+      console.log('seatLayoutId type:', typeof initialEvent.seatLayoutId);
+      console.log('seatLayoutId value:', initialEvent.seatLayoutId);
+      
       setFormData({
         name: initialEvent.name,
         description: initialEvent.description,
@@ -170,7 +187,7 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
           venueType: initialEvent.venue?.venueType,
           facilities: initialEvent.venue?.facilities,
         },
-        seatLayoutId: initialEvent.seatLayoutId,
+        seatLayoutId: extractedSeatLayoutId || undefined,
         maxTicketsPerUser: initialEvent.maxTicketsPerUser,
         allowBooking: initialEvent.allowBooking,
         bookingStartDate: initialEvent.bookingStartDate ? new Date(initialEvent.bookingStartDate).toISOString().slice(0,10) : undefined,
@@ -181,25 +198,79 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
         termsAndConditions: initialEvent.termsAndConditions,
         cancellationPolicy: initialEvent.cancellationPolicy,
       });
+      
+      console.log('Form data after setting:', {
+        seatLayoutId: extractedSeatLayoutId,
+        startDate: new Date(initialEvent.startDate).toISOString().slice(0,10),
+        endDate: new Date(initialEvent.endDate).toISOString().slice(0,10),
+        startTime: initialEvent.startTime,
+        endTime: initialEvent.endTime,
+      });
+      
       setCoverPhotoPreview(initialEvent.coverPhoto || '');
-      setSelectedArtists((initialEvent.artists || []).map(a => ({
-        artistId: a.isCustomArtist ? '' : (typeof a.artistId === 'string' ? a.artistId : (a.artistId as any)?._id || String(a.artistId || '')),
-        artistName: a.isCustomArtist ? (a.customArtistName || '') : a.artistName,
-        customArtistName: a.isCustomArtist ? (a.customArtistName || '') : undefined,
-        artistPhoto: a.isCustomArtist ? a.customArtistPhoto : a.artistPhoto,
-        isCustomArtist: a.isCustomArtist,
-        fee: a.fee,
-      })) as any);
-      setSelectedEquipment((initialEvent.equipment || []).map(e => ({
-        equipmentId: typeof e.equipmentId === 'string' ? e.equipmentId : (e.equipmentId as any)?._id || String(e.equipmentId || ''),
-        equipmentName: e.equipmentName,
-        quantity: e.quantity,
-        pricePerUnit: e.pricePerUnit,
-        totalPrice: e.totalPrice,
-        notes: e.notes,
-      })) as any);
-      if (userRole === 'admin' && initialEvent.venueOwnerId?._id) {
-        setSelectedVenueOwnerId(initialEvent.venueOwnerId._id);
+      
+      // Handle artists - backend populates artistId with full artist object
+      const mappedArtists = (initialEvent.artists || []).map(a => {
+        console.log('Processing artist for edit:', a);
+        
+        // Extract artistId - handle both populated (object) and non-populated (string) cases
+        let extractedArtistId = '';
+        if (!a.isCustomArtist) {
+          if (typeof a.artistId === 'string') {
+            extractedArtistId = a.artistId;
+          } else if (a.artistId && typeof a.artistId === 'object') {
+            // Populated artist object
+            extractedArtistId = (a.artistId as any)._id || '';
+          }
+        }
+        
+        return {
+          artistId: extractedArtistId,
+          artistName: a.isCustomArtist ? (a.customArtistName || '') : a.artistName,
+          customArtistName: a.isCustomArtist ? (a.customArtistName || '') : undefined,
+          artistPhoto: a.isCustomArtist ? a.customArtistPhoto : a.artistPhoto,
+          isCustomArtist: a.isCustomArtist || false,
+          fee: a.fee,
+          notes: a.notes,
+        } as SelectedArtist;
+      });
+      
+      console.log('Mapped artists for edit:', mappedArtists);
+      setSelectedArtists(mappedArtists);
+      
+      // Handle equipment - backend populates equipmentId with full equipment object
+      const mappedEquipment = (initialEvent.equipment || []).map(e => {
+        console.log('Processing equipment for edit:', e);
+        
+        // Extract equipmentId - handle both populated (object) and non-populated (string) cases
+        let extractedEquipmentId = '';
+        if (typeof e.equipmentId === 'string') {
+          extractedEquipmentId = e.equipmentId;
+        } else if (e.equipmentId && typeof e.equipmentId === 'object') {
+          // Populated equipment object
+          extractedEquipmentId = (e.equipmentId as any)._id || '';
+        }
+        
+        return {
+          equipmentId: extractedEquipmentId,
+          equipmentName: e.equipmentName,
+          quantity: e.quantity,
+          pricePerUnit: e.pricePerUnit,
+          totalPrice: e.totalPrice,
+          notes: e.notes,
+        } as SelectedEquipment;
+      });
+      
+      console.log('Mapped equipment for edit:', mappedEquipment);
+      setSelectedEquipment(mappedEquipment);
+      
+      // Handle venue owner ID for admin users
+      if (userRole === 'admin' && initialEvent.venueOwnerId) {
+        const venueOwnerIdToSet = typeof initialEvent.venueOwnerId === 'string' 
+          ? initialEvent.venueOwnerId 
+          : (initialEvent.venueOwnerId as any)?._id || '';
+        console.log('Setting venue owner ID for admin:', venueOwnerIdToSet);
+        setSelectedVenueOwnerId(venueOwnerIdToSet);
       }
     }
   }, [mode, initialEvent, userRole]);
@@ -222,7 +293,9 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
           queryParams = { venueOwnerId: user?.id };
         }
         
+        console.log('Loading layouts with params:', queryParams);
         const layouts = await venueLayoutService.getVenueLayouts(token || '', queryParams);
+        console.log('Loaded layouts:', layouts.length, layouts);
         setAvailableLayouts(layouts);
       } catch (err) {
         console.error('Failed to load layouts:', err);
@@ -274,11 +347,13 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
 
     if (!file.type.startsWith('image/')) {
       setError('Please select a valid image file');
+      setShowErrorModal(true);
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
       setError('Image size must be less than 5MB');
+      setShowErrorModal(true);
       return;
     }
 
@@ -362,10 +437,12 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
 
   const handleSubmit = async () => {
     setError(null);
+    setShowErrorModal(false);
     
     const validationErrors = validateForm();
     if (validationErrors.length > 0) {
       setError(validationErrors[0]);
+      setShowErrorModal(true);
       return;
     }
 
@@ -510,6 +587,7 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
     } catch (err: any) {
       console.error('Failed to create event:', err);
       setError(err.message || 'Failed to create event. Please try again.');
+      setShowErrorModal(true);
     } finally {
       setLoading(false);
     }
@@ -659,6 +737,7 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
                 onChange={(e) => handleInputChange('startDate', e.target.value)}
                 className="mt-1"
               />
+              <div className="text-xs text-gray-400 mt-1">Debug: {formData.startDate || 'empty'}</div>
             </div>
 
             <div>
@@ -670,6 +749,7 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
                 onChange={(e) => handleInputChange('endDate', e.target.value)}
                 className="mt-1"
               />
+              <div className="text-xs text-gray-400 mt-1">Debug: {formData.endDate || 'empty'}</div>
             </div>
 
             <div>
@@ -681,6 +761,7 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
                 onChange={(e) => handleInputChange('startTime', e.target.value)}
                 className="mt-1"
               />
+              <div className="text-xs text-gray-400 mt-1">Debug: {formData.startTime || 'empty'}</div>
             </div>
 
             <div>
@@ -692,6 +773,7 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
                 onChange={(e) => handleInputChange('endTime', e.target.value)}
                 className="mt-1"
               />
+              <div className="text-xs text-gray-400 mt-1">Debug: {formData.endTime || 'empty'}</div>
             </div>
           </div>
         </CardContent>
@@ -852,7 +934,10 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
               <Label htmlFor="seatLayout">Select Venue Layout</Label>
               <Select
                 value={formData.seatLayoutId || 'none'}
-                onValueChange={(value) => handleInputChange('seatLayoutId', value === 'none' ? '' : value)}
+                onValueChange={(value) => {
+                  console.log('Seat layout selection changed to:', value);
+                  handleInputChange('seatLayoutId', value === 'none' ? '' : value);
+                }}
               >
                 <SelectTrigger className="mt-1">
                   <SelectValue placeholder="Choose a seating layout (optional)" />
@@ -869,6 +954,10 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
               <p className="text-sm text-gray-500 mt-1">
                 Select a seating layout to enable seat-map bookings. Ticket prices will be taken from the layout.
               </p>
+              {/* Debug info */}
+              <div className="text-xs text-gray-400 mt-2">
+                Debug: Current seatLayoutId = {formData.seatLayoutId || 'none'} | Available layouts: {availableLayouts.length}
+              </div>
             </div>
           </div>
         </CardContent>
@@ -1356,6 +1445,29 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
         eventDate={formData.startDate}
         eventDuration={calculateEventDuration()}
       />
+
+      {/* Error Modal */}
+      <Dialog open={showErrorModal} onOpenChange={setShowErrorModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="h-5 w-5" />
+              Error
+            </DialogTitle>
+            <DialogDescription className="text-base pt-4">
+              {error || 'An unexpected error occurred.'}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              onClick={() => setShowErrorModal(false)}
+              className="w-full"
+            >
+              OK
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

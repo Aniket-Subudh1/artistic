@@ -16,7 +16,8 @@ import {
   Play,
   Pause,
   X,
-  RefreshCw
+  RefreshCw,
+  AlertTriangle
 } from 'lucide-react';
 import { eventService, Event, EventFilters } from '@/services/event.service';
 import { useAuth } from '@/hooks/useAuth';
@@ -45,6 +46,7 @@ export default function EventManagement({ userRole }: EventManagementProps) {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showErrorModal, setShowErrorModal] = useState(false);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
@@ -82,6 +84,7 @@ export default function EventManagement({ userRole }: EventManagementProps) {
     try {
       setLoading(true);
       setError(null);
+      setShowErrorModal(false);
 
       let response;
       if (userRole === 'admin') {
@@ -95,6 +98,7 @@ export default function EventManagement({ userRole }: EventManagementProps) {
     } catch (err: any) {
       console.error('Failed to load events:', err);
       setError(err.message || 'Failed to load events. Please try again.');
+      setShowErrorModal(true);
     } finally {
       setLoading(false);
     }
@@ -130,15 +134,18 @@ export default function EventManagement({ userRole }: EventManagementProps) {
     try {
       setActionLoading(true);
       setError(null);
+      setShowErrorModal(false);
 
       // Pre-publish validations to avoid backend 400s
       if (!event.artists || event.artists.length === 0) {
         setError('Add at least one artist to the event before publishing.');
+        setShowErrorModal(true);
         return;
       }
 
       if (!event.seatLayoutId) {
         setError('Assign a seat layout to the event before publishing.');
+        setShowErrorModal(true);
         return;
       }
 
@@ -153,6 +160,7 @@ export default function EventManagement({ userRole }: EventManagementProps) {
     } catch (err: any) {
       console.error('Failed to publish event:', err);
       setError(err.message || 'Failed to publish event. Please try again.');
+      setShowErrorModal(true);
     } finally {
       setActionLoading(false);
     }
@@ -164,6 +172,7 @@ export default function EventManagement({ userRole }: EventManagementProps) {
     try {
       setActionLoading(true);
       setError(null);
+      setShowErrorModal(false);
 
       if (userRole === 'admin') {
         await eventService.cancelEventAsAdmin(cancelDialog.event._id, cancelDialog.reason, token);
@@ -176,6 +185,7 @@ export default function EventManagement({ userRole }: EventManagementProps) {
     } catch (err: any) {
       console.error('Failed to cancel event:', err);
       setError(err.message || 'Failed to cancel event. Please try again.');
+      setShowErrorModal(true);
     } finally {
       setActionLoading(false);
     }
@@ -187,6 +197,7 @@ export default function EventManagement({ userRole }: EventManagementProps) {
     try {
       setActionLoading(true);
       setError(null);
+      setShowErrorModal(false);
 
       if (userRole === 'admin') {
         await eventService.deleteEventAsAdmin(deleteDialog.event._id, token);
@@ -199,6 +210,7 @@ export default function EventManagement({ userRole }: EventManagementProps) {
     } catch (err: any) {
       console.error('Failed to delete event:', err);
       setError(err.message || 'Failed to delete event. Please try again.');
+      setShowErrorModal(true);
     } finally {
       setActionLoading(false);
     }
@@ -207,11 +219,13 @@ export default function EventManagement({ userRole }: EventManagementProps) {
   const handleRebuildOpenBooking = async (eventId: string) => {
     if (!token) {
       setError('Not authenticated');
+      setShowErrorModal(true);
       return;
     }
     try {
       setActionLoading(true);
       setError(null);
+      setShowErrorModal(false);
       if (userRole === 'admin') {
         await eventService.rebuildOpenBookingAsAdmin(eventId, token);
       } else {
@@ -221,6 +235,7 @@ export default function EventManagement({ userRole }: EventManagementProps) {
     } catch (err: any) {
       console.error('Failed to rebuild open booking:', err);
       setError(err.message || 'Failed to rebuild open booking.');
+      setShowErrorModal(true);
     } finally {
       setActionLoading(false);
     }
@@ -593,6 +608,29 @@ export default function EventManagement({ userRole }: EventManagementProps) {
               disabled={actionLoading}
             >
               {actionLoading ? 'Deleting...' : 'Delete Event'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Error Modal */}
+      <Dialog open={showErrorModal} onOpenChange={setShowErrorModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="h-5 w-5" />
+              Error
+            </DialogTitle>
+            <DialogDescription className="text-base pt-4">
+              {error || 'An unexpected error occurred.'}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              onClick={() => setShowErrorModal(false)}
+              className="w-full"
+            >
+              OK
             </Button>
           </DialogFooter>
         </DialogContent>

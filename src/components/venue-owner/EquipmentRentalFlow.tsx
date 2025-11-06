@@ -95,6 +95,13 @@ export default function EquipmentRentalFlow({
     }
   }, [isOpen]);
 
+  // Sync tempSelectedEquipment with selectedEquipment prop when dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      setTempSelectedEquipment(selectedEquipment);
+    }
+  }, [isOpen, selectedEquipment]);
+
   // Initialize quantities for selected equipment
   useEffect(() => {
     const quantities: Record<string, number> = {};
