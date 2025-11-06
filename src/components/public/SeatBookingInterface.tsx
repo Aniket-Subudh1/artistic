@@ -82,6 +82,26 @@ export default function SeatBookingInterface({
     loadLayoutDetails();
   }, [eventId]);
 
+  // Auto-refresh seat map when window gains focus (user returns from payment)
+  useEffect(() => {
+    const handleFocus = () => {
+      // Refresh the seat map when user returns to the page
+      loadLayoutDetails();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [eventId]);
+
+  // Periodic refresh every 30 seconds to keep seat availability up-to-date
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadLayoutDetails();
+    }, 30000); // Refresh every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [eventId]);
+
   // Call callback when seats are selected
   useEffect(() => {
     if (onSeatsSelected) {
@@ -94,6 +114,40 @@ export default function SeatBookingInterface({
       setLoading(true);
       setError(null);
       const details = await seatBookingService.getEventLayoutDetails(eventId);
+      
+      // Check if any currently selected items are no longer available
+      if (selectedItems.length > 0) {
+        const seatAvail = new Map<string, 'available' | 'booked' | 'locked' | 'blocked'>();
+        (details.layout.seats || []).forEach((s: any) => seatAvail.set(s.seatId, s.bookingStatus));
+
+        const tableAvail = new Map<string, 'available' | 'booked' | 'locked' | 'blocked'>();
+        const boothAvail = new Map<string, 'available' | 'booked' | 'locked' | 'blocked'>();
+        (details.layout.items || []).forEach((it: any) => {
+          const ref = it?.refId || {};
+          if (it?.modelType === 'Table' && ref?.table_id) {
+            tableAvail.set(ref.table_id, ref.bookingStatus);
+          }
+          if (it?.modelType === 'Booth' && ref?.booth_id) {
+            boothAvail.set(ref.booth_id, ref.bookingStatus);
+          }
+        });
+
+        const stillAvailable = selectedItems.filter((item) => {
+          if (item.type === 'seat') return seatAvail.get(item.id) === 'available';
+          if (item.type === 'table') return tableAvail.get(item.id) === 'available';
+          if (item.type === 'booth') return boothAvail.get(item.id) === 'available';
+          return false;
+        });
+
+        if (stillAvailable.length !== selectedItems.length) {
+          const removedCount = selectedItems.length - stillAvailable.length;
+          setSelectedItems(stillAvailable);
+          setError(
+            `⚠️ ${removedCount} item${removedCount !== 1 ? 's' : ''} you selected ${removedCount !== 1 ? 'are' : 'is'} no longer available and ${removedCount !== 1 ? 'have' : 'has'} been removed from your selection.`
+          );
+        }
+      }
+      
       setLayoutDetails(details);
       // Skipping decor fetch: backend has no public endpoint for original venue layout items
     } catch (err) {

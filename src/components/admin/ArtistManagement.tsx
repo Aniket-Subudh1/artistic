@@ -66,7 +66,7 @@ export function ArtistManagement() {
     gender: '',
     artistType: '',
     category: '',
-    customCategory: '', // Add custom category field
+    customCategory: '', 
     country: '',
     performPreference: [] as string[],
     youtubeLink: '',
@@ -74,7 +74,6 @@ export function ArtistManagement() {
     maximumPerformanceHours: 4,
   });
 
-  // Edit form state
   const [editArtistForm, setEditArtistForm] = useState({
     firstName: '',
     lastName: '',
