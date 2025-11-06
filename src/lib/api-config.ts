@@ -32,6 +32,7 @@ export const API_CONFIG = {
       PROFILE_UPDATE_REQUESTS: '/admin/profile-update-requests',
       REVIEW_PROFILE_UPDATE: (id: string) => `/admin/profile-update-requests/${id}/review`,
       REVIEW_PORTFOLIO_ITEM: (id: string) => `/admin/portfolio-items/${id}/review`,
+      REORDER_ARTISTS: '/admin/artists/reorder',
     },
     ARTIST: {
       ONBOARD: '/artist/onboard',

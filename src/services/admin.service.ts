@@ -88,6 +88,14 @@ export class AdminService {
     });
   }
 
+  // Artist Order Management
+  static async updateArtistOrder(artistIds: string[]): Promise<{ success: boolean; message: string }> {
+    return apiRequest(API_CONFIG.ENDPOINTS.ADMIN.REORDER_ARTISTS, {
+      method: 'POST',
+      body: JSON.stringify({ artistIds }),
+    });
+  }
+
   // Artist Booking Management
   static async getArtistBookings(filters?: {
     page?: number;

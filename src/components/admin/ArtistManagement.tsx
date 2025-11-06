@@ -22,7 +22,8 @@ import {
   Upload,
   Trash2,
   ArrowLeft,
-  ArrowRight
+  ArrowRight,
+  GripVertical
 } from 'lucide-react';
 import { ArtistService, Artist } from '@/services/artist.service';
 import { AdminService } from '@/services/admin.service';
@@ -30,6 +31,221 @@ import { UserService } from '@/services/user.service';
 import { ImageCropper } from '@/components/ui/ImageCropper';
 import { PricingSettings } from './PricingSettings';
 import { CountryCodeDropdown, Country, getDefaultCountry, extractPhoneNumber, formatPhoneNumber } from '@/components/ui/CountryCodeDropdown';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  rectSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+// Sortable Artist Card Component
+interface SortableArtistCardProps {
+  artist: Artist;
+  onView: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  onToggleStatus: () => void;
+  onToggleVisibility: () => void;
+}
+
+function SortableArtistCard({ 
+  artist, 
+  onView, 
+  onEdit, 
+  onDelete, 
+  onToggleStatus, 
+  onToggleVisibility 
+}: SortableArtistCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: artist._id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      style={style} 
+      className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
+    >
+      <div className="relative h-48 bg-gradient-to-br from-purple-500 to-blue-600">
+        {artist.profileCoverImage ? (
+          <img 
+            src={artist.profileCoverImage} 
+            alt={artist.stageName}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-white">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                <span className="text-2xl font-bold">
+                  {(artist.user?.firstName?.charAt(0) || 'A')}{(artist.user?.lastName?.charAt(0) || 'R')}
+                </span>
+              </div>
+              <p className="text-sm">{artist.stageName}</p>
+            </div>
+          </div>
+        )}
+        
+        {/* Drag Handle */}
+        <div 
+          {...attributes} 
+          {...listeners}
+          className="absolute top-4 right-4 cursor-grab active:cursor-grabbing bg-white/90 backdrop-blur-sm p-2 rounded-lg hover:bg-white transition-colors"
+          title="Drag to reorder"
+        >
+          <GripVertical className="w-5 h-5 text-gray-700" />
+        </div>
+
+        <div className="absolute top-4 left-4 flex flex-col gap-1">
+          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+            artist.user?.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+          }`}>
+            {artist.user?.isActive ? 'Active' : 'Inactive'}
+          </span>
+          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+            artist.isVisible !== false ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+          }`}>
+            {artist.isVisible !== false ? 'Visible' : 'Hidden'}
+          </span>
+        </div>
+
+        <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium">
+          {artist.category}
+        </div>
+      </div>
+
+      <div className="p-6">
+        <div className="flex items-start justify-between mb-2">
+          <div>
+            <h3 className="font-semibold text-gray-900">{artist.stageName || 'Unknown Artist'}</h3>
+            <p className="text-sm text-gray-600">{artist.user?.firstName || 'Unknown'} {artist.user?.lastName || 'Artist'}</p>
+          </div>
+          <div className="flex items-center gap-1 text-sm text-gray-500">
+            <Star className="w-4 h-4 text-yellow-500" />
+            <span>{artist.likeCount || 0}</span>
+          </div>
+        </div>
+
+        <div className="space-y-2 text-sm text-gray-600 mb-4">
+          <div className="flex items-center gap-2">
+            <MapPin className="w-4 h-4" />
+            <span>{artist.country}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4" />
+            <span>{artist.yearsOfExperience} years experience</span>
+          </div>
+          <div className="font-semibold text-gray-900">
+            {artist.pricePerHour} KWD/hour
+          </div>
+        </div>
+
+        <div className="mt-4 flex gap-2">
+          <button 
+            onClick={onView}
+            className="flex-1 px-3 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors flex items-center justify-center gap-1"
+          >
+            <Eye className="w-4 h-4" />
+            View
+          </button>
+          <button 
+            onClick={onEdit}
+            className="flex-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center justify-center gap-1"
+          >
+            <Edit className="w-4 h-4" />
+            Edit
+          </button>
+          <button 
+            onClick={onDelete}
+            className="flex-1 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors flex items-center justify-center gap-1"
+          >
+            <Trash2 className="w-4 h-4" />
+            Delete
+          </button>
+        </div>
+
+        <div className="mt-2 flex gap-2">
+          <button 
+            onClick={onToggleStatus}
+            disabled={!artist.user}
+            className={`flex-1 px-3 py-2 rounded-lg transition-colors flex items-center justify-center gap-1 ${
+              !artist.user 
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : artist.user?.isActive 
+                  ? 'bg-orange-100 text-orange-700 hover:bg-orange-200' 
+                  : 'bg-green-100 text-green-700 hover:bg-green-200'
+            }`}
+            title={
+              !artist.user 
+                ? 'No user account linked' 
+                : artist.user?.isActive ? 'Deactivate Artist' : 'Activate Artist'
+            }
+          >
+            {!artist.user ? (
+              <>
+                <User className="w-4 h-4" />
+                No User
+              </>
+            ) : artist.user?.isActive ? (
+              <>
+                <UserX className="w-4 h-4" />
+                Deactivate
+              </>
+            ) : (
+              <>
+                <UserCheck className="w-4 h-4" />
+                Activate
+              </>
+            )}
+          </button>
+          <button 
+            onClick={onToggleVisibility}
+            className={`flex-1 px-3 py-2 rounded-lg transition-colors flex items-center justify-center gap-1 ${
+              artist.isVisible !== false
+                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' 
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+            title={artist.isVisible !== false ? 'Hide from Homepage' : 'Show on Homepage'}
+          >
+            {artist.isVisible !== false ? (
+              <>
+                <EyeOff className="w-4 h-4" />
+                Hide
+              </>
+            ) : (
+              <>
+                <Eye className="w-4 h-4" />
+                Show
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function ArtistManagement() {
   const [artists, setArtists] = useState<Artist[]>([]);
@@ -163,6 +379,14 @@ export function ArtistManagement() {
   const [cropperImage, setCropperImage] = useState<string>('');
   const [currentCropType, setCurrentCropType] = useState<'profile' | 'cover'>('profile');
 
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
   useEffect(() => {
     loadData();
   }, []);
@@ -222,6 +446,41 @@ export function ArtistManagement() {
       setError('Failed to delete artist: ' + (error.message || 'Unknown error'));
     } finally {
       setIsDeletingArtist(false);
+    }
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const oldIndex = filteredArtists.findIndex((artist) => artist._id === active.id);
+    const newIndex = filteredArtists.findIndex((artist) => artist._id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) {
+      return;
+    }
+
+    // Optimistically update the UI
+    const newArtists = arrayMove(filteredArtists, oldIndex, newIndex);
+    
+    // Update local state immediately for smooth UX
+    setArtists(newArtists);
+
+    try {
+      // Send the new order to the backend
+      const artistIds = newArtists.map(artist => artist._id);
+      await AdminService.updateArtistOrder(artistIds);
+      setSuccess('Artist order updated successfully!');
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (error: any) {
+      setError('Failed to update artist order: ' + (error.message || 'Unknown error'));
+      // Reload data to revert to server state
+      loadData();
     }
   };
 
@@ -933,165 +1192,38 @@ export function ArtistManagement() {
         </select>
       </div>
 
-      {/* Artists Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredArtists.map((artist) => (
-          <div key={artist._id} className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
-            <div className="relative h-48 bg-gradient-to-br from-purple-500 to-blue-600">
-              {artist.profileCoverImage ? (
-                <img 
-                  src={artist.profileCoverImage} 
-                  alt={artist.stageName}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-white">
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-2">
-                      <span className="text-2xl font-bold">
-                        {(artist.user?.firstName?.charAt(0) || 'A')}{(artist.user?.lastName?.charAt(0) || 'R')}
-                      </span>
-                    </div>
-                    <p className="text-sm">{artist.stageName}</p>
-                  </div>
-                </div>
-              )}
-              
-              <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium">
-                {artist.category}
-              </div>
-
-              <div className="absolute top-4 left-4 flex flex-col gap-1">
-                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                  artist.user?.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                }`}>
-                  {artist.user?.isActive ? 'Active' : 'Inactive'}
-                </span>
-                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                  artist.isVisible !== false ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
-                }`}>
-                  {artist.isVisible !== false ? 'Visible' : 'Hidden'}
-                </span>
-              </div>
-            </div>
-
-            <div className="p-6">
-              <div className="flex items-start justify-between mb-2">
-                <div>
-                  <h3 className="font-semibold text-gray-900">{artist.stageName || 'Unknown Artist'}</h3>
-                  <p className="text-sm text-gray-600">{artist.user?.firstName || 'Unknown'} {artist.user?.lastName || 'Artist'}</p>
-                </div>
-                <div className="flex items-center gap-1 text-sm text-gray-500">
-                  <Star className="w-4 h-4 text-yellow-500" />
-                  <span>{artist.likeCount || 0}</span>
-                </div>
-              </div>
-
-              <div className="space-y-2 text-sm text-gray-600 mb-4">
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4" />
-                  <span>{artist.country}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
-                  <span>{artist.yearsOfExperience} years experience</span>
-                </div>
-                <div className="font-semibold text-gray-900">
-                  {artist.pricePerHour} KWD/hour
-                </div>
-              </div>
-
-              <div className="mt-4 flex gap-2">
-                <button 
-                  onClick={() => {
-                    setSelectedArtist(artist);
-                    setShowViewModal(true);
-                  }}
-                  className="flex-1 px-3 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors flex items-center justify-center gap-1"
-                >
-                  <Eye className="w-4 h-4" />
-                  View
-                </button>
-                <button 
-                  onClick={() => {
-                    setSelectedArtist(artist);
-                    populateEditForm(artist);
-                    setShowEditModal(true);
-                  }}
-                  className="flex-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center justify-center gap-1"
-                >
-                  <Edit className="w-4 h-4" />
-                  Edit
-                </button>
-                <button 
-                  onClick={() => handleDeleteArtist(artist._id, artist.stageName)}
-                  className="flex-1 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors flex items-center justify-center gap-1"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Delete
-                </button>
-              </div>
-
-              <div className="mt-2 flex gap-2">
-                <button 
-                  onClick={() => artist.user && handleToggleArtistStatus(artist.user._id)}
-                  disabled={!artist.user}
-                  className={`flex-1 px-3 py-2 rounded-lg transition-colors flex items-center justify-center gap-1 ${
-                    !artist.user 
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : artist.user?.isActive 
-                        ? 'bg-orange-100 text-orange-700 hover:bg-orange-200' 
-                        : 'bg-green-100 text-green-700 hover:bg-green-200'
-                  }`}
-                  title={
-                    !artist.user 
-                      ? 'No user account linked' 
-                      : artist.user?.isActive ? 'Deactivate Artist' : 'Activate Artist'
-                  }
-                >
-                  {!artist.user ? (
-                    <>
-                      <User className="w-4 h-4" />
-                      No User
-                    </>
-                  ) : artist.user?.isActive ? (
-                    <>
-                      <UserX className="w-4 h-4" />
-                      Deactivate
-                    </>
-                  ) : (
-                    <>
-                      <UserCheck className="w-4 h-4" />
-                      Activate
-                    </>
-                  )}
-                </button>
-                <button 
-                  onClick={() => handleToggleArtistVisibility(artist._id, artist.isVisible !== false)}
-                  className={`flex-1 px-3 py-2 rounded-lg transition-colors flex items-center justify-center gap-1 ${
-                    artist.isVisible !== false
-                      ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' 
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                  title={artist.isVisible !== false ? 'Hide from Homepage' : 'Show on Homepage'}
-                >
-                  {artist.isVisible !== false ? (
-                    <>
-                      <EyeOff className="w-4 h-4" />
-                      Hide
-                    </>
-                  ) : (
-                    <>
-                      <Eye className="w-4 h-4" />
-                      Show
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
+      {/* Artists Grid with Drag and Drop */}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={filteredArtists.map(artist => artist._id)}
+          strategy={rectSortingStrategy}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredArtists.map((artist) => (
+              <SortableArtistCard
+                key={artist._id}
+                artist={artist}
+                onView={() => {
+                  setSelectedArtist(artist);
+                  setShowViewModal(true);
+                }}
+                onEdit={() => {
+                  setSelectedArtist(artist);
+                  populateEditForm(artist);
+                  setShowEditModal(true);
+                }}
+                onDelete={() => handleDeleteArtist(artist._id, artist.stageName)}
+                onToggleStatus={() => artist.user && handleToggleArtistStatus(artist.user._id)}
+                onToggleVisibility={() => handleToggleArtistVisibility(artist._id, artist.isVisible !== false)}
+              />
+            ))}
           </div>
-        ))}
-      </div>
+        </SortableContext>
+      </DndContext>
 
       {filteredArtists.length === 0 && (
         <div className="text-center py-12">
