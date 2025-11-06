@@ -57,10 +57,21 @@ export default function BookingPage({ params }: BookingPageProps) {
     phone: '',
     specialRequests: ''
   });
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     fetchEvent();
   }, [resolvedParams.id]);
+
+  useEffect(() => {
+    if (bookingStep !== 'seats') return;
+
+    const interval = setInterval(() => {
+      setRefreshTrigger(prev => prev + 1);
+    }, 30000); 
+
+    return () => clearInterval(interval);
+  }, [bookingStep]);
 
   const fetchEvent = async () => {
     try {
@@ -254,11 +265,11 @@ export default function BookingPage({ params }: BookingPageProps) {
               onSeatsSelected={setSelectedSeats}
               onBookingComplete={() => setBookingStep('details')}
               fullScreen={false}
+              refreshTrigger={refreshTrigger}
             />
           </div>
         </div>
       ) : (
-        // Details and other steps with proper layout
         <div className="relative z-10 pt-20">
           {/* Header */}
           <div className="max-w-7xl mx-auto px-6 py-6">
@@ -278,7 +289,7 @@ export default function BookingPage({ params }: BookingPageProps) {
                     {formatDate(event.startDate)} • {formatTime(event.startTime)}
                   </p>
                 </div>
-                <div className="w-32"></div> {/* Spacer for center alignment */}
+                <div className="w-32"></div>
               </div>
             </div>
           </div>

@@ -23,6 +23,7 @@ interface SeatBookingInterfaceProps {
   onSeatsSelected?: (seats: any[]) => void;
   onBookingComplete?: () => void;
   fullScreen?: boolean;
+  refreshTrigger?: number; 
 }
 
 interface SelectedItem {
@@ -42,7 +43,8 @@ export default function SeatBookingInterface({
   layoutId, 
   onSeatsSelected, 
   onBookingComplete, 
-  fullScreen = false 
+  fullScreen = false,
+  refreshTrigger = 0
 }: SeatBookingInterfaceProps) {
   const eventId = event?._id;
   
@@ -93,14 +95,12 @@ export default function SeatBookingInterface({
     return () => window.removeEventListener('focus', handleFocus);
   }, [eventId]);
 
-  // Periodic refresh every 30 seconds to keep seat availability up-to-date
+  // Refresh when external trigger changes (from parent component polling)
   useEffect(() => {
-    const interval = setInterval(() => {
-      loadLayoutDetails();
-    }, 30000); // Refresh every 30 seconds
-
-    return () => clearInterval(interval);
-  }, [eventId]);
+    if (refreshTrigger > 0) {
+      loadLayoutDetailsSilently();
+    }
+  }, [refreshTrigger]);
 
   // Call callback when seats are selected
   useEffect(() => {
@@ -109,10 +109,12 @@ export default function SeatBookingInterface({
     }
   }, [selectedItems, onSeatsSelected]);
 
-  const loadLayoutDetails = async () => {
+  const loadLayoutDetails = async (silent: boolean = false) => {
     try {
-      setLoading(true);
-      setError(null);
+      if (!silent) {
+        setLoading(true);
+        setError(null);
+      }
       const details = await seatBookingService.getEventLayoutDetails(eventId);
       
       // Check if any currently selected items are no longer available
@@ -152,10 +154,19 @@ export default function SeatBookingInterface({
       // Skipping decor fetch: backend has no public endpoint for original venue layout items
     } catch (err) {
       console.error('Failed to load event layout:', err);
-      setError('Failed to load event details. Please try again.');
+      if (!silent) {
+        setError('Failed to load event details. Please try again.');
+      }
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
+  };
+
+  // Silent refresh for background updates (polling)
+  const loadLayoutDetailsSilently = async () => {
+    await loadLayoutDetails(true);
   };
 
   const handleSeatClick = useCallback((seatData: any) => {
@@ -661,7 +672,7 @@ export default function SeatBookingInterface({
           <AlertDescription>{error}</AlertDescription>
         </Alert>
         <div className="mt-4">
-          <Button onClick={loadLayoutDetails} variant="outline" className="bg-white/50 backdrop-blur-sm">
+          <Button onClick={() => loadLayoutDetails(false)} variant="outline" className="bg-white/50 backdrop-blur-sm">
             Try Again
           </Button>
         </div>
@@ -1027,19 +1038,6 @@ export default function SeatBookingInterface({
                           <span className="hidden sm:inline">Purchase Tickets</span>
                           <span className="sm:hidden">Purchase</span>
                         </Button>
-
-                        {/* Apply Coupon - Hidden on small mobile */}
-                        <div className="pt-2 hidden sm:block">
-                          <Button 
-                            variant="outline"
-                            className="w-full border-[#391C71]/30 text-[#391C71] hover:bg-[#391C71]/10 transition-colors text-sm lg:text-base"
-                            onClick={() => {
-                              // Add coupon functionality here
-                            }}
-                          >
-                            Apply Coupon
-                          </Button>
-                        </div>
                       </CardContent>
                     </Card>
                   )}
