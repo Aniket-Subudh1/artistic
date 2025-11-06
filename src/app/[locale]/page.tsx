@@ -1,15 +1,17 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
-import { MapPin, Star } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { Navbar } from '@/components/main/Navbar';
 import { Footer } from '@/components/main/Footer';
 import HeroCarousel from '@/components/ui/HeroCarousel';
 import PublicPackages from '@/components/main/PublicPackages';
 import PublicArtists from '@/components/main/PublicArtists';
 import EventsWidget from '@/components/public/EventsWidget';
+import SponsorCarousel from '@/components/public/SponsorCarousel';
+import Testimonials from '@/components/public/Testimonials';
 import { Iansui } from 'next/font/google';
 import Image from 'next/image';
 import TitleTag from '@/components/ui/TitleTag';
@@ -17,39 +19,11 @@ import { CarouselService } from '@/services/carousel.service';
 
 export default function HomePage() {
   const t = useTranslations();
-  const [scrollY, setScrollY] = useState(0);
   const [carouselSlides, setCarouselSlides] = useState<any[]>([]);
   const [isLoadingSlides, setIsLoadingSlides] = useState(true);
 
-  const testimonials = [
-    {
-      name: t('home.testimonialsData.sarah.name'),
-      role: t('home.testimonialsData.sarah.role'),
-      content: t('home.testimonialsData.sarah.content'),
-      avatar: '/assets/images/testimonial1.jpg',
-    },
-    {
-      name: t('home.testimonialsData.michael.name'),
-      role: t('home.testimonialsData.michael.role'),
-      content: t('home.testimonialsData.michael.content'),
-      avatar: '/assets/images/testimonial2.jpg',
-    },
-    {
-      name: t('home.testimonialsData.emma.name'),
-      role: t('home.testimonialsData.emma.role'),
-      content: t('home.testimonialsData.emma.content'),
-      avatar: '/assets/images/testimonial3.jpg',
-    },
-  ];
-
-  useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   // Fallback slides (current hardcoded content)
-  const fallbackSlides = [
+  const fallbackSlides = useMemo(() => [
     {
       image: '/1.jpg',
       title: t('home.heroTitle'),
@@ -95,7 +69,7 @@ export default function HomePage() {
       ctaLink: '/coming-soon',
       category: 'Movies',
     },
-  ];
+  ], [t]);
 
   // Load carousel slides from API
   useEffect(() => {
@@ -122,7 +96,7 @@ export default function HomePage() {
     };
 
     loadCarouselSlides();
-  }, [t]); // Re-run when translations change
+  }, [fallbackSlides]); // Re-run when fallbackSlides change (which happens when translations change)
 
   return (
     <div className="min-h-screen bg-white relative">
@@ -206,92 +180,15 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-20 relative overflow-hidden z-10">
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              'linear-gradient(135deg, #391C71 0%, #5B2C87 25%, #7C3A9D 50%, #9D47B3 75%, #BE54C9 100%)',
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/20" />
-        <div className="max-w-7xl mx-auto px-6 text-center relative z-10">
-          <h2 className="text-5xl font-bold text.white mb-6 leading-tight">
-            {t('home.ctaTitle')}
-          </h2>
-          <p className="text-white/90 text-xl mb-12 max-w-3xl mx-auto leading-relaxed">
-            {t('home.ctaSubtitle')}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <Link
-              href="/artists"
-              className="group px-10 py-4 bg-white text-[#391C71] rounded-full font-medium hover:bg-yellow-300 transition-all duration-500 shadow-2xl hover:scale-105 relative z-20"
-            >
-              <span className="group-hover:tracking-wider transition-all duration-300">
-                {t('nav.planEvent')}
-              </span>
-            </Link>
-            <Link
-              href="/contact"
-              className="group px-10 py-4 bg-white/15 backdrop-blur-xl border border-white/30 text-white rounded-full hover:bg-white/25 transition-all duration-500 font-medium shadow-2xl hover:scale-105 relative z-20"
-            >
-              <span className="group-hover:tracking-wider transition-all duration-300">
-                {t('home.contactUs')}
-              </span>
-            </Link>
-          </div>
-        </div>
-      </section>
+      {/* Sponsors Carousel - Replacing the purple CTA section */}
+      <SponsorCarousel 
+        autoScroll={true} 
+        scrollSpeed={30} 
+        showTierBadges={true}
+      />
 
-      <section className="py-20 relative z-10">
-        <div className="absolute inset-0 bg-gradient-to-r from-gray-50 to-purple-50" />
-        <div className="max-w-7xl mx-auto px-6 relative">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl font-bold text-gray-900 mb-6 relative">
-              {t('home.testimonials')}
-              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 h-1 bg-[#391C71] rounded-full" />
-            </h2>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
-              {t('home.testimonialsDesc')}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, idx) => (
-              <div
-                key={idx}
-                className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl hover:shadow-2xl hover:shadow-[#391C71]/10 transition-all duration-500 transform hover:-translate-y-1 group"
-                style={{ animationDelay: `${idx * 200}ms` }}
-              >
-                <div className="flex items-center mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-br from-[#391C71] to-[#5B2C87] rounded-full flex items-center justify-center mr-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <span className="text-white font-bold text-xl">
-                      {testimonial.name.charAt(0)}
-                    </span>
-                  </div>
-                  <div>
-                    <div className="font-bold text-gray-900 text-lg">
-                      {testimonial.name}
-                    </div>
-                    <div className="text-[#391C71] text-sm font-medium">
-                      {testimonial.role}
-                    </div>
-                  </div>
-                </div>
-                <p className="text-gray-700 italic text-base mb-6 leading-relaxed">
-                  "{testimonial.content}"
-                </p>
-                <div className="flex">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-yellow-500 fill-current" />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Dynamic Testimonials Section */}
+      <Testimonials />
 
       <Footer />
 
