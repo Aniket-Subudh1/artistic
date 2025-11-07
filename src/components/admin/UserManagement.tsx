@@ -179,11 +179,6 @@ export function UserManagement({ currentUser }: UserManagementProps) {
 
   const getRoleBadge = (role: string) => {
     const roleConfig = {
-      SUPER_ADMIN: { label: 'Super Admin', classes: 'bg-purple-100 text-purple-800' },
-      ADMIN: { label: 'Admin', classes: 'bg-blue-100 text-blue-800' },
-      ARTIST: { label: 'Artist', classes: 'bg-pink-100 text-pink-800' },
-      EQUIPMENT_PROVIDER: { label: 'Equipment Provider', classes: 'bg-green-100 text-green-800' },
-      VENUE_OWNER: { label: 'Venue Owner', classes: 'bg-orange-100 text-orange-800' },
       USER: { label: 'User', classes: 'bg-gray-100 text-gray-800' }
     };
 
@@ -296,9 +291,6 @@ export function UserManagement({ currentUser }: UserManagementProps) {
         >
           <option value="all">All Roles</option>
           <option value="USER">User</option>
-          <option value="ARTIST">Artist</option>
-          <option value="EQUIPMENT_PROVIDER">Equipment Provider</option>
-          <option value="VENUE_OWNER">Venue Owner</option>
           <option value="ADMIN">Admin</option>
           <option value="SUPER_ADMIN">Super Admin</option>
         </select>
@@ -609,9 +601,6 @@ export function UserManagement({ currentUser }: UserManagementProps) {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   >
                     <option value="USER">User</option>
-                    <option value="ARTIST">Artist</option>
-                    <option value="EQUIPMENT_PROVIDER">Equipment Provider</option>
-                    <option value="VENUE_OWNER">Venue Owner</option>
                     {/* Only super admin can create admin users */}
                     {currentUser?.role === 'super_admin' && (
                       <option value="ADMIN">Admin</option>
