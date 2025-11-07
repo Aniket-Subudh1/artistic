@@ -15,6 +15,7 @@ import {
 import { Navbar } from '@/components/main/Navbar';
 import { Footer } from '@/components/main/Footer';
 import { PaymentService } from '@/services/payment.service';
+import { EventPaymentService } from '@/services/event-payment.service';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 const PaymentFailurePage: React.FC = () => {
@@ -31,6 +32,13 @@ const PaymentFailurePage: React.FC = () => {
   const errorMessage = searchParams.get('error_message');
 
   useEffect(() => {
+    // Check if this is an event creation payment - redirect to dedicated page
+    if (bookingId && EventPaymentService.isEventPayment(bookingId, type || '')) {
+      const params = new URLSearchParams(window.location.search);
+      router.push(`/payment/event-failure?${params.toString()}`);
+      return;
+    }
+
     // Get all payment callback parameters for display and trigger backend verification
     const urlParams = new URLSearchParams(window.location.search);
     const params: Record<string, string> = {};
@@ -50,7 +58,7 @@ const PaymentFailurePage: React.FC = () => {
     } else {
       setVerifying(false);
     }
-  }, [bookingId, type]);
+  }, [bookingId, type, router]);
   if (verifying) {
     return (
       <div className="min-h-screen relative">

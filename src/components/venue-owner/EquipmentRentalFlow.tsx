@@ -301,7 +301,7 @@ export default function EquipmentRentalFlow({
 
                 <div className="text-right ml-4">
                   <div className="font-semibold text-primary">
-                    ${equipment.calculatedPrice || equipment.pricePerDay}
+                    ${(equipment.calculatedPrice || equipment.pricePerDay).toFixed(2)}
                   </div>
                    <div className="text-xs text-gray-500">
                      per day
@@ -405,7 +405,7 @@ export default function EquipmentRentalFlow({
                   <div className="flex-1">
                     <div className="font-medium">{item.equipmentName}</div>
                     <div className="text-sm text-gray-600">
-                      {item.quantity} × ${item.pricePerUnit} = ${item.totalPrice}
+                      {item.quantity} × ${item.pricePerUnit?.toFixed(2)} = ${item.totalPrice?.toFixed(2)}
                     </div>
                   </div>
                   <Button
@@ -435,7 +435,7 @@ export default function EquipmentRentalFlow({
         <div className="bg-gray-50 rounded-lg p-3 border-2 border-dashed border-gray-300">
           <div className="flex items-center justify-between font-semibold">
             <span>Total Equipment Cost:</span>
-            <span className="text-primary">${totalCost}</span>
+            <span className="text-primary">${totalCost.toFixed(2)}</span>
           </div>
           <div className="text-xs text-gray-500 mt-1">
             For {eventDuration <= 8 ? `${eventDuration} hours` : `${Math.ceil(eventDuration / 24)} day(s)`}
@@ -449,7 +449,7 @@ export default function EquipmentRentalFlow({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white max-w-7xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="bg-white max-w-7xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
@@ -460,11 +460,11 @@ export default function EquipmentRentalFlow({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0 overflow-hidden">
           {/* Equipment List */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-2 flex flex-col space-y-4 min-h-0">
             {/* Filters */}
-            <Card className="bg-white">
+            <Card className="bg-white shrink-0">
               <CardContent className="p-4">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                   <div className="relative">
@@ -508,12 +508,16 @@ export default function EquipmentRentalFlow({
                     <Input
                       placeholder="Min $"
                       type="number"
+                      step="0.01"
+                      min="0"
                       value={priceRange.min}
                       onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
                     />
                     <Input
                       placeholder="Max $"
                       type="number"
+                      step="0.01"
+                      min="0"
                       value={priceRange.max}
                       onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
                     />
@@ -528,7 +532,7 @@ export default function EquipmentRentalFlow({
             </Card>
 
             {/* Equipment Grid */}
-            <div className="flex-1 overflow-y-auto space-y-3">
+            <div className="flex-1 min-h-0 overflow-y-auto space-y-3 pr-2">
               {loading ? (
                 <div className="flex items-center justify-center py-12">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -549,21 +553,19 @@ export default function EquipmentRentalFlow({
           </div>
 
           {/* Selected Equipment Sidebar */}
-          <div className="lg:col-span-1 border-l border-gray-200 pl-6">
-            <div className="sticky top-0">
-              <h3 className="font-semibold mb-4 flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4" />
-                Selected Equipment ({tempSelectedEquipment.length})
-              </h3>
-              
-              <div className="h-[500px] overflow-y-auto">
-                {renderSelectedEquipment()}
-              </div>
+          <div className="lg:col-span-1 border-l border-gray-200 pl-6 flex flex-col min-h-0">
+            <h3 className="font-semibold mb-4 flex items-center gap-2 shrink-0">
+              <CheckCircle2 className="h-4 w-4" />
+              Selected Equipment ({tempSelectedEquipment.length})
+            </h3>
+            
+            <div className="flex-1 min-h-0 overflow-y-auto pr-2">
+              {renderSelectedEquipment()}
             </div>
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="shrink-0">
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>

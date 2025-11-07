@@ -205,6 +205,12 @@ export const API_CONFIG = {
       USER_BOOKINGS: '/seat-book/user-bookings',
       BOOKING_DETAILS: (id: string) => `/seat-book/booking/${id}`,
       AVAILABILITY: (eventId: string) => `/seat-book/availability/${eventId}`,
+      // Venue Owner endpoints
+      VENUE_OWNER_BOOKINGS: '/seat-book/venue-owner/bookings',
+      VENUE_OWNER_STATS: '/seat-book/venue-owner/stats',
+      VENUE_OWNER_BOOKING_DETAILS: (id: string) => `/seat-book/venue-owner/booking/${id}`,
+      VENUE_OWNER_UPDATE_STATUS: (id: string) => `/seat-book/venue-owner/booking/${id}/status`,
+      VENUE_OWNER_EXPORT: '/seat-book/venue-owner/bookings/export',
     },
     SETTINGS: {
       GET_PROFILE: '/settings/profile',
@@ -324,9 +330,20 @@ export const apiRequest = async <T>(
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      const backendMessage = errorData.message || `HTTP ${response.status}: ${response.statusText}`;
+      // Provide clearer client-side messaging for common authorization cases
+      let clientMessage = backendMessage;
+      if (response.status === 403) {
+        // Distinguish ownership vs generic forbidden
+        if (/only (publish|cancel|delete|view|edit) your own events/i.test(backendMessage)) {
+          clientMessage = backendMessage; // keep specific ownership wording
+        } else if (/forbidden|not allowed|permission/i.test(backendMessage)) {
+          clientMessage = 'You do not have permission to perform this action.';
+        }
+      }
       throw new APIError(
         response.status,
-        errorData.message || `HTTP ${response.status}: ${response.statusText}`,
+        clientMessage,
         errorData
       );
     }

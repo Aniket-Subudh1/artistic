@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import EventManagement from '@/components/admin/EventManagement';
+import VenueOwnerEventManagement from '@/components/venue-owner/VenueOwnerEventManagement';
 import { useAuth } from '@/hooks/useAuth';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
@@ -21,7 +21,7 @@ export default function VenueOwnerEventsPage() {
     );
   }
 
-  return <EventManagement userRole="venue_owner" />;
+  return <VenueOwnerEventManagement />;
 }
 
 

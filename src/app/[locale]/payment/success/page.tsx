@@ -41,15 +41,16 @@ const PaymentSuccessPage: React.FC = () => {
   const invoiceId = searchParams.get('invoiceId');
 
   useEffect(() => {
+    // Check if this is an event creation payment - redirect to dedicated page
+    if (bookingId && EventPaymentService.isEventPayment(bookingId, type || '')) {
+      const params = new URLSearchParams(window.location.search);
+      router.push(`/payment/event-success?${params.toString()}`);
+      return;
+    }
+
     // Just read and display the callback params; verification already happened on backend
     const allParams = PaymentService.getPaymentCallbackParams();
     setPaymentDetails(allParams);
-
-    // Check if this is an event creation payment
-    if (bookingId && type && EventPaymentService.isEventPayment(bookingId, type)) {
-      setIsEventPayment(true);
-      handleEventCreation(bookingId, trackId || '');
-    }
 
     // Handle event ticket bookings: fetch booking details to render ticket info
     const initTicket = async () => {
@@ -65,7 +66,7 @@ const PaymentSuccessPage: React.FC = () => {
       }
     };
     initTicket();
-  }, [bookingId, type, trackId]);
+  }, [bookingId, type, trackId, router]);
 
   const handleEventCreation = async (comboBookingId: string, trackId: string) => {
     setVerifying(true);

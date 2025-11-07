@@ -157,10 +157,11 @@ export function MyBookings() {
     });
   };
 
+  // Updated currency formatting to use Kuwaiti Dinar (KWD) instead of USD
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-KW', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'KWD'
     }).format(amount);
   };
 

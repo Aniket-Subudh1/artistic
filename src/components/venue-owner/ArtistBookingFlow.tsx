@@ -184,6 +184,13 @@ export default function ArtistBookingFlow({
       const performanceTypeKey = PERFORMANCE_TYPE_MAP[performanceType] || 'public';
       const allArtists = await ArtistService.getArtistsByPerformanceType(performanceTypeKey);
 
+      console.log('[ArtistBooking] Raw artists from API:', allArtists.map(a => ({
+        name: a.stageName,
+        pricePerHour: a.pricePerHour,
+        pricePerHourType: typeof a.pricePerHour,
+        pricePerHourValue: JSON.stringify(a.pricePerHour)
+      })));
+
       // Check availability and calculate pricing for each artist
       const artistsWithAvailability = await Promise.all(
         allArtists.map(async (artist) => {
@@ -192,17 +199,18 @@ export default function ArtistBookingFlow({
             const startTime = new Date(`${eventDate}T${eventStartTime}`);
             const endTime = new Date(`${eventDate}T${eventEndTime}`);
             const duration = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+            const durationHours = Math.max(1, Math.ceil(duration)); // Minimum 1 hour
 
             // Check availability
             const availability = await ArtistService.checkAvailability(
               artist._id,
               eventDate,
               startTime.getHours(),
-              Math.ceil(duration)
+              durationHours
             );
 
-            // Calculate cost if available
-            let estimatedFee = artist.pricePerHour * Math.ceil(duration);
+            // Calculate cost - use at least 1 hour to ensure we show the base rate
+            let estimatedFee = Number(artist.pricePerHour) * durationHours;
             
             if (availability.isAvailable) {
               try {
@@ -210,9 +218,10 @@ export default function ArtistBookingFlow({
                   artist._id,
                   performanceTypeKey,
                   startTime.getHours(),
-                  Math.ceil(duration)
+                  durationHours
                 );
-                estimatedFee = costCalculation.totalCost;
+                // Ensure we have a valid cost
+                estimatedFee = costCalculation.totalCost > 0 ? Number(costCalculation.totalCost) : estimatedFee;
               } catch (costError) {
                 // Fallback to basic calculation if cost API fails
                 console.warn('Cost calculation failed, using fallback:', costError);
@@ -221,6 +230,7 @@ export default function ArtistBookingFlow({
 
             return {
               ...artist,
+              pricePerHour: Number(artist.pricePerHour), // Ensure it's a number
               isAvailable: availability.isAvailable,
               estimatedFee,
               availabilityReason: availability.reason
@@ -229,13 +239,21 @@ export default function ArtistBookingFlow({
             console.warn(`Failed to check availability for artist ${artist._id}:`, error);
             return {
               ...artist,
+              pricePerHour: Number(artist.pricePerHour), // Ensure it's a number
               isAvailable: false,
-              estimatedFee: artist.pricePerHour * 2, // Fallback estimate
+              estimatedFee: Number(artist.pricePerHour) * 2, // Fallback estimate
               availabilityReason: 'Unable to check availability'
             };
           }
         })
       );
+
+      console.log('[ArtistBooking] Artists loaded with pricing:', artistsWithAvailability.map(a => ({
+        name: a.stageName,
+        pricePerHour: a.pricePerHour,
+        estimatedFee: a.estimatedFee,
+        isAvailable: a.isAvailable
+      })));
 
       setArtists(artistsWithAvailability);
     } catch (err: any) {
@@ -367,7 +385,7 @@ export default function ArtistBookingFlow({
 
                 <div className="text-right">
                   <div className="font-semibold text-primary">
-                    ${artist.estimatedFee || artist.pricePerHour}
+                    ${((artist.estimatedFee ?? artist.pricePerHour) || 0).toFixed(2)}
                   </div>
                   <div className="text-xs text-gray-500">estimated</div>
                 </div>
@@ -502,7 +520,7 @@ export default function ArtistBookingFlow({
                       {artist.isCustomArtist ? artist.customArtistName : artist.artistName}
                     </div>
                     <div className="text-sm text-gray-600">
-                      ${artist.fee}
+                      ${artist.fee.toFixed(2)}
                       {artist.isCustomArtist && (
                         <Badge variant="outline" className="ml-2 text-xs">
                           Custom
@@ -526,7 +544,7 @@ export default function ArtistBookingFlow({
         <div className="bg-gray-50 rounded-lg p-3 border-2 border-dashed border-gray-300">
           <div className="flex items-center justify-between font-semibold">
             <span>Total Artist Fees:</span>
-            <span className="text-primary">${totalFee}</span>
+            <span className="text-primary">${totalFee.toFixed(2)}</span>
           </div>
         </div>
       </div>
@@ -537,7 +555,7 @@ export default function ArtistBookingFlow({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white max-w-7xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="bg-white max-w-7xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Music className="h-5 w-5" />
@@ -548,11 +566,11 @@ export default function ArtistBookingFlow({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0 overflow-hidden">
           {/* Artists List */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-2 flex flex-col space-y-4 min-h-0">
             {/* Filters */}
-            <Card className="bg-white">
+            <Card className="bg-white shrink-0">
               <CardContent className="p-4">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                   <div className="relative">
@@ -627,7 +645,7 @@ export default function ArtistBookingFlow({
             </Card>
 
             {/* Artists Grid */}
-            <div className="flex-1 overflow-y-auto space-y-3">
+            <div className="flex-1 min-h-0 overflow-y-auto space-y-3 pr-2">
               {loading ? (
                 <div className="flex items-center justify-center py-12">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -648,21 +666,19 @@ export default function ArtistBookingFlow({
           </div>
 
           {/* Selected Artists Sidebar */}
-          <div className="lg:col-span-1 border-l border-gray-200 pl-6">
-            <div className="sticky top-0">
-              <h3 className="font-semibold mb-4 flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4" />
-                Selected Artists ({tempSelectedArtists.length})
-              </h3>
-              
-              <div className="h-[500px] overflow-y-auto">
-                {renderSelectedArtists()}
-              </div>
+          <div className="lg:col-span-1 border-l border-gray-200 pl-6 flex flex-col min-h-0">
+            <h3 className="font-semibold mb-4 flex items-center gap-2 shrink-0">
+              <CheckCircle2 className="h-4 w-4" />
+              Selected Artists ({tempSelectedArtists.length})
+            </h3>
+            
+            <div className="flex-1 min-h-0 overflow-y-auto pr-2">
+              {renderSelectedArtists()}
             </div>
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="shrink-0">
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
@@ -755,6 +771,8 @@ export default function ArtistBookingFlow({
                   <Input
                     id="customFee"
                     type="number"
+                    step="0.01"
+                    min="0"
                     value={customArtistForm.fee}
                     onChange={(e) => setCustomArtistForm(prev => ({ ...prev, fee: e.target.value }))}
                     placeholder="Enter fee amount"
@@ -786,6 +804,155 @@ export default function ArtistBookingFlow({
                   Add Artist
                 </Button>
               </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
+
+        {/* Artist Details Modal */}
+        {showArtistDetails && (
+          <Dialog open={!!showArtistDetails} onOpenChange={() => setShowArtistDetails(null)}>
+            <DialogContent className="bg-white max-w-3xl max-h-[90vh] overflow-y-auto">
+              {(() => {
+                const artist = artists.find(a => a._id === showArtistDetails);
+                if (!artist) return null;
+
+                return (
+                  <>
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <User className="h-5 w-5" />
+                        Artist Details
+                      </DialogTitle>
+                    </DialogHeader>
+
+                    <div className="space-y-6">
+                      {/* Artist Header */}
+                      <div className="flex items-start gap-4">
+                        <img
+                          src={artist.profileImage || '/placeholder-artist.jpg'}
+                          alt={artist.stageName}
+                          className="w-24 h-24 rounded-full object-cover bg-gray-200"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/placeholder-artist.jpg';
+                          }}
+                        />
+                        <div className="flex-1">
+                          <h3 className="text-2xl font-bold text-gray-900">{artist.stageName}</h3>
+                          <p className="text-gray-600">
+                            {artist.user.firstName} {artist.user.lastName}
+                          </p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <Badge variant="secondary">{artist.category}</Badge>
+                            {artist.isAvailable ? (
+                              <Badge variant="outline" className="text-green-700 border-green-200 bg-green-50">
+                                Available
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-red-700 border-red-200 bg-red-50">
+                                Unavailable
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-primary">
+                            ${((artist.estimatedFee ?? artist.pricePerHour) || 0).toFixed(2)}
+                          </div>
+                          <div className="text-sm text-gray-500">estimated fee</div>
+                        </div>
+                      </div>
+
+                      {/* Bio */}
+                      {(artist as any).bio && (
+                        <div>
+                          <h4 className="font-semibold mb-2">About</h4>
+                          <p className="text-gray-700">{(artist as any).bio}</p>
+                        </div>
+                      )}
+
+                      {/* Skills */}
+                      <div>
+                        <h4 className="font-semibold mb-2">Skills</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {artist.skills.map((skill, index) => (
+                            <Badge key={index} variant="secondary">
+                              {skill}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Experience & Details */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <h4 className="font-semibold mb-2">Experience</h4>
+                          <p className="text-gray-700">{artist.yearsOfExperience} years</p>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold mb-2">Performance Type</h4>
+                          <p className="text-gray-700">{artist.performPreference.join(', ')}</p>
+                        </div>
+                      </div>
+
+                      {/* Pricing */}
+                      <div>
+                        <h4 className="font-semibold mb-2">Pricing Information</h4>
+                        <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Base Rate (per hour):</span>
+                            <span className="font-medium">${(artist.pricePerHour || 0).toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Estimated Fee for Event:</span>
+                            <span className="font-bold text-primary">${((artist.estimatedFee ?? artist.pricePerHour) || 0).toFixed(2)}</span>
+                          </div>
+                          {artist.availabilityReason && (
+                            <div className="pt-2 border-t border-gray-200">
+                              <p className="text-sm text-gray-600">{artist.availabilityReason}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Portfolio/Social Links if available */}
+                      {(artist as any).socialLinks && Object.keys((artist as any).socialLinks).length > 0 && (
+                        <div>
+                          <h4 className="font-semibold mb-2">Social Links</h4>
+                          <div className="flex gap-2">
+                            {Object.entries((artist as any).socialLinks).map(([platform, url]: [string, any]) => (
+                              url && (
+                                <a
+                                  key={platform}
+                                  href={url as string}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-primary hover:underline text-sm"
+                                >
+                                  {platform}
+                                </a>
+                              )
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setShowArtistDetails(null)}>
+                        Close
+                      </Button>
+                      {artist.isAvailable && (
+                        <Button onClick={() => {
+                          handleArtistToggle(artist);
+                          setShowArtistDetails(null);
+                        }}>
+                          {tempSelectedArtists.some(a => a.artistId === artist._id) ? 'Remove' : 'Select Artist'}
+                        </Button>
+                      )}
+                    </DialogFooter>
+                  </>
+                );
+              })()}
             </DialogContent>
           </Dialog>
         )}

@@ -105,6 +105,9 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
   const { user } = useAuth();
   const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') || undefined : undefined;
 
+  // Check for retry parameter to restore saved data
+  const [retryMode, setRetryMode] = useState(false);
+
   // Form data state
   const [formData, setFormData] = useState<EventFormData>({
     name: '',
@@ -147,6 +150,43 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
   const [showPreview, setShowPreview] = useState(false);
   const [showArtistBooking, setShowArtistBooking] = useState(false);
   const [showEquipmentRental, setShowEquipmentRental] = useState(false);
+
+  // Restore saved data on retry
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const isRetry = urlParams.get('retry') === '1';
+    
+    if (isRetry && mode === 'create') {
+      const savedData = localStorage.getItem('pendingEventData');
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          setFormData(parsed.formData);
+          setSelectedArtists(parsed.selectedArtists || []);
+          setSelectedEquipment(parsed.selectedEquipment || []);
+          setCoverPhotoPreview(parsed.coverPhotoPreview || '');
+          setRetryMode(true);
+          
+          console.log('✅ Restored saved event data for retry');
+          
+          // NOTE: coverPhoto File object cannot be restored from localStorage
+          // User will need to re-upload if they want to change it
+          // The backend still has the base64 from the first attempt
+          
+          // Show a warning message
+          setError('Form data restored from previous payment attempt. Note: If you had uploaded a cover photo, you may need to upload it again.');
+          setShowErrorModal(true);
+          
+          // Clear the retry parameter from URL
+          window.history.replaceState({}, '', window.location.pathname);
+        } catch (error) {
+          console.error('Failed to restore saved event data:', error);
+        }
+      }
+    }
+  }, [mode]);
 
   // Prefill when editing
   useEffect(() => {
@@ -282,23 +322,27 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
         let queryParams = {};
         
         if (userRole === 'admin') {
-          // Admin can see all layouts, or filter by selected venue owner if one is selected
-          if (selectedVenueOwnerId) {
-            queryParams = { venueOwnerId: selectedVenueOwnerId };
+          // Admin MUST select a venue owner before seeing layouts
+          if (!selectedVenueOwnerId) {
+            console.log('Admin must select venue owner before loading layouts');
+            setAvailableLayouts([]);
+            return;
           }
-          // If no venue owner selected, admin sees all layouts (no filter)
+          queryParams = { venueOwnerId: selectedVenueOwnerId };
+          console.log('🔍 [Admin] Loading layouts for venue owner profile ID:', selectedVenueOwnerId);
         } else {
           // Venue owner only sees their own layouts
           // Backend will handle User ID -> VenueOwnerProfile ID conversion
           queryParams = { venueOwnerId: user?.id };
+          console.log('🔍 [Venue Owner] Loading layouts for user ID:', user?.id);
         }
         
         console.log('Loading layouts with params:', queryParams);
         const layouts = await venueLayoutService.getVenueLayouts(token || '', queryParams);
-        console.log('Loaded layouts:', layouts.length, layouts);
+        console.log('✅ Loaded layouts:', layouts.length, layouts);
         setAvailableLayouts(layouts);
       } catch (err) {
-        console.error('Failed to load layouts:', err);
+        console.error('❌ Failed to load layouts:', err);
       }
     };
 
@@ -401,39 +445,153 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
   const validateForm = useCallback((): string[] => {
     const errors: string[] = [];
 
+    // Basic Information
     if (!formData.name.trim()) errors.push('Event name is required');
+    if (formData.name.trim().length < 3) errors.push('Event name must be at least 3 characters');
+    if (formData.name.trim().length > 200) errors.push('Event name must not exceed 200 characters');
+    
     if (!formData.description.trim()) errors.push('Event description is required');
+    if (formData.description.trim().length < 10) errors.push('Event description must be at least 10 characters');
+    
     if (!formData.startDate) errors.push('Start date is required');
     if (!formData.endDate) errors.push('End date is required');
     if (!formData.startTime) errors.push('Start time is required');
     if (!formData.endTime) errors.push('End time is required');
     if (!formData.performanceType) errors.push('Performance type is required');
+    
+    // Venue Information
     if (!formData.venue.name.trim()) errors.push('Venue name is required');
     if (!formData.venue.address.trim()) errors.push('Venue address is required');
     if (!formData.venue.city.trim()) errors.push('City is required');
     if (!formData.venue.state.trim()) errors.push('State is required');
     if (!formData.venue.country.trim()) errors.push('Country is required');
 
-    if (userRole === 'admin' && !selectedVenueOwnerId) {
-      errors.push('Venue owner selection is required');
+    // Admin-specific validations
+    if (userRole === 'admin') {
+      if (!selectedVenueOwnerId || selectedVenueOwnerId.trim() === '') {
+        errors.push('Venue owner selection is required for admin-created events');
+      }
+      
+      // If admin selected a layout, ensure it's for the selected venue owner
+      if (formData.seatLayoutId && formData.seatLayoutId !== 'none' && !selectedVenueOwnerId) {
+        errors.push('Cannot select a layout without selecting a venue owner first');
+      }
     }
 
-    if (new Date(formData.startDate) > new Date(formData.endDate)) {
-      errors.push('End date must be after start date');
+    // Date and Time Validations
+    const startDate = new Date(formData.startDate);
+    const endDate = new Date(formData.endDate);
+    const now = new Date();
+    now.setHours(0, 0, 0, 0); // Reset to start of day for fair comparison
+
+    if (startDate < now) {
+      errors.push('Event start date cannot be in the past');
+    }
+
+    if (endDate < startDate) {
+      errors.push('End date must be after or equal to start date');
     }
 
     if (formData.startDate === formData.endDate && formData.startTime >= formData.endTime) {
       errors.push('End time must be after start time for same-day events');
     }
 
+    // Booking validations
     if (formData.maxTicketsPerUser < 1) {
       errors.push('Maximum tickets per user must be at least 1');
     }
+    
+    if (formData.maxTicketsPerUser > 100) {
+      errors.push('Maximum tickets per user cannot exceed 100');
+    }
 
-    // Cover photo is optional; backend can create event without it
+    if (formData.allowBooking) {
+      if (!formData.bookingStartDate) {
+        errors.push('Booking start date is required when booking is enabled');
+      }
+      if (!formData.bookingEndDate) {
+        errors.push('Booking end date is required when booking is enabled');
+      }
+      
+      if (formData.bookingStartDate && formData.bookingEndDate) {
+        const bookingStart = new Date(formData.bookingStartDate);
+        const bookingEnd = new Date(formData.bookingEndDate);
+        
+        if (bookingEnd < bookingStart) {
+          errors.push('Booking end date must be after booking start date');
+        }
+        
+        if (bookingEnd > startDate) {
+          errors.push('Booking must end before or on the event start date');
+        }
+      }
+    }
+
+    // Contact Information Validations
+    if (formData.contactEmail && formData.contactEmail.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.contactEmail)) {
+        errors.push('Contact email is invalid');
+      }
+    }
+
+
+    // Seat Layout Validation
+    if (formData.seatLayoutId && formData.seatLayoutId !== 'none') {
+      const layoutExists = availableLayouts.some(layout => layout._id === formData.seatLayoutId);
+      if (!layoutExists) {
+        errors.push('Selected seat layout is not valid or not available');
+      }
+    }
+
+    // Artists Validation
+    if (selectedArtists.length > 0) {
+      selectedArtists.forEach((artist, index) => {
+        if (artist.isCustomArtist) {
+          if (!artist.customArtistName || artist.customArtistName.trim() === '') {
+            errors.push(`Custom artist #${index + 1}: Name is required`);
+          }
+        } else {
+          if (!artist.artistId || artist.artistId.toString().trim() === '') {
+            errors.push(`Artist #${index + 1}: Artist ID is missing`);
+          }
+        }
+        
+        // Allow 0 as valid price, only check for negative values
+        if (artist.fee === undefined || artist.fee === null || artist.fee < 0) {
+          errors.push(`${artist.isCustomArtist ? artist.customArtistName : 'Artist #' + (index + 1)}: Fee cannot be negative`);
+        }
+      });
+    }
+
+    // Equipment Validation
+    if (selectedEquipment.length > 0) {
+      selectedEquipment.forEach((equipment, index) => {
+        if (!equipment.equipmentId || equipment.equipmentId.toString().trim() === '') {
+          errors.push(`Equipment #${index + 1}: Equipment ID is missing`);
+        }
+        
+        if (!equipment.quantity || equipment.quantity <= 0) {
+          errors.push(`Equipment #${index + 1}: Quantity must be greater than 0`);
+        }
+      });
+    }
+
+    // Cover photo validation (optional but if provided, check size)
+    if (coverPhoto) {
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (coverPhoto.size > maxSize) {
+        errors.push('Cover photo size must not exceed 5MB');
+      }
+      
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(coverPhoto.type)) {
+        errors.push('Cover photo must be a JPEG, PNG, or WebP image');
+      }
+    }
 
     return errors;
-  }, [formData, coverPhoto, coverPhotoPreview, userRole, selectedVenueOwnerId]);
+  }, [formData, coverPhoto, userRole, selectedVenueOwnerId, availableLayouts, selectedArtists, selectedEquipment]);
 
   const handleSubmit = async () => {
     setError(null);
@@ -561,8 +719,11 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
               coverPhoto || undefined,
               token
             );
-        if (onSaved) onSaved(updated._id);
-        router.push(`/dashboard/${userRole}/events`);
+  if (onSaved) onSaved(updated._id);
+  // Route to dashboard with locale prefix
+  const dashboardRoute = userRole === 'admin' ? '/dashboard/admin/events' : '/dashboard/venue-owner/events';
+  const locale = window.location.pathname.split('/')[1] || 'en';
+  router.push(`/${locale}${dashboardRoute}`);
         return;
       }
 
@@ -577,12 +738,29 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
       });
 
       if (paymentResponse.paymentRequired && paymentResponse.paymentLink) {
+        // Save form data to localStorage before redirect (for retry functionality)
+        const formDataToSave = {
+          formData,
+          selectedArtists,
+          selectedEquipment,
+          coverPhotoPreview,
+          comboBookingId: paymentResponse.comboBookingId, // Save for retry
+          timestamp: new Date().toISOString()
+        };
+        localStorage.setItem('pendingEventData', JSON.stringify(formDataToSave));
+        
         // Redirect to payment
         window.location.href = paymentResponse.paymentLink;
       } else {
         // No payment required or payment handled, event created
-        if (onSaved && paymentResponse.eventId) onSaved(paymentResponse.eventId);
-        router.push(`/dashboard/${userRole}/events`);
+  // Clear any pending data
+  localStorage.removeItem('pendingEventData');
+        
+  if (onSaved && paymentResponse.eventId) onSaved(paymentResponse.eventId);
+  // Route to dashboard with locale prefix
+  const dashboardRoute = userRole === 'admin' ? '/dashboard/admin/events' : '/dashboard/venue-owner/events';
+  const locale = window.location.pathname.split('/')[1] || 'en';
+  router.push(`/${locale}${dashboardRoute}`);
       }
     } catch (err: any) {
       console.error('Failed to create event:', err);
@@ -794,26 +972,40 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
                 <Label htmlFor="venueOwner">Venue Owner *</Label>
                 <Select
                   value={selectedVenueOwnerId}
-                  onValueChange={setSelectedVenueOwnerId}
+                  onValueChange={(value) => {
+                    console.log('📝 Venue owner selected:', value);
+                    setSelectedVenueOwnerId(value);
+                    // Clear layout selection when venue owner changes
+                    handleInputChange('seatLayoutId', '');
+                  }}
                 >
                   <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Select venue owner" />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
-                    {venueOwners.map((owner) => (
-                      <SelectItem
-                        key={owner._id}
-                        value={owner.profile?._id || ''}
-                        disabled={!owner.profile?._id}
-                      >
-                        {owner.firstName} {owner.lastName} ({owner.email})
-                      </SelectItem>
-                    ))}
+                    {venueOwners
+                      .filter(owner => owner.profile?._id) // Only show owners with valid profiles
+                      .map((owner) => (
+                        <SelectItem
+                          key={owner._id}
+                          value={owner.profile!._id!}
+                        >
+                          {owner.firstName} {owner.lastName} ({owner.email})
+                          {owner.profile?.category && ` - ${owner.profile.category}`}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
                 <p className="text-sm text-gray-500 mt-1">
                   Select which venue owner this event is for. Only layouts owned by this venue owner will be available.
                 </p>
+                {venueOwners.length > 0 && venueOwners.filter(o => o.profile?._id).length === 0 && (
+                  <Alert className="mt-2">
+                    <AlertDescription className="text-sm text-amber-700">
+                      No venue owners with profiles found. Please ensure venue owners have completed their profiles.
+                    </AlertDescription>
+                  </Alert>
+                )}
               </div>
             )}
 
@@ -930,6 +1122,13 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
+            {userRole === 'admin' && !selectedVenueOwnerId && (
+              <Alert>
+                <AlertDescription className="text-sm text-amber-700">
+                  Please select a venue owner first to see available seating layouts.
+                </AlertDescription>
+              </Alert>
+            )}
             <div>
               <Label htmlFor="seatLayout">Select Venue Layout</Label>
               <Select
@@ -938,9 +1137,14 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
                   console.log('Seat layout selection changed to:', value);
                   handleInputChange('seatLayoutId', value === 'none' ? '' : value);
                 }}
+                disabled={userRole === 'admin' && !selectedVenueOwnerId}
               >
                 <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Choose a seating layout (optional)" />
+                  <SelectValue placeholder={
+                    userRole === 'admin' && !selectedVenueOwnerId 
+                      ? "Select venue owner first" 
+                      : "Choose a seating layout (optional)"
+                  } />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   <SelectItem value="none">No seating layout</SelectItem>
@@ -1018,7 +1222,7 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
                         {artist.isCustomArtist ? artist.customArtistName : artist.artistName}
                       </div>
                       <div className="text-sm text-gray-600">
-                        ${artist.fee}
+                        ${artist.fee.toFixed(2)}
                         {artist.isCustomArtist && (
                           <Badge variant="outline" className="ml-2 text-xs">
                             Custom
@@ -1038,7 +1242,7 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
               ))}
               <div className="text-right">
                 <div className="font-semibold text-lg">
-                  Total Artist Fees: ${selectedArtists.reduce((sum, artist) => sum + artist.fee, 0)}
+                  Total Artist Fees: ${selectedArtists.reduce((sum, artist) => sum + artist.fee, 0).toFixed(2)}
                 </div>
               </div>
             </div>
@@ -1142,20 +1346,20 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
               {selectedArtists.length > 0 && (
                 <div className="flex justify-between">
                   <span>Artists ({selectedArtists.length})</span>
-                  <span>${selectedArtists.reduce((sum, artist) => sum + artist.fee, 0)}</span>
+                  <span>${selectedArtists.reduce((sum, artist) => sum + artist.fee, 0).toFixed(2)}</span>
                 </div>
               )}
               {selectedEquipment.length > 0 && (
                 <div className="flex justify-between">
                   <span>Equipment ({selectedEquipment.reduce((sum, eq) => sum + eq.quantity, 0)} items)</span>
-                  <span>${selectedEquipment.reduce((sum, equipment) => sum + (equipment.totalPrice || 0), 0)}</span>
+                  <span>${selectedEquipment.reduce((sum, equipment) => sum + (equipment.totalPrice || 0), 0).toFixed(2)}</span>
                 </div>
               )}
               <div className="border-t pt-2 flex justify-between font-semibold text-lg">
                 <span>Total Event Cost</span>
                 <span className="text-primary">
-                  ${selectedArtists.reduce((sum, artist) => sum + artist.fee, 0) + 
-                    selectedEquipment.reduce((sum, equipment) => sum + (equipment.totalPrice || 0), 0)}
+                  ${(selectedArtists.reduce((sum, artist) => sum + artist.fee, 0) + 
+                    selectedEquipment.reduce((sum, equipment) => sum + (equipment.totalPrice || 0), 0)).toFixed(2)}
                 </span>
               </div>
               <p className="text-xs text-gray-500 text-center">
@@ -1312,10 +1516,16 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          {userRole === 'admin' ? 'Create New Event (Admin)' : 'Create New Event'}
+          {mode === 'edit' 
+            ? (userRole === 'admin' ? 'Edit Event (Admin)' : 'Edit Event')
+            : (userRole === 'admin' ? 'Create New Event (Admin)' : 'Create New Event')
+          }
         </h1>
         <p className="text-gray-600">
-          Set up your event details, add artists and equipment, and configure booking settings
+          {mode === 'edit' 
+            ? 'Update your event details, artists, equipment, and settings'
+            : 'Set up your event details, add artists and equipment, and configure booking settings'
+          }
         </p>
       </div>
 
@@ -1399,12 +1609,12 @@ export default function EventCreationForm({ userRole = 'venue_owner', mode = 'cr
               {loading ? (
                 <div className="flex items-center gap-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Creating...
+                  {mode === 'edit' ? 'Updating...' : 'Creating...'}
                 </div>
               ) : (
                 <>
                   <CheckCircle className="h-4 w-4 mr-2" />
-                  Create Event
+                  {mode === 'edit' ? 'Update Event' : 'Create Event'}
                 </>
               )}
             </Button>

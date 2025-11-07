@@ -89,7 +89,7 @@ export default function VenueOwnerEventEditPage({ params }: PageProps) {
               variant="outline"
               onClick={() => {
                 setShowErrorModal(false);
-                router.push('/dashboard/venue_owner/events');
+                router.push('/dashboard/venue-owner/events');
               }}
             >
               Go Back to Events

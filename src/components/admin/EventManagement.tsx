@@ -119,11 +119,13 @@ export default function EventManagement({ userRole }: EventManagementProps) {
   };
 
   const handleCreateEvent = () => {
-    router.push(`/dashboard/${userRole}/events/create`);
+    const route = userRole === 'venue_owner' ? 'venue-owner' : userRole;
+    router.push(`/dashboard/${route}/events/create`);
   };
 
   const handleEditEvent = (eventId: string) => {
-    router.push(`/dashboard/${userRole}/events/${eventId}/edit`);
+    const route = userRole === 'venue_owner' ? 'venue-owner' : userRole;
+    router.push(`/dashboard/${route}/events/${eventId}/edit`);
   };
 
   const handleViewEvent = (eventId: string) => {

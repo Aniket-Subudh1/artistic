@@ -7,6 +7,7 @@ import { useAuthLogic } from '@/hooks/useAuth';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MyBookings } from '@/components/equipment-provider';
 import ArtistMyBookings from '@/components/artist/ArtistMyBookings';
+import VenueOwnerMyBookings from '@/components/venue-owner/VenueOwnerMyBookings';
 
 export default function GeneralBookingsPage() {
   const { user, isLoading } = useAuthLogic();
@@ -41,10 +42,7 @@ export default function GeneralBookingsPage() {
               user={user}
             />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-              <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Venue Bookings</h3>
-                <p className="text-gray-600">Venue booking management component coming soon...</p>
-              </div>
+              <VenueOwnerMyBookings />
             </div>
           </div>
         );

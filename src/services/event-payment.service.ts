@@ -36,13 +36,13 @@ export class EventPaymentService {
       return false;
     }
 
-    // Venue owner pays only for non-custom artists and actual equipment
+    // Venue owner pays for ANY artists or equipment (both custom and non-custom with fees)
     const hasPayableArtists = selectedArtists.some(artist => 
-      !artist.isCustomArtist && artist.artistId && artist.artistId.trim() !== ''
+      artist.fee && artist.fee > 0
     );
     
     const hasPayableEquipment = selectedEquipment.some(equipment => 
-      equipment.equipmentId && equipment.equipmentId.trim() !== ''
+      equipment.totalPrice && equipment.totalPrice > 0
     );
 
     return hasPayableArtists || hasPayableEquipment;
@@ -57,21 +57,33 @@ export class EventPaymentService {
   ): number {
     let total = 0;
 
-    // Add cost for non-custom artists only
+    // Add cost for ALL artists with fees (both custom and non-custom)
     selectedArtists.forEach(artist => {
-      if (!artist.isCustomArtist && artist.artistId && artist.artistId.trim() !== '') {
-        total += artist.fee || 0;
+      if (artist.fee && artist.fee > 0) {
+        total += artist.fee;
       }
     });
 
-    // Add cost for actual equipment only
+    // Add cost for ALL equipment with prices
     selectedEquipment.forEach(equipment => {
-      if (equipment.equipmentId && equipment.equipmentId.trim() !== '') {
-        total += equipment.totalPrice || 0;
+      if (equipment.totalPrice && equipment.totalPrice > 0) {
+        total += equipment.totalPrice;
       }
     });
 
     return total;
+  }
+
+  /**
+   * Convert File to base64 string
+   */
+  static async fileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
   }
 
   /**
@@ -86,10 +98,17 @@ export class EventPaymentService {
     token: string
   ): Promise<{ success: boolean }> {
     try {
+      // Convert cover photo to base64 if provided
+      let coverPhotoBase64 = null;
+      if (coverPhoto) {
+        coverPhotoBase64 = await this.fileToBase64(coverPhoto);
+      }
+
       const payloadData = {
         eventData,
         selectedArtists,
         selectedEquipment,
+        coverPhotoBase64,
         coverPhoto: coverPhoto ? {
           name: coverPhoto.name,
           size: coverPhoto.size,
@@ -112,14 +131,17 @@ export class EventPaymentService {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to store event data');
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.message || errorData.error || `HTTP ${response.status}: ${response.statusText}`;
+        console.error('Store event data failed:', errorMessage, errorData);
+        throw new Error(`Failed to store event data: ${errorMessage}`);
       }
 
       const result = await response.json();
       return { success: result.success };
     } catch (error) {
       console.error('Error storing event data:', error);
-      throw new Error('Failed to store event data before payment');
+      throw error instanceof Error ? error : new Error('Failed to store event data before payment');
     }
   }
 
@@ -168,14 +190,12 @@ export class EventPaymentService {
         token!
       );
 
-      // Initiate payment with combo booking ID
-      const paymentResponse = await PaymentService.initiateBatch({
-        items: [{
-          bookingId: comboBookingId,
-          type: 'combo',
-          amount: totalAmount,
-          description: `Event creation payment for ${eventData.eventTitle || 'event'}`
-        }]
+     
+      const paymentResponse = await PaymentService.initiatePayment({
+        bookingId: comboBookingId,
+        type: 'artist', 
+        amount: totalAmount,
+        description: `Event creation: ${eventData.name || 'New Event'} (Artists & Equipment)`
       });
 
       return {
@@ -229,6 +249,7 @@ export class EventPaymentService {
    * Check if a payment callback is for event creation
    */
   static isEventPayment(bookingId: string, type: string): boolean {
-    return type === 'combo' && bookingId.startsWith('event-');
+    // Event payments start with 'event-' prefix, can be type 'artist' or 'combo'
+    return bookingId.startsWith('event-');
   }
 }

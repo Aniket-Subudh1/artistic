@@ -440,12 +440,20 @@ export const getSidebarItems = (): SidebarItem[] => [
     roles: ['super_admin', 'admin', 'venue_owner', 'user'],
     children: [
       {
-        id: 'my-events',
+        id: 'my-events-venue',
+        label: 'My Events',
+        labelAr: 'فعالياتي',
+        icon: 'CalendarPlus',
+        href: '/dashboard/venue-owner/events',
+        roles: ['venue_owner'],
+      },
+      {
+        id: 'my-events-user',
         label: 'My Events',
         labelAr: 'فعالياتي',
         icon: 'CalendarPlus',
         href: '/dashboard/events',
-        roles: ['venue_owner', 'user'],
+        roles: ['user'],
       },
       {
         id: 'all-events',
@@ -456,12 +464,20 @@ export const getSidebarItems = (): SidebarItem[] => [
         roles: ['super_admin', 'admin'],
       },
       {
-        id: 'create-event',
+        id: 'create-event-admin',
         label: 'Create Event',
         labelAr: 'إنشاء فعالية',
         icon: 'Plus',
         href: '/dashboard/events/create',
-        roles: ['super_admin', 'admin', 'venue_owner'],
+        roles: ['super_admin', 'admin'],
+      },
+      {
+        id: 'create-event-venue',
+        label: 'Create Event',
+        labelAr: 'إنشاء فعالية',
+        icon: 'Plus',
+        href: '/dashboard/venue-owner/events/create',
+        roles: ['venue_owner'],
       },
     ],
   },
@@ -474,7 +490,7 @@ export const getSidebarItems = (): SidebarItem[] => [
     label: 'Payments',
     labelAr: 'المدفوعات',
     icon: 'CreditCard',
-    roles: ['super_admin', 'admin', 'venue_owner', 'equipment_provider', 'artist', 'user'],
+    roles: ['super_admin', 'admin', 'equipment_provider', 'artist', 'user'],
     children: [
       
       {
@@ -483,7 +499,7 @@ export const getSidebarItems = (): SidebarItem[] => [
         labelAr: 'مدفوعات الفنانين والمعدات',
         icon: 'Users',
         href: '/dashboard/admin/payments/artists',
-        roles: ['super_admin', 'admin', 'venue_owner'],
+        roles: ['super_admin', 'admin'],
       },
       {
         id: 'payouts',
@@ -491,7 +507,7 @@ export const getSidebarItems = (): SidebarItem[] => [
         labelAr: 'المدفوعات المسجلة',
         icon: 'CreditCard',
         href: '/dashboard/admin/payments/payouts',
-        roles: ['super_admin', 'admin', 'venue_owner'],
+        roles: ['super_admin', 'admin'],
       },
     ],
   },
