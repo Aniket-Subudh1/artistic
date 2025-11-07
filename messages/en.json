@@ -198,6 +198,13 @@
     "ctaTitle": "Ready to Create Something Extraordinary?",
     "ctaSubtitle": "Let our team of experts bring your vision to life. Book a consultation today.",
     "contactUs": "Contact Us",
+    "filters": "Filters",
+    "category": "Category",
+    "allCategories": "All Categories",
+    "priceRangeLabel": "Price Range (KWD/hour)",
+    "availableDate": "Available Date",
+    "clear": "Clear",
+    "showingArtists": "Showing {filtered} of {total} artists",
     "testimonials": "What Our Clients Say",
     "testimonialsDesc": "Hear from those who have experienced the Artistic difference",
     "upcomingEvents": {

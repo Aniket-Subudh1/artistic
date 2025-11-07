@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Link } from '@/i18n/routing';
-import { MapPin, Star, Clock, Eye, User } from 'lucide-react';
+import { MapPin, Star, Clock, Eye, User, SlidersHorizontal, X, DollarSign, Calendar } from 'lucide-react';
 import { ArtistService, Artist } from '@/services/artist.service';
 import Image from 'next/image';
 import { TranslatedDataWrapper } from '@/components/ui/TranslatedDataWrapper';
@@ -15,8 +15,16 @@ interface PublicArtistsProps {
 
 export default function PublicArtists({ limit = 8, showHeader = true }: PublicArtistsProps) {
   const [artists, setArtists] = useState<Artist[]>([]);
+  const [filteredArtists, setFilteredArtists] = useState<Artist[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Filter states
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 1000 });
+  const [selectedDate, setSelectedDate] = useState('');
+  const [categories, setCategories] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchArtists = async () => {
@@ -29,7 +37,12 @@ export default function PublicArtists({ limit = 8, showHeader = true }: PublicAr
             artist.user.isActive && 
             artist.user.role === 'ARTIST'
         );
-        setArtists(limit ? activeArtists.slice(0, limit) : activeArtists);
+        setArtists(activeArtists);
+        setFilteredArtists(activeArtists);
+        
+        // Extract unique categories
+        const uniqueCategories = [...new Set(activeArtists.map(artist => artist.category).filter(Boolean))];
+        setCategories(uniqueCategories);
       } catch (err) {
         console.error('Error fetching artists:', err);
         setError('Failed to load artists');
@@ -39,7 +52,42 @@ export default function PublicArtists({ limit = 8, showHeader = true }: PublicAr
     };
 
     fetchArtists();
-  }, [limit]);
+  }, []);
+
+  // Apply filters whenever filter states change
+  useEffect(() => {
+    let filtered = artists;
+
+    // Category filter
+    if (selectedCategory) {
+      filtered = filtered.filter(artist => artist.category === selectedCategory);
+    }
+
+    // Price range filter
+    if (priceRange.min > 0 || priceRange.max < 1000) {
+      filtered = filtered.filter(artist => {
+        const price = artist.pricePerHour;
+        return price >= priceRange.min && price <= priceRange.max;
+      });
+    }
+
+    // Date filter (availability - this is a simplified check)
+    // Note: Full date availability would require checking artist availability API
+    if (selectedDate) {
+      // For now, we'll keep all artists as we don't have availability data here
+      // In a real scenario, you'd call an availability check API
+    }
+
+    setFilteredArtists(filtered);
+  }, [artists, selectedCategory, priceRange, selectedDate]);
+
+  const clearFilters = () => {
+    setSelectedCategory('');
+    setPriceRange({ min: 0, max: 1000 });
+    setSelectedDate('');
+  };
+
+  const displayArtists = limit ? filteredArtists.slice(0, limit) : filteredArtists;
 
   if (loading) {
     return (
@@ -66,26 +114,125 @@ export default function PublicArtists({ limit = 8, showHeader = true }: PublicAr
   }
 
   return (
+    <div className="space-y-8">
+      {showHeader && (
+        <div className="text-center mb-8">
+          <h2 className="text-5xl font-bold text-gray-900 mb-6 relative">
+            <TranslatableText>Book Your Artist</TranslatableText>
+            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 h-1 bg-[#391C71] rounded-full" />
+          </h2>
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
+            <TranslatableText>Discover talented artists ready to bring magic to your events</TranslatableText>
+          </p>
+        </div>
+      )}
+
+      {/* Category Filter - Always Visible */}
+      <div className="mb-6">
+        {/* Results count */}
+        {(selectedCategory || priceRange.min > 0 || priceRange.max < 1000 || selectedDate) && (
+          <div className="text-sm text-gray-600 mb-3 flex items-center gap-2">
+            <span className="font-medium">Showing {filteredArtists.length} of {artists.length} artists</span>
+            {selectedCategory && (
+              <span className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs">
+                {selectedCategory}
+              </span>
+            )}
+          </div>
+        )}
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <TranslatableText>Category</TranslatableText>
+            </label>
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full px-4 py-3 bg-white/80 border border-[#391C71]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#391C71]/50 text-gray-700"
+            >
+              <option value="">All Categories</option>
+              {categories.map(category => (
+                <option key={category} value={category}>{category}</option>
+              ))}
+            </select>
+          </div>
+          
+          <div className="flex items-end gap-2">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white rounded-xl hover:from-[#5B2C87] hover:to-[#391C71] transition-all duration-300 shadow-lg"
+            >
+              <SlidersHorizontal className="w-5 h-5" />
+              <span>{showFilters ? 'Hide Filters' : 'More Filters'}</span>
+            </button>
+            
+            {(selectedCategory || priceRange.min > 0 || priceRange.max < 1000 || selectedDate) && (
+              <button
+                onClick={clearFilters}
+                className="px-6 py-3 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition-colors duration-300"
+                title="Clear all filters"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Additional Filters Panel */}
+      {showFilters && (
+        <div className="bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-2xl p-6 border border-[#391C71]/20 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            {/* Price Range */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <TranslatableText>Price Range (KWD/hour)</TranslatableText>
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  placeholder="Min"
+                  value={priceRange.min}
+                  onChange={(e) => setPriceRange(prev => ({ ...prev, min: Number(e.target.value) }))}
+                  className="w-1/2 px-3 py-2 bg-white/80 border border-[#391C71]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#391C71]/50"
+                />
+                <input
+                  type="number"
+                  placeholder="Max"
+                  value={priceRange.max}
+                  onChange={(e) => setPriceRange(prev => ({ ...prev, max: Number(e.target.value) }))}
+                  className="w-1/2 px-3 py-2 bg-white/80 border border-[#391C71]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#391C71]/50"
+                />
+              </div>
+            </div>
+
+            {/* Date Filter */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <TranslatableText>Available Date</TranslatableText>
+              </label>
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
+                className="w-full px-4 py-2 bg-white/80 border border-[#391C71]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#391C71]/50"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
     <TranslatedDataWrapper 
-      data={artists}
+      data={displayArtists}
       translateFields={['bio', 'description', 'specialization', 'category', 'performPreference', 'skills', 'about', 'musicLanguages', 'awards', 'genres', 'stageName']}
       preserveFields={['pricePerHour', 'country', 'profileImage', 'likeCount', '_id', 'user', 'yearsOfExperience', 'youtubeLink', 'createdAt', 'updatedAt']}
       showLoadingOverlay={false}
     >
       {(translatedArtists, isTranslating) => (
         <>
-          {showHeader && (
-            <div className="text-center mb-16">
-              <h2 className="text-5xl font-bold text-gray-900 mb-6 relative">
-                <TranslatableText>Book Your Artist</TranslatableText>
-                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 h-1 bg-[#391C71] rounded-full" />
-              </h2>
-              <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
-                <TranslatableText>Discover talented artists ready to bring magic to your events</TranslatableText>
-              </p>
-            </div>
-          )}
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {(translatedArtists as Artist[]).map((artist, index) => (
               <Link key={artist._id} href={`/artist-profile/${artist._id}`} className="block group">
@@ -193,14 +340,6 @@ export default function PublicArtists({ limit = 8, showHeader = true }: PublicAr
         </>
       )}
     </TranslatedDataWrapper>
+    </div>
   );
 }
-
-<style jsx>{`
-  .line-clamp-1 {
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-`}</style>

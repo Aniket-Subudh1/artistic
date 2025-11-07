@@ -7,6 +7,7 @@ import Image from "next/image"
 import { Users, Music, Calendar, Languages, Mic, Package, User } from "lucide-react"
 import { useAuthLogic } from '@/hooks/useAuth'
 import { LocationIndicator } from './LocationIndicator'
+import { ArtistService } from '@/services/artist.service'
 
 export function Navbar() {
   const t = useTranslations('nav')
@@ -20,6 +21,22 @@ export function Navbar() {
   const [isVisible, setIsVisible] = useState(true)
   const lastScrollYRef = useRef(0)
   const [showUserDropdown, setShowUserDropdown] = useState(false)
+  const [artistCategories, setArtistCategories] = useState<string[]>([])
+  
+  // Fetch artist categories on mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const artists = await ArtistService.getAllArtists()
+        const visibleArtists = artists.filter(artist => artist.user.isActive)
+        const uniqueCategories = [...new Set(visibleArtists.map(artist => artist.category).filter(Boolean))]
+        setArtistCategories(uniqueCategories)
+      } catch (error) {
+        console.error('Failed to fetch artist categories:', error)
+      }
+    }
+    fetchCategories()
+  }, [])
   
   useEffect(() => {
     const handleScroll = () => {
@@ -81,7 +98,11 @@ export function Navbar() {
           href: "/artists",
           label: t('exploreArtists'),
           icon: Users,
-          description: t('exploreArtistsDesc')
+          description: t('exploreArtistsDesc'),
+          subCategories: artistCategories.map(category => ({
+            href: `/artists?category=${encodeURIComponent(category)}`,
+            label: category
+          }))
         },
         {
           href: "/packages",
@@ -247,40 +268,67 @@ export function Navbar() {
                         <div className="p-2">
                           {item.dropdown.map((subItem, subIdx) => {
                             const IconComponent = subItem.icon
+                            const hasSubCategories = subItem.subCategories && subItem.subCategories.length > 0
+                            
                             return (
-                              <Link
-                                key={subIdx}
-                                href={subItem.href}
-                                className={`flex items-start space-x-4 p-4 rounded-2xl transition-all duration-300 group relative overflow-hidden ${
-                                  isScrolled
-                                    ? 'hover:bg-white/50 backdrop-blur-sm'
-                                    : 'hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50'
-                                }`}
-                              >
-                                <div className="w-12 h-12 rounded-xl bg-purple-700 backdrop-blur-md flex items-center justify-center shadow-lg transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 border border-purple-500/30">
-                                  <IconComponent className="w-6 h-6 text-white" />
-                                </div>
-                                <div className="flex-1">
-                                  <div className={`font-semibold group-hover:text-purple-700 transition-colors ${
-                                    isScrolled ? 'text-gray-900' : 'text-gray-900'
-                                  }`}>
-                                    {subItem.label}
-                                  </div>
-                                  <div className={`text-xs mt-0.5 ${
-                                    isScrolled ? 'text-gray-800' : 'text-gray-600'
-                                  }`}>
-                                    {subItem.description}
-                                  </div>
-                                </div>
-                                <svg
-                                  className="w-5 h-5 text-gray-400 opacity-0 group-hover:opacity-100 transform translate-x-[-10px] group-hover:translate-x-0 transition-all duration-300"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
+                              <div key={subIdx}>
+                                <Link
+                                  href={subItem.href}
+                                  className={`flex items-start space-x-4 p-4 rounded-2xl transition-all duration-300 group relative overflow-hidden ${
+                                    isScrolled
+                                      ? 'hover:bg-white/50 backdrop-blur-sm'
+                                      : 'hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50'
+                                  }`}
                                 >
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                </svg>
-                              </Link>
+                                  <div className="w-12 h-12 rounded-xl bg-purple-700 backdrop-blur-md flex items-center justify-center shadow-lg transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 border border-purple-500/30">
+                                    <IconComponent className="w-6 h-6 text-white" />
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className={`font-semibold group-hover:text-purple-700 transition-colors ${
+                                      isScrolled ? 'text-gray-900' : 'text-gray-900'
+                                    }`}>
+                                      {subItem.label}
+                                    </div>
+                                    <div className={`text-xs mt-0.5 ${
+                                      isScrolled ? 'text-gray-800' : 'text-gray-600'
+                                    }`}>
+                                      {subItem.description}
+                                    </div>
+                                  </div>
+                                  <svg
+                                    className="w-5 h-5 text-gray-400 opacity-0 group-hover:opacity-100 transform translate-x-[-10px] group-hover:translate-x-0 transition-all duration-300"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                  </svg>
+                                </Link>
+                                
+                                {/* Sub-categories for Explore Artists */}
+                                {hasSubCategories && (
+                                  <div className="ml-4 pl-4 border-l-2 border-purple-200/30 mt-2 mb-2">
+                                    <div className="text-xs font-semibold text-gray-500 mb-2 px-3">
+                                      Browse by Category
+                                    </div>
+                                    <div className="max-h-64 overflow-y-auto space-y-1 custom-scrollbar">
+                                      {subItem.subCategories.map((category, catIdx) => (
+                                        <Link
+                                          key={catIdx}
+                                          href={category.href}
+                                          className={`block px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
+                                            isScrolled
+                                              ? 'text-gray-700 hover:bg-white/40 hover:text-purple-700'
+                                              : 'text-gray-600 hover:bg-purple-50 hover:text-purple-700'
+                                          }`}
+                                        >
+                                          {category.label}
+                                        </Link>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                             )
                           })}
                         </div>
@@ -651,6 +699,25 @@ export function Navbar() {
 
         .animate-pulse-slow {
           animation: pulse-slow 3s ease-in-out infinite;
+        }
+
+        /* Custom Scrollbar for Category List */
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.05);
+          border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #391C71;
+          border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #5B2C87;
         }
 
         @media (max-width: 1024px) {

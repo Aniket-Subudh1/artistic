@@ -198,6 +198,13 @@
     "ctaTitle": "هل أنت مستعد لإنشاء شيء استثنائي؟",
     "ctaSubtitle": "دع فريقنا من الخبراء يحقق رؤيتك. احجز استشارة اليوم.",
     "contactUs": "اتصل بنا",
+    "filters": "الفلاتر",
+    "category": "الفئة",
+    "allCategories": "جميع الفئات",
+    "priceRangeLabel": "نطاق السعر (د.ك/ساعة)",
+    "availableDate": "التاريخ المتاح",
+    "clear": "مسح",
+    "showingArtists": "عرض {filtered} من {total} فناناً",
     "testimonials": "ماذا يقول عملاؤنا",
     "testimonialsDesc": "استمع من أولئك الذين اختبروا فرق Artistic",
     "upcomingEvents": {

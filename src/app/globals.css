@@ -32,6 +32,16 @@
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   }
 
+  /* Hide scrollbar for horizontal category tabs */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Enhanced booking card animations */
   .booking-card-enter {
     animation: bookingCardEnter 0.5s ease-out;

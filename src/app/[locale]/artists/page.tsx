@@ -6,6 +6,7 @@ import { ArtistService, Artist } from '@/services/artist.service';
 import { TranslatedDataWrapper } from '@/components/ui/TranslatedDataWrapper';
 import { Link } from '@/i18n/routing';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 import { 
   Search, 
   Filter, 
@@ -22,6 +23,7 @@ import { Footer } from '@/components/main/Footer';
 
 export default function ArtistsPage() {
   const t = useTranslations();
+  const searchParams = useSearchParams();
   const [artists, setArtists] = useState<Artist[]>([]);
   const [filteredArtists, setFilteredArtists] = useState<Artist[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,6 +38,15 @@ export default function ArtistsPage() {
 
   // Get unique categories for filter
   const [categories, setCategories] = useState<string[]>([]);
+
+  // Initialize category from URL parameter
+  useEffect(() => {
+    const categoryParam = searchParams.get('category');
+    if (categoryParam) {
+      setSelectedCategory(decodeURIComponent(categoryParam));
+      setShowFilters(true); // Auto-show filters if category is pre-selected
+    }
+  }, [searchParams]);
 
   const fetchArtists = async () => {
     try {
@@ -196,12 +207,59 @@ export default function ArtistsPage() {
             </div>
           </div>
 
-          {/* Search and Filters */}
+          {/* Category Tabs */}
           <div className="mb-8">
             <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-6 relative overflow-hidden">
               <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-[#391C71]/10 to-transparent rounded-br-full"></div>
               <div className="relative z-10">
                 
+                {/* Category Tabs */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">{t('artistsPage.category')}</h3>
+                    {selectedCategory && (
+                      <button
+                        onClick={() => setSelectedCategory('')}
+                        className="text-sm text-[#391C71] hover:text-[#5B2C87] font-medium flex items-center gap-1"
+                      >
+                        <X className="w-4 h-4" />
+                        Clear Category
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Scrollable tabs container */}
+                  <div className="relative">
+                    <div className="overflow-x-auto pb-2 scrollbar-hide">
+                      <div className="flex gap-2 min-w-max">
+                        <button
+                          onClick={() => setSelectedCategory('')}
+                          className={`px-6 py-2.5 rounded-full font-medium transition-all duration-300 whitespace-nowrap ${
+                            selectedCategory === ''
+                              ? 'bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white shadow-lg scale-105'
+                              : 'bg-white/80 text-gray-700 hover:bg-gray-100 border border-gray-200'
+                          }`}
+                        >
+                          All Artists
+                        </button>
+                        {categories.map(category => (
+                          <button
+                            key={category}
+                            onClick={() => setSelectedCategory(category)}
+                            className={`px-6 py-2.5 rounded-full font-medium transition-all duration-300 whitespace-nowrap ${
+                              selectedCategory === category
+                                ? 'bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white shadow-lg scale-105'
+                                : 'bg-white/80 text-gray-700 hover:bg-gray-100 border border-gray-200'
+                            }`}
+                          >
+                            {category}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Search Bar */}
                 <div className="flex flex-col lg:flex-row gap-4 mb-6">
                   <div className="flex-1 relative">
@@ -219,29 +277,14 @@ export default function ArtistsPage() {
                     className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white rounded-2xl hover:from-[#5B2C87] hover:to-[#391C71] transition-all duration-300 shadow-lg"
                   >
                     <SlidersHorizontal className="w-5 h-5" />
-                    {t('artistsPage.filters')}
+                    {showFilters ? 'Hide Filters' : 'More Filters'}
                   </button>
                 </div>
 
-                {/* Filter Panel */}
+                {/* Additional Filter Panel (Price & Date only) */}
                 {showFilters && (
                   <div className="bg-gradient-to-r from-[#391C71]/5 to-purple-50 rounded-2xl p-6 border border-[#391C71]/20">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                      
-                      {/* Category Filter */}
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">{t('artistsPage.category')}</label>
-                        <select
-                          value={selectedCategory}
-                          onChange={(e) => setSelectedCategory(e.target.value)}
-                          className="w-full px-4 py-2 bg-white/80 border border-[#391C71]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#391C71]/50"
-                        >
-                          <option value="">{t('artistsPage.allCategories')}</option>
-                          {categories.map(category => (
-                            <option key={category} value={category}>{category}</option>
-                          ))}
-                        </select>
-                      </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                       {/* Price Range */}
                       <div>
@@ -277,18 +320,23 @@ export default function ArtistsPage() {
                           className="w-full px-4 py-2 bg-white/80 border border-[#391C71]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#391C71]/50"
                         />
                       </div>
-
-                      {/* Clear Filters */}
-                      <div className="flex items-end">
+                    </div>
+                    
+                    {/* Clear Additional Filters */}
+                    {(priceRange.min > 0 || priceRange.max < 1000 || selectedDate) && (
+                      <div className="mt-4 text-center">
                         <button
-                          onClick={clearFilters}
-                          className="w-full px-4 py-2 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition-colors duration-300 flex items-center justify-center gap-2"
+                          onClick={() => {
+                            setPriceRange({ min: 0, max: 1000 });
+                            setSelectedDate('');
+                          }}
+                          className="px-6 py-2 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition-colors duration-300 inline-flex items-center gap-2"
                         >
                           <X className="w-4 h-4" />
-                          {t('artistsPage.clear')}
+                          Clear Price & Date Filters
                         </button>
                       </div>
-                    </div>
+                    )}
                   </div>
                 )}
               </div>
