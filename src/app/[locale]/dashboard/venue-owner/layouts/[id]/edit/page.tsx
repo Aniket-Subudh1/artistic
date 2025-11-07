@@ -71,9 +71,35 @@ export default function VenueOwnerEditLayoutPage() {
   if (!layout) return <LoadingSpinner text="Loading layout..." />;
 
   if (!layout.ownerCanEdit) {
-    // If permission was revoked, redirect back to view page
-    router.replace(`${locale ? `/${locale}` : ''}/dashboard/venue-owner/layouts/${id}` as any);
-    return null;
+    // If permission was revoked or not yet approved, show message and redirect
+    return (
+      <RoleBasedRoute allowedRoles={["venue_owner"]} userRole={user.role}>
+        <div className="space-y-4">
+          <h1 className="text-xl font-semibold">Edit Permission Required</h1>
+          <div className="bg-orange-50 border border-orange-200 rounded-md p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-orange-800">Cannot Edit Layout</h3>
+                <div className="mt-2 text-sm text-orange-700">
+                  <p>This layout is pending admin approval. You cannot edit it until an administrator grants you edit permissions.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => router.push(`${locale ? `/${locale}` : ''}/dashboard/venue-owner/layouts/${id}` as any)}
+            className="inline-flex items-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            View Layout Instead
+          </button>
+        </div>
+      </RoleBasedRoute>
+    );
   }
 
   return (

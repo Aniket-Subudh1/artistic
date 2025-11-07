@@ -17,6 +17,7 @@ export interface VenueProvider {
     profileImage?: string;
     coverPhoto?: string;
     isApproved?: boolean;
+    canCreateLayouts?: boolean;
   };
 }
 
@@ -160,6 +161,17 @@ export class VenueProviderService {
     return apiRequest(API_CONFIG.ENDPOINTS.VENUE_OWNER.MY_PROFILE, {
       method: 'GET',
       headers: getAuthHeaders(),
+    });
+  }
+
+  static async toggleLayoutCreationPermission(
+    profileId: string,
+    canCreateLayouts: boolean
+  ): Promise<{ success: boolean; message: string; data: any }> {
+    return apiRequest(`${API_CONFIG.BASE_URL}/venue-owner/profile/${profileId}/toggle-layout-permission`, {
+      method: 'PATCH',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ canCreateLayouts }),
     });
   }
 }

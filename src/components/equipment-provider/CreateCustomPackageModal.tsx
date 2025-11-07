@@ -177,10 +177,10 @@ export function CreateCustomPackageModal({
 
   const validateStep = () => {
     if (step === 1) {
-      return formData.name.trim() !== '' && formData.description.trim() !== '';
+      return selectedEquipment.length > 0;
     }
     if (step === 2) {
-      return selectedEquipment.length > 0;
+      return formData.name.trim() !== '' && formData.description.trim() !== '';
     }
     return true;
   };
@@ -191,9 +191,9 @@ export function CreateCustomPackageModal({
       setError('');
     } else {
       if (step === 1) {
-        setError('Please fill in all required fields');
-      } else if (step === 2) {
         setError('Please select at least one equipment item');
+      } else if (step === 2) {
+        setError('Please fill in all required fields');
       }
     }
   };
@@ -213,7 +213,7 @@ export function CreateCustomPackageModal({
           <div>
             <h2 className="text-2xl font-bold">Create Custom Equipment Package</h2>
             <p className="text-purple-100 mt-1">
-              Step {step} of 3: {step === 1 ? 'Basic Information' : step === 2 ? 'Select Equipment' : 'Review & Create'}
+              Step {step} of 3: {step === 1 ? 'Select Equipment' : step === 2 ? 'Basic Information' : 'Review & Create'}
             </p>
           </div>
           <button
@@ -249,8 +249,8 @@ export function CreateCustomPackageModal({
                   <p className={`text-sm font-medium ${
                     stepNumber <= step ? 'text-[#391C71]' : 'text-gray-500'
                   }`}>
-                    {stepNumber === 1 && 'Basic Info'}
-                    {stepNumber === 2 && 'Select Equipment'}
+                    {stepNumber === 1 && 'Select Equipment'}
+                    {stepNumber === 2 && 'Basic Info'}
                     {stepNumber === 3 && 'Review & Create'}
                   </p>
                 </div>
@@ -270,52 +270,8 @@ export function CreateCustomPackageModal({
 
         {/* Content */}
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-300px)]">
-          {/* Step 1: Basic Information */}
+          {/* Step 1: Select Equipment */}
           {step === 1 && (
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Package Name *
-                </label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Enter package name..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391C71] focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description *
-                </label>
-                <textarea
-                  rows={4}
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Describe your custom package..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391C71] focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Personal Notes (Optional)
-                </label>
-                <textarea
-                  rows={3}
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  placeholder="Add any personal notes about this package..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391C71] focus:border-transparent"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Step 2: Select Equipment */}
-          {step === 2 && (
             <div className="space-y-6">
               {/* Search Equipment */}
               <div className="relative">
@@ -424,6 +380,50 @@ export function CreateCustomPackageModal({
                     })}
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Basic Information */}
+          {step === 2 && (
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Package Name *
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Enter package name..."
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391C71] focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description *
+                </label>
+                <textarea
+                  rows={4}
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Describe your custom package..."
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391C71] focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Personal Notes (Optional)
+                </label>
+                <textarea
+                  rows={3}
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  placeholder="Add any personal notes about this package..."
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#391C71] focus:border-transparent"
+                />
               </div>
             </div>
           )}

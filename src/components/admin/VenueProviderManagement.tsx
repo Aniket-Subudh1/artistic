@@ -164,6 +164,39 @@ export function VenueProviderManagement({ onViewLayouts }: VenueProviderManageme
     setShowViewModal(true);
   };
 
+  const handleToggleLayoutPermission = async (provider: VenueProvider) => {
+    if (!provider.profile?._id) {
+      setError('Provider profile ID not found');
+      return;
+    }
+
+    const newPermission = !provider.profile.canCreateLayouts;
+    const confirmMessage = newPermission
+      ? `Grant layout creation permission to ${provider.firstName} ${provider.lastName}?`
+      : `Revoke layout creation permission from ${provider.firstName} ${provider.lastName}?`;
+
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      setError('');
+      setSuccess('');
+      const response = await VenueProviderService.toggleLayoutCreationPermission(
+        provider.profile._id,
+        newPermission
+      );
+
+      if (response.success) {
+        setSuccess(response.message);
+        loadProviders(); // Reload to get updated data
+      }
+    } catch (error: any) {
+      console.error('Error toggling layout permission:', error);
+      setError(error?.message || 'Failed to update permission');
+    }
+  };
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
@@ -347,6 +380,17 @@ export function VenueProviderManagement({ onViewLayouts }: VenueProviderManageme
                               <Grid className="w-4 h-4" />
                             </button>
                           )}
+                          <button
+                            onClick={() => handleToggleLayoutPermission(provider)}
+                            className={`p-1 rounded ${
+                              provider.profile?.canCreateLayouts
+                                ? 'text-green-600 hover:text-green-900 hover:bg-green-100'
+                                : 'text-orange-600 hover:text-orange-900 hover:bg-orange-100'
+                            }`}
+                            title={provider.profile?.canCreateLayouts ? 'Revoke Layout Creation Permission' : 'Grant Layout Creation Permission'}
+                          >
+                            <Shield className="w-4 h-4" />
+                          </button>
                           <button
                             onClick={() => handleViewProvider(provider)}
                             className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-100 rounded"

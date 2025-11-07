@@ -13,6 +13,7 @@ export default function VenueOwnerLayoutsPage() {
   const [layouts, setLayouts] = useState<VenueLayout[]>([]);
   const [loading, setLoading] = useState(true);
   const [profileError, setProfileError] = useState<string | null>(null);
+  const [canCreateLayouts, setCanCreateLayouts] = useState(false);
 
   // Helper function to validate ObjectId format
   const isValidObjectId = (id: string): boolean => {
@@ -45,6 +46,10 @@ export default function VenueOwnerLayoutsPage() {
             if (profileArray.length > 0 && profileArray[0]._id) {
               ownerId = profileArray[0]._id;
               console.log('Extracted owner ID from profile:', ownerId);
+              
+              // Check if venue owner has permission to create layouts
+              setCanCreateLayouts(profileArray[0].canCreateLayouts === true);
+              console.log('Can create layouts permission:', profileArray[0].canCreateLayouts);
             } else {
               console.warn('Profile array is empty or missing _id');
             }
@@ -111,13 +116,62 @@ export default function VenueOwnerLayoutsPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold">My Venue Layouts</h1>
-          <Link 
-            href="/dashboard/venue-owner/layouts/new"
-            className="inline-flex items-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
-          >
-            Create New Layout
-          </Link>
+          {canCreateLayouts ? (
+            <Link 
+              href="/dashboard/venue-owner/layouts/new"
+              className="inline-flex items-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              Create New Layout
+            </Link>
+          ) : (
+            <button
+              disabled
+              className="inline-flex items-center rounded-md bg-gray-400 px-3 py-1.5 text-sm font-medium text-white cursor-not-allowed opacity-60"
+              title="You need admin permission to create layouts"
+            >
+              Create New Layout (Permission Required)
+            </button>
+          )}
         </div>
+
+        {/* Permission Notice */}
+        {!canCreateLayouts && (
+          <div className="bg-orange-50 border border-orange-200 rounded-md p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-orange-800">Layout Creation Permission Required</h3>
+                <div className="mt-2 text-sm text-orange-700">
+                  <p>You do not currently have permission to create new layouts. Please contact an administrator to request this permission.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Admin Approval Notice - Only show if they can create layouts */}
+        {canCreateLayouts && (
+          <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-blue-800">Layout Approval Required</h3>
+                <div className="mt-2 text-sm text-blue-700">
+                  <p>New layouts require admin approval before they can be edited or used. Once created, your layout will be reviewed by an administrator who can grant you edit permissions.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {profileError && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
             <div className="flex">
@@ -138,12 +192,16 @@ export default function VenueOwnerLayoutsPage() {
         {layouts.length === 0 && !profileError ? (
           <div className="text-center py-8">
             <p className="text-sm text-gray-500 mb-4">No layouts yet.</p>
-            <Link 
-              href="/dashboard/venue-owner/layouts/new"
-              className="inline-flex items-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
-            >
-              Create Your First Layout
-            </Link>
+            {canCreateLayouts ? (
+              <Link 
+                href="/dashboard/venue-owner/layouts/new"
+                className="inline-flex items-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+              >
+                Create Your First Layout
+              </Link>
+            ) : (
+              <p className="text-sm text-orange-600">You need admin permission to create layouts.</p>
+            )}
           </div>
         ) : (
           <ul className="divide-y border rounded-md">
@@ -152,8 +210,8 @@ export default function VenueOwnerLayoutsPage() {
                 <div>
                   <div className="font-medium">{l.name}</div>
                   <div className="text-xs text-gray-500">{new Date(l.updatedAt).toLocaleString()}</div>
-                  <div className="text-xs text-blue-600">
-                    {l.ownerCanEdit ? 'Editable' : 'Read-only'}
+                  <div className={`text-xs mt-1 ${l.ownerCanEdit ? 'text-green-600' : 'text-orange-600'}`}>
+                    {l.ownerCanEdit ? '✓ Approved - Editable' : '⏳ Pending Admin Approval - Read-only'}
                   </div>
                 </div>
                 <div className="flex gap-2">
