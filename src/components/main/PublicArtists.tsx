@@ -214,95 +214,119 @@ export default function PublicArtists({ limit = 8, showHeader = true }: PublicAr
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {(translatedArtists as Artist[]).map((artist, index) => (
-              <Link key={artist._id} href={`/artist-profile/${artist._id}`} className="block group">
-                <div
-                  className="bg-white rounded-3xl border border-gray-100 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-[#391C71]/10 cursor-pointer transform hover:-translate-y-2 hover:scale-105 h-[480px] flex flex-col"
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  {/* Artist Image */}
-                  <div className="relative h-56 bg-gradient-to-br from-blue-500 to-[#391C71] overflow-hidden flex-shrink-0">
-                    {artist.profileImage ? (
-                      <Image
-                        src={artist.profileImage}
-                        alt={artist.stageName}
-                        fill
-                        className="object-cover group-hover:scale-110 transition-transform duration-500"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-blue-500 to-[#391C71] flex items-center justify-center">
-                        <User className="w-16 h-16 text-white" />
-                      </div>
-                    )}
-                    
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-                    
-                    {/* Like Count Badge */}
-                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full flex items-center shadow-lg border border-white/20">
-                      <Star className="w-4 h-4 text-yellow-500 fill-current mr-1" />
-                      <span className="text-sm font-semibold text-gray-700">
-                        {artist.likeCount || 0}
-                      </span>
+              <div
+                key={artist._id}
+                className="bg-white rounded-3xl border border-gray-100 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-[#391C71]/10 transform hover:-translate-y-2 hover:scale-105 h-auto flex flex-col group"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                {/* Artist Image - Clickable to profile */}
+                <Link href={`/artist-profile/${artist._id}`} className="block relative h-56 bg-gradient-to-br from-blue-500 to-[#391C71] overflow-hidden flex-shrink-0">
+                  {artist.profileImage ? (
+                    <Image
+                      src={artist.profileImage}
+                      alt={artist.stageName}
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-500"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-blue-500 to-[#391C71] flex items-center justify-center">
+                      <User className="w-16 h-16 text-white" />
                     </div>
-
-                    {/* Hover Effect */}
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                    </div>
+                  )}
+                  
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                  
+                  {/* Like Count Badge */}
+                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full flex items-center shadow-lg border border-white/20">
+                    <Star className="w-4 h-4 text-yellow-500 fill-current mr-1" />
+                    <span className="text-sm font-semibold text-gray-700">
+                      {artist.likeCount || 0}
+                    </span>
                   </div>
 
-                  {/* Artist Details */}
-                  <div className="p-6 flex flex-col flex-1">
-                    {/* Category Badge */}
-                    <div className="mb-3">
-                      <span className="inline-block bg-gradient-to-r from-[#391C71]/10 to-purple-100 text-[#391C71] px-3 py-1 rounded-full text-xs font-semibold border border-[#391C71]/20">
-                        <TranslatableText>{artist.category || 'Artist'}</TranslatableText>
-                      </span>
-                    </div>
+                  {/* View Details Badge - Visible on hover */}
+                  <div className="absolute top-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <span className="bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full text-xs font-semibold text-[#391C71] shadow-lg border border-white/20 flex items-center">
+                      <Eye className="w-3 h-3 mr-1" />
+                      <TranslatableText>View Profile</TranslatableText>
+                    </span>
+                  </div>
 
-                    {/* Stage Name */}
-                    <h3 className="font-bold text-gray-900 mb-3 text-xl group-hover:text-[#391C71] transition-colors duration-300 line-clamp-1">
+                  {/* Hover Effect */}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                  </div>
+                </Link>
+
+                {/* Artist Details */}
+                <div className="p-4 sm:p-6 flex flex-col flex-1">
+                  {/* Category Badge */}
+                  <div className="mb-3">
+                    <span className="inline-block bg-gradient-to-r from-[#391C71]/10 to-purple-100 text-[#391C71] px-3 py-1 rounded-full text-xs font-semibold border border-[#391C71]/20">
+                      <TranslatableText>{artist.category || 'Artist'}</TranslatableText>
+                    </span>
+                  </div>
+
+                  {/* Stage Name */}
+                  <Link href={`/artist-profile/${artist._id}`}>
+                    <h3 className="font-bold text-gray-900 mb-3 text-xl hover:text-[#391C71] transition-colors duration-300 line-clamp-1 cursor-pointer">
                       {artist.stageName}
                     </h3>
+                  </Link>
 
-                    {/* Performance Preference - Fixed height container */}
-                    <div className="mb-3 h-6 flex-shrink-0">
-                      <div className="flex items-center text-sm text-gray-500">
-                        <Clock className="w-4 h-4 mr-2 text-[#391C71] flex-shrink-0" />
-                        <span className="capitalize line-clamp-1">
-                          {artist.performPreference?.length > 0 
-                            ? artist.performPreference.join(', ')
-                            : <TranslatableText>Available</TranslatableText>}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Location - Fixed height container */}
-                    <div className="mb-5 h-6 flex-shrink-0">
-                      <div className="flex items-center text-sm text-gray-500">
-                        <MapPin className="w-4 h-4 mr-2 text-[#391C71] flex-shrink-0" />
-                        <span className="line-clamp-1">
-                          <TranslatableText>{artist.country || 'Kuwait'}</TranslatableText>
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Spacer to push footer content to bottom */}
-                    <div className="flex-1"></div>
-
-                    {/* Price and Action */}
-                    <div className="flex justify-between items-center">
-                      <span className="font-bold text-gray-900 text-lg">
-                        {artist.pricePerHour} <TranslatableText>KWD/hour</TranslatableText>
-                      </span>
-                      <span className="text-sm text-[#391C71] hover:text-[#5B2C87] font-semibold transition-colors duration-300 flex items-center">
-                        <Eye className="w-4 h-4 mr-1" />
-                        <TranslatableText>View Details</TranslatableText>
+                  {/* Performance Preference - Fixed height container */}
+                  <div className="mb-2 sm:mb-3 h-6 flex-shrink-0">
+                    <div className="flex items-center text-sm text-gray-500">
+                      <Clock className="w-4 h-4 mr-2 text-[#391C71] flex-shrink-0" />
+                      <span className="capitalize line-clamp-1">
+                        {artist.performPreference?.length > 0 
+                          ? artist.performPreference.join(', ')
+                          : <TranslatableText>Available</TranslatableText>}
                       </span>
                     </div>
                   </div>
+
+                  {/* Location - Fixed height container */}
+                  <div className="mb-4 sm:mb-5 h-6 flex-shrink-0">
+                    <div className="flex items-center text-sm text-gray-500">
+                      <MapPin className="w-4 h-4 mr-2 text-[#391C71] flex-shrink-0" />
+                      <span className="line-clamp-1">
+                        <TranslatableText>{artist.country || 'Kuwait'}</TranslatableText>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Price */}
+                  <div className="mb-4">
+                    <span className="font-bold text-gray-900 text-lg sm:text-xl">
+                      {artist.pricePerHour} <TranslatableText>KWD/hour</TranslatableText>
+                    </span>
+                  </div>
+
+                  {/* Spacer to push buttons to bottom */}
+                  <div className="flex-1"></div>
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Link 
+                      href={`/book-artist/${artist._id}`}
+                      className="flex-1 bg-gradient-to-r from-[#391C71] to-[#5B2C87] text-white px-3 py-1.5 rounded-lg hover:from-[#5B2C87] hover:to-[#391C71] transition-all duration-300 font-medium text-center shadow-sm hover:shadow-md hover:shadow-[#391C71]/20 flex items-center justify-center gap-1.5 text-xs"
+                    >
+                      <Calendar className="w-3 h-3" />
+                      <TranslatableText>Book Now</TranslatableText>
+                    </Link>
+                    <Link 
+                      href={`/artist-profile/${artist._id}`}
+                      className="flex-1 sm:flex-initial border border-[#391C71] text-[#391C71] px-3 py-1.5 rounded-lg hover:bg-[#391C71] hover:text-white transition-all duration-300 font-medium text-center flex items-center justify-center gap-1.5 text-xs"
+                    >
+                      <Eye className="w-3 h-3" />
+                      <span className="hidden sm:inline"><TranslatableText>View Details</TranslatableText></span>
+                      <span className="sm:hidden"><TranslatableText>Details</TranslatableText></span>
+                    </Link>
+                  </div>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
 
