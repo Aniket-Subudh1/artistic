@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Link } from '@/i18n/routing';
 import { MapPin, Star, Clock, Eye, User, SlidersHorizontal, X, DollarSign, Calendar } from 'lucide-react';
-import { ArtistService, Artist } from '@/services/artist.service';
+import { Artist } from '@/services/artist.service';
 import Image from 'next/image';
 import { TranslatedDataWrapper } from '@/components/ui/TranslatedDataWrapper';
 import { TranslatableText } from '@/components/ui/TranslatableText';
+import { usePublicArtists } from '@/hooks/useHomePageData';
 
 interface PublicArtistsProps {
   limit?: number;
@@ -14,48 +15,25 @@ interface PublicArtistsProps {
 }
 
 export default function PublicArtists({ limit = 8, showHeader = true }: PublicArtistsProps) {
-  const [artists, setArtists] = useState<Artist[]>([]);
-  const [filteredArtists, setFilteredArtists] = useState<Artist[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Fetch artists with React Query caching
+  const { data: artists = [], isLoading: loading, error: queryError } = usePublicArtists();
+  
+  const error = queryError ? 'Failed to load artists' : null;
   
   // Filter states
   const [showFilters, setShowFilters] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [priceRange, setPriceRange] = useState({ min: 0, max: 1000 });
+  const [priceMin, setPriceMin] = useState(0);
+  const [priceMax, setPriceMax] = useState(1000);
   const [selectedDate, setSelectedDate] = useState('');
-  const [categories, setCategories] = useState<string[]>([]);
+  
+  // Extract unique categories
+  const categories = useMemo(() => {
+    return [...new Set(artists.map(artist => artist.category).filter(Boolean))];
+  }, [artists]);
 
-  useEffect(() => {
-    const fetchArtists = async () => {
-      try {
-        setLoading(true);
-        const response = await ArtistService.getAllArtists();
-        // Filter only active and visible artists
-        const activeArtists = response.filter(
-          (artist) => 
-            artist.user.isActive && 
-            artist.user.role === 'ARTIST'
-        );
-        setArtists(activeArtists);
-        setFilteredArtists(activeArtists);
-        
-        // Extract unique categories
-        const uniqueCategories = [...new Set(activeArtists.map(artist => artist.category).filter(Boolean))];
-        setCategories(uniqueCategories);
-      } catch (err) {
-        console.error('Error fetching artists:', err);
-        setError('Failed to load artists');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchArtists();
-  }, []);
-
-  // Apply filters whenever filter states change
-  useEffect(() => {
+  // Apply filters using useMemo to avoid infinite loops
+  const filteredArtists = useMemo(() => {
     let filtered = artists;
 
     // Category filter
@@ -64,10 +42,10 @@ export default function PublicArtists({ limit = 8, showHeader = true }: PublicAr
     }
 
     // Price range filter
-    if (priceRange.min > 0 || priceRange.max < 1000) {
+    if (priceMin > 0 || priceMax < 1000) {
       filtered = filtered.filter(artist => {
         const price = artist.pricePerHour;
-        return price >= priceRange.min && price <= priceRange.max;
+        return price >= priceMin && price <= priceMax;
       });
     }
 
@@ -78,12 +56,13 @@ export default function PublicArtists({ limit = 8, showHeader = true }: PublicAr
       // In a real scenario, you'd call an availability check API
     }
 
-    setFilteredArtists(filtered);
-  }, [artists, selectedCategory, priceRange, selectedDate]);
+    return filtered;
+  }, [artists, selectedCategory, priceMin, priceMax, selectedDate]);
 
   const clearFilters = () => {
     setSelectedCategory('');
-    setPriceRange({ min: 0, max: 1000 });
+    setPriceMin(0);
+    setPriceMax(1000);
     setSelectedDate('');
   };
 
@@ -130,7 +109,7 @@ export default function PublicArtists({ limit = 8, showHeader = true }: PublicAr
       {/* Category Filter - Always Visible */}
       <div className="mb-6">
         {/* Results count */}
-        {(selectedCategory || priceRange.min > 0 || priceRange.max < 1000 || selectedDate) && (
+        {(selectedCategory || priceMin > 0 || priceMax < 1000 || selectedDate) && (
           <div className="text-sm text-gray-600 mb-3 flex items-center gap-2">
             <span className="font-medium">Showing {filteredArtists.length} of {artists.length} artists</span>
             {selectedCategory && (
@@ -167,7 +146,7 @@ export default function PublicArtists({ limit = 8, showHeader = true }: PublicAr
               <span>{showFilters ? 'Hide Filters' : 'More Filters'}</span>
             </button>
             
-            {(selectedCategory || priceRange.min > 0 || priceRange.max < 1000 || selectedDate) && (
+            {(selectedCategory || priceMin > 0 || priceMax < 1000 || selectedDate) && (
               <button
                 onClick={clearFilters}
                 className="px-6 py-3 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition-colors duration-300"
@@ -194,15 +173,15 @@ export default function PublicArtists({ limit = 8, showHeader = true }: PublicAr
                 <input
                   type="number"
                   placeholder="Min"
-                  value={priceRange.min}
-                  onChange={(e) => setPriceRange(prev => ({ ...prev, min: Number(e.target.value) }))}
+                  value={priceMin}
+                  onChange={(e) => setPriceMin(Number(e.target.value))}
                   className="w-1/2 px-3 py-2 bg-white/80 border border-[#391C71]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#391C71]/50"
                 />
                 <input
                   type="number"
                   placeholder="Max"
-                  value={priceRange.max}
-                  onChange={(e) => setPriceRange(prev => ({ ...prev, max: Number(e.target.value) }))}
+                  value={priceMax}
+                  onChange={(e) => setPriceMax(Number(e.target.value))}
                   className="w-1/2 px-3 py-2 bg-white/80 border border-[#391C71]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#391C71]/50"
                 />
               </div>

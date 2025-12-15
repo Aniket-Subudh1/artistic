@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
 import { MapPin } from 'lucide-react';
@@ -16,11 +16,16 @@ import { Iansui } from 'next/font/google';
 import Image from 'next/image';
 import TitleTag from '@/components/ui/TitleTag';
 import { CarouselService } from '@/services/carousel.service';
+import { useActiveCarouselSlides } from '@/hooks/useHomePageData';
 
 export default function HomePage() {
   const t = useTranslations();
-  const [carouselSlides, setCarouselSlides] = useState<any[]>([]);
-  const [isLoadingSlides, setIsLoadingSlides] = useState(true);
+  
+  // Fetch carousel slides with React Query caching
+  const { data: apiSlides, isLoading: isLoadingSlides } = useActiveCarouselSlides({
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
 
   // Fallback slides (current hardcoded content)
   const fallbackSlides = useMemo(() => [
@@ -71,32 +76,13 @@ export default function HomePage() {
     },
   ], [t]);
 
-  // Load carousel slides from API
-  useEffect(() => {
-    const loadCarouselSlides = async () => {
-      try {
-        setIsLoadingSlides(true);
-        const apiSlides = await CarouselService.getActiveSlides();
-        
-        if (apiSlides && apiSlides.length > 0) {
-          // Convert API slides to hero carousel format
-          const heroSlides = CarouselService.convertToHeroSlides(apiSlides);
-          setCarouselSlides(heroSlides);
-        } else {
-          // Use fallback slides if no API slides
-          setCarouselSlides(fallbackSlides);
-        }
-      } catch (error) {
-        console.error('Failed to load carousel slides:', error);
-        // Use fallback slides on error
-        setCarouselSlides(fallbackSlides);
-      } finally {
-        setIsLoadingSlides(false);
-      }
-    };
-
-    loadCarouselSlides();
-  }, [fallbackSlides]); // Re-run when fallbackSlides change (which happens when translations change)
+  // Determine which slides to display
+  const carouselSlides = useMemo(() => {
+    if (apiSlides && apiSlides.length > 0) {
+      return CarouselService.convertToHeroSlides(apiSlides);
+    }
+    return fallbackSlides;
+  }, [apiSlides, fallbackSlides]);
 
   return (
     <div className="min-h-screen bg-white relative">

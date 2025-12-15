@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Calendar, MapPin, Clock, Users, ArrowRight, Star, Eye, Heart, Ticket } from 'lucide-react';
@@ -8,6 +8,7 @@ import { eventService, Event } from '@/services/event.service';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { usePublicEvents, useEventsByType } from '@/hooks/useHomePageData';
 
 interface EventsWidgetProps {
   title?: string;
@@ -24,34 +25,22 @@ export default function EventsWidget({
   showViewAll = true,
   className = ''
 }: EventsWidgetProps) {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Fetch events with React Query caching
+  const publicEventsQuery = usePublicEvents(limit, {
+    enabled: !performanceType, // Only fetch if no performanceType
+  });
+  
+  const typeEventsQuery = useEventsByType(performanceType || '', limit, {
+    enabled: !!performanceType, // Only fetch if performanceType is provided
+  });
 
-  useEffect(() => {
-    loadEvents();
-  }, [performanceType, limit]);
+  // Use the appropriate query based on performanceType
+  const { data, isLoading: loading, error: queryError } = performanceType 
+    ? typeEventsQuery 
+    : publicEventsQuery;
 
-  const loadEvents = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      let response;
-      if (performanceType) {
-        response = await eventService.getEventsByPerformanceType(performanceType, { limit });
-      } else {
-        response = await eventService.getPublicEvents({ limit });
-      }
-
-      setEvents(response.events);
-    } catch (err) {
-      console.error('Failed to load events:', err);
-      setError('Failed to load events');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const events = data?.events || [];
+  const error = queryError ? 'Failed to load events' : null;
 
   const formatEventDate = (event: Event) => {
     return eventService.formatEventDate(event);
@@ -90,12 +79,7 @@ export default function EventsWidget({
       <div className={`text-center py-8 ${className}`}>
         <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-8 max-w-md mx-auto">
           <div className="text-red-500 mb-4 text-lg font-semibold">{error}</div>
-          <Button 
-            onClick={loadEvents} 
-            className="bg-[#391C71] text-white px-6 py-3 rounded-full hover:bg-[#5B2C87] transition-colors"
-          >
-            Try Again
-          </Button>
+          <p className="text-sm text-gray-500">Unable to load events. Please try refreshing the page.</p>
         </div>
       </div>
     );
