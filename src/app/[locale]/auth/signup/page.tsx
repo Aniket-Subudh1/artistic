@@ -96,7 +96,6 @@ export default function SignUpPage() {
         email: formData.email,
         phoneNumber: phoneNumber,
         password: formData.password,
-        role: 'user', 
       });
 
       // Check if response indicates OTP verification is needed

@@ -127,16 +127,15 @@ export const useAuthLogic = () => {
     phoneNumber: string;
     password: string;
     email: string;
-    role: UserRole;
   }) => {
     setIsLoading(true);
     try {
       const signupData: SignupRequest = {
         ...userData,
-        role: mapFrontendRole(userData.role),
       };
       
       const response = await AuthService.signup(signupData);
+      return response;
       return response;
     } catch (error) {
       console.error('Signup error:', error);
