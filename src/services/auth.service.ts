@@ -27,7 +27,6 @@ export interface SignupRequest {
   phoneNumber: string;
   password: string;
   email: string;
-  role: string;
 }
 
 export interface SignupResponse {

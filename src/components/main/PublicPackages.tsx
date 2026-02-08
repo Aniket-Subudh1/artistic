@@ -1,14 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { 
   Package, Users, Clock, Calendar, 
   ShoppingCart, Eye, ArrowRight, CheckCircle, User
 } from 'lucide-react';
 import { Link } from '@/i18n/routing';
-import { equipmentPackagesService, EquipmentPackage } from '@/services/equipment-packages.service';
+import { EquipmentPackage } from '@/services/equipment-packages.service';
 import { TranslatedDataWrapper } from '@/components/ui/TranslatedDataWrapper';
 import { TranslatableText } from '@/components/ui/TranslatableText';
+import { usePublicPackages } from '@/hooks/useHomePageData';
 
 interface PublicPackagesProps {
   limit?: number;
@@ -21,26 +22,9 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({
   showHeader = true, 
   className = '' 
 }) => {
-  const [packages, setPackages] = useState<EquipmentPackage[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    fetchPublicPackages();
-  }, []);
-
-  const fetchPublicPackages = async () => {
-    try {
-      const data = await equipmentPackagesService.getPublicPackages();
-      const displayPackages = limit ? data.slice(0, limit) : data;
-      setPackages(displayPackages);
-    } catch (error: any) {
-      setError('Failed to load packages');
-      console.error('Error fetching public packages:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Fetch packages with React Query caching
+  const { data: packages = [], isLoading: loading, error: queryError } = usePublicPackages(limit);
+  const error = queryError ? 'Failed to load packages' : '';
 
   if (loading) {
     return (

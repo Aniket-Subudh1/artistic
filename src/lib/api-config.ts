@@ -318,13 +318,17 @@ export const apiRequest = async <T>(
       },
     });
 
+    const contentType = response.headers.get('content-type');
+
     if (response.status === 401) {
       if (requireAuth) {
         handleUnauthorized();
         throw new APIError(401, 'Unauthorized - Please login again');
       } else {
-        // For public endpoints, don't handle unauthorized automatically
-        throw new APIError(401, 'Authentication required for this resource');
+        // For public endpoints, log warning but don't throw - return empty response
+        console.warn('401 on public endpoint - backend may require auth config check');
+        // Return empty data structure based on content type
+        return (contentType && contentType.includes('application/json') ? [] : {}) as T;
       }
     }
 
@@ -348,15 +352,19 @@ export const apiRequest = async <T>(
       );
     }
 
-    const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
       return await response.json();
     }
     
     return response as unknown as T;
   } catch (error) {
-    // Don't propagate 401 errors as they might cause unwanted logouts
+    // Handle 401 errors gracefully
     if (error instanceof APIError && error.status === 401) {
+      if (!requireAuth) {
+        // For public endpoints, return empty data instead of throwing
+        console.warn('API 401 on public endpoint - returning empty data');
+        return [] as T;
+      }
       console.warn('API 401 error caught:', error.message);
       throw new APIError(401, 'Authentication required');
     }

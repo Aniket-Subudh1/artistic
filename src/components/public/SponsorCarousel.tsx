@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
-import { SponsorService, Sponsor } from '@/services/sponsor.service';
+import { Sponsor } from '@/services/sponsor.service';
 import { useLocale } from 'next-intl';
 import { ExternalLink, Award, Star } from 'lucide-react';
+import { useActiveSponsors } from '@/hooks/useHomePageData';
 
 interface SponsorCarouselProps {
   className?: string;
@@ -21,34 +22,10 @@ export default function SponsorCarousel({
 }: SponsorCarouselProps) {
   const locale = useLocale();
   const isRTL = locale === 'ar';
-  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
 
-  // Load sponsors from API
-  useEffect(() => {
-    const loadSponsors = async () => {
-      try {
-        setIsLoading(true);
-        const apiSponsors = await SponsorService.getActiveSponsors();
-        
-        if (apiSponsors && apiSponsors.length > 0) {
-          setSponsors(apiSponsors);
-        } else {
-          // No sponsors available
-          setSponsors([]);
-        }
-      } catch (error) {
-        console.error('Failed to load sponsors:', error);
-        // No sponsors on error
-        setSponsors([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadSponsors();
-  }, []);
+  // Fetch sponsors with React Query caching
+  const { data: sponsors = [], isLoading } = useActiveSponsors();
 
   // Double the sponsors array for seamless infinite scroll
   const displaySponsors = [...sponsors, ...sponsors];

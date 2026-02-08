@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import Image from 'next/image';
-import { TestimonialService, type Testimonial } from '@/services/testimonial.service';
+import { type Testimonial } from '@/services/testimonial.service';
 import { Star } from 'lucide-react';
+import { useActiveTestimonials } from '@/hooks/useHomePageData';
 
 // Fallback testimonials matching the design from the image
 const FALLBACK_TESTIMONIALS: Testimonial[] = [
@@ -55,29 +56,18 @@ const FALLBACK_TESTIMONIALS: Testimonial[] = [
 ];
 
 export default function Testimonials() {
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Fetch testimonials with React Query caching
+  const { data: apiTestimonials, isLoading: loading, error: queryError } = useActiveTestimonials();
 
-  useEffect(() => {
-    fetchTestimonials();
-  }, []);
-
-  const fetchTestimonials = async () => {
-    try {
-      setError(null);
-      const data = await TestimonialService.getActiveTestimonials();
-      // Use real testimonials if available, otherwise use fallback
-      setTestimonials(data.length > 0 ? data : FALLBACK_TESTIMONIALS);
-    } catch (error) {
-      console.error('Failed to fetch testimonials:', error);
-      setError('Unable to load testimonials. Showing default testimonials.');
-      // On error, use fallback testimonials
-      setTestimonials(FALLBACK_TESTIMONIALS);
-    } finally {
-      setLoading(false);
+  // Use real testimonials if available, otherwise use fallback
+  const testimonials = useMemo(() => {
+    if (apiTestimonials && apiTestimonials.length > 0) {
+      return apiTestimonials;
     }
-  };
+    return FALLBACK_TESTIMONIALS;
+  }, [apiTestimonials]);
+
+  const error = queryError ? 'Unable to load testimonials. Showing default testimonials.' : null;
 
   const renderStars = (rating: number) => {
     return (
