@@ -146,7 +146,7 @@ export function Navbar() {
       label: t('planEvent'),
       dropdown: [
         {
-          href: "/artist",
+          href: "/artists",
           label: t('bookArtist'),
           icon: Mic,
           description: t('bookArtistDesc')
